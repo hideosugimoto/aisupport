@@ -1,0 +1,11 @@
+{
+  "anxiety_mode_threshold": 2,
+  "default_timeout_ms": 30000,
+  "max_retry_count": 3,
+  "enabled_providers": ["openai", "gemini"],
+  "default_provider": "openai",
+  "default_model": {
+    "openai": "gpt-4o-mini",
+    "gemini": "gemini-2.0-flash"
+  }
+}

@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model LlmUsageLog {
+  id           Int      @id @default(autoincrement())
+  provider     String
+  model        String
+  inputTokens  Int      @map("input_tokens")
+  outputTokens Int      @map("output_tokens")
+  totalTokens  Int      @map("total_tokens")
+  feature      String
+  requestId    String?  @map("request_id")
+  metadata     String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("llm_usage_logs")
+}

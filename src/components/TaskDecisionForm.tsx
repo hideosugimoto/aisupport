@@ -1,0 +1,342 @@
+"use client";
+
+import { useReducer, useState } from "react";
+import { DecisionResult } from "./DecisionResult";
+import featuresConfig from "../../config/features.json";
+
+type UIState = "idle" | "loading" | "streaming" | "completed" | "error";
+
+interface State {
+  status: UIState;
+  content: string;
+  isAnxietyMode: boolean;
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  error: string | null;
+}
+
+type Action =
+  | { type: "START_LOADING" }
+  | { type: "START_STREAMING" }
+  | { type: "APPEND_CONTENT"; content: string }
+  | {
+      type: "COMPLETE";
+      provider: string;
+      model: string;
+      inputTokens: number;
+      outputTokens: number;
+      isAnxietyMode: boolean;
+    }
+  | {
+      type: "COMPLETE_STREAM";
+      inputTokens: number;
+      outputTokens: number;
+    }
+  | { type: "ERROR"; error: string }
+  | { type: "RESET" };
+
+const initialState: State = {
+  status: "idle",
+  content: "",
+  isAnxietyMode: false,
+  provider: "",
+  model: "",
+  inputTokens: 0,
+  outputTokens: 0,
+  error: null,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "START_LOADING":
+      return { ...initialState, status: "loading" };
+    case "START_STREAMING":
+      return { ...state, status: "streaming" };
+    case "APPEND_CONTENT":
+      return { ...state, content: state.content + action.content };
+    case "COMPLETE":
+      return {
+        ...state,
+        status: "completed",
+        content: state.content || "",
+        provider: action.provider,
+        model: action.model,
+        inputTokens: action.inputTokens,
+        outputTokens: action.outputTokens,
+        isAnxietyMode: action.isAnxietyMode,
+      };
+    case "COMPLETE_STREAM":
+      return {
+        ...state,
+        status: "completed",
+        inputTokens: action.inputTokens,
+        outputTokens: action.outputTokens,
+      };
+    case "ERROR":
+      return { ...state, status: "error", error: action.error };
+    case "RESET":
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+export function TaskDecisionForm() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [tasks, setTasks] = useState<string[]>([""]);
+  const [availableTime, setAvailableTime] = useState(60);
+  const [energyLevel, setEnergyLevel] = useState(3);
+  const [provider, setProvider] = useState(featuresConfig.default_provider);
+
+  const addTask = () => {
+    if (tasks.length < 10) setTasks([...tasks, ""]);
+  };
+  const removeTask = (index: number) => {
+    if (tasks.length > 1) setTasks(tasks.filter((_, i) => i !== index));
+  };
+  const updateTask = (index: number, value: string) => {
+    const updated = [...tasks];
+    updated[index] = value;
+    setTasks(updated);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    dispatch({ type: "START_LOADING" });
+
+    try {
+      const response = await fetch("/api/decide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tasks: tasks.filter((t) => t.trim().length > 0),
+          availableTime,
+          energyLevel,
+          provider,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        dispatch({
+          type: "ERROR",
+          error: errorData.errors?.join(", ") ?? errorData.error ?? "エラーが発生しました",
+        });
+        return;
+      }
+
+      dispatch({ type: "START_STREAMING" });
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader");
+
+      const decoder = new TextDecoder();
+      let lastInputTokens = 0;
+      let lastOutputTokens = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split("\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+
+          try {
+            const chunk = JSON.parse(data);
+            if (chunk.error) {
+              dispatch({ type: "ERROR", error: chunk.error.error });
+              return;
+            }
+            if (chunk.content) {
+              dispatch({ type: "APPEND_CONTENT", content: chunk.content });
+            }
+            if (chunk.usage) {
+              lastInputTokens = chunk.usage.inputTokens;
+              lastOutputTokens = chunk.usage.outputTokens;
+            }
+          } catch {
+            // skip invalid JSON
+          }
+        }
+      }
+
+      dispatch({
+        type: "COMPLETE",
+        provider,
+        model:
+          featuresConfig.default_model[
+            provider as keyof typeof featuresConfig.default_model
+          ],
+        inputTokens: lastInputTokens,
+        outputTokens: lastOutputTokens,
+        isAnxietyMode: energyLevel <= featuresConfig.anxiety_mode_threshold,
+      });
+    } catch (error) {
+      dispatch({
+        type: "ERROR",
+        error: error instanceof Error ? error.message : "通信エラー",
+      });
+    }
+  };
+
+  const isSubmitting = state.status === "loading" || state.status === "streaming";
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* タスク候補 */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            タスク候補
+          </label>
+          {tasks.map((task, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={task}
+                onChange={(e) => updateTask(index, e.target.value)}
+                maxLength={200}
+                placeholder={`タスク ${index + 1}`}
+                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              {tasks.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeTask(index)}
+                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-700"
+                >
+                  -
+                </button>
+              )}
+            </div>
+          ))}
+          {tasks.length < 10 && (
+            <button
+              type="button"
+              onClick={addTask}
+              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            >
+              + タスクを追加
+            </button>
+          )}
+        </div>
+
+        {/* 利用可能時間 */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            利用可能時間（分）
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={1440}
+            value={availableTime}
+            onChange={(e) => setAvailableTime(Number(e.target.value))}
+            className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          />
+        </div>
+
+        {/* エネルギー状態 */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            エネルギー状態
+          </label>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((level) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => setEnergyLevel(level)}
+                className={`w-10 h-10 rounded-lg text-sm font-medium border transition-colors ${
+                  energyLevel === level
+                    ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
+                    : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
+          {energyLevel <= featuresConfig.anxiety_mode_threshold && (
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              低エネルギーモードが有効になります
+            </p>
+          )}
+        </div>
+
+        {/* エンジン選択 */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            AIエンジン
+          </label>
+          <div className="flex gap-2">
+            {featuresConfig.enabled_providers.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setProvider(p)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium border transition-colors ${
+                  provider === p
+                    ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
+                    : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 送信 */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        >
+          {isSubmitting ? "判断中..." : "最適タスクを判断"}
+        </button>
+      </form>
+
+      {/* エラー表示 */}
+      {state.status === "error" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+          <p className="text-sm text-red-700 dark:text-red-300">{state.error}</p>
+          <button
+            onClick={() => dispatch({ type: "RESET" })}
+            className="mt-2 text-sm text-red-600 underline hover:text-red-800 dark:text-red-400"
+          >
+            リトライ
+          </button>
+        </div>
+      )}
+
+      {/* 結果表示 */}
+      {(state.status === "streaming" || state.status === "completed") &&
+        state.content && (
+          <DecisionResult
+            content={state.content}
+            isAnxietyMode={
+              energyLevel <= featuresConfig.anxiety_mode_threshold
+            }
+            provider={state.provider || provider}
+            model={
+              state.model ||
+              featuresConfig.default_model[
+                provider as keyof typeof featuresConfig.default_model
+              ]
+            }
+            inputTokens={state.inputTokens}
+            outputTokens={state.outputTokens}
+          />
+        )}
+    </div>
+  );
+}

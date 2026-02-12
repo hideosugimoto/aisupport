@@ -1,0 +1,17 @@
+{
+  "currency": "USD",
+  "exchange_rate_jpy": 150,
+  "providers": {
+    "openai": {
+      "gpt-4o-mini": { "input_per_1m": 0.15, "output_per_1m": 0.60 },
+      "gpt-4o": { "input_per_1m": 2.50, "output_per_1m": 10.00 }
+    },
+    "gemini": {
+      "gemini-2.0-flash": { "input_per_1m": 0.10, "output_per_1m": 0.40 },
+      "gemini-2.0-pro": { "input_per_1m": 1.25, "output_per_1m": 5.00 }
+    },
+    "claude": {
+      "claude-sonnet-4-20250514": { "input_per_1m": 3.00, "output_per_1m": 15.00 }
+    }
+  }
+}
