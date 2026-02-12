@@ -12,6 +12,12 @@ export default function Home() {
             </h1>
             <div className="flex gap-4">
               <Link
+                href="/compare"
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              >
+                比較
+              </Link>
+              <Link
                 href="/history"
                 className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
               >

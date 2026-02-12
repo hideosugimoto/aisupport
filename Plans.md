@@ -89,39 +89,45 @@
 
 ### 5. 並列AI比較
 
-- [ ] 39. ParallelDecisionEngine テスト＆実装 `[feature:tdd]`
-  - `src/lib/compare/parallel-engine.ts` 新規作成
-  - Promise.allSettled() で全有効エンジン同時呼び出し
-  - `__tests__/lib/compare/parallel-engine.test.ts` テスト
+- [x] 39. ParallelDecisionEngine テスト＆実装 `[feature:tdd]` `cc:done`
+  - `src/lib/compare/parallel-engine.ts` 新規作成 ✅
+  - Promise.allSettled() で全有効エンジン同時呼び出し ✅
+  - `__tests__/lib/compare/parallel-engine.test.ts` テスト (7テスト PASS) ✅
 
-- [ ] 40. /api/compare ルート + 比較画面 UI
-  - `POST /api/compare` — SSE で到着順に送信
-  - `src/app/compare/page.tsx` + `src/components/CompareResult.tsx`
-  - カード横並び、所要時間・コスト表示、「採用」ボタン
+- [x] 40. /api/compare ルート + 比較画面 UI `cc:done`
+  - `POST /api/compare` — JSON レスポンス（シンプル実装） ✅
+  - `src/app/compare/page.tsx` + `src/components/CompareResult.tsx` ✅
+  - カード横並び、所要時間・コスト表示 ✅
+  - ナビゲーションに「比較」リンク追加 ✅
 
 ### 6. 週次戦略レビュー
 
-- [ ] 41. 週次レビュープロンプト + WeeklyReviewEngine `[feature:tdd]`
-  - `prompts/weekly-review/system.md`, `user-template.md` 新規作成
-  - `src/lib/strategy/weekly-review.ts` 新規作成
-  - 直近7日の判定履歴を集約 → LLM で振り返り生成
-  - `__tests__/lib/strategy/weekly-review.test.ts` テスト
+- [x] 41. 週次レビュープロンプト + WeeklyReviewEngine `[feature:tdd]` `cc:done`
+  - `prompts/weekly-review/system.md`, `user-template.md` 新規作成 ✅
+  - `src/lib/strategy/weekly-review.ts` 新規作成 ✅
+  - 直近7日の判定履歴を集約 → LLM で振り返り生成 ✅
+  - `__tests__/lib/strategy/weekly-review.test.ts` テスト (8/8 PASS) ✅
 
-- [ ] 42. /api/weekly-review + CostDashboard レビューセクション
-  - `POST /api/weekly-review` — SSE ストリーミング
-  - `/cost` ページに「今週のレビュー」展開セクション追加
+- [x] 42. /api/weekly-review + CostDashboard レビューセクション `cc:done`
+  - `POST /api/weekly-review` — JSON レスポンス ✅
+  - `/cost` ページに「今週のレビュー」展開セクション追加 ✅
+  - アコーディオン UI + レビュー生成ボタン + 結果表示 ✅
 
 ### 7. プロンプト A/B テスト
 
-- [ ] 43. prompt-builder バージョン対応 `[feature:tdd]`
-  - loadTemplate() にバージョン指定パラメータ追加
-  - `prompts/task-decision/v2/` サンプルプロンプト作成
-  - `config/features.json` に `prompt_ab_test` 設定追加
-  - metadata に prompt_version 記録
-  - `__tests__/lib/llm/prompt-builder-ab.test.ts` テスト
+- [x] 43. prompt-builder バージョン対応 `[feature:tdd]` `cc:done`
+  - loadTemplate(type, name, version?) にオプショナル version パラメータ追加 ✅
+  - `prompts/task-decision/v2/` サンプルプロンプト作成（構造化された評価マトリクス形式） ✅
+  - `config/features.json` に `prompt_ab_test` 設定追加 ✅
+  - TaskDecisionEngine の metadata に prompt_version 記録 ✅
+  - A/B テスト用プロンプトバージョン選択ロジック実装 ✅
+  - `__tests__/lib/llm/prompt-builder-ab.test.ts` テスト (10/10 PASS) ✅
 
-- [ ] 44. CostDashboard バージョン別フィルタ
-  - プロンプトバージョン別のコスト・トークン比較表示
+- [x] 44. CostDashboard バージョン別フィルタ `cc:done`
+  - CostCalculator に getPromptVersionStats() メソッド追加 ✅
+  - /api/cost レスポンスに versionStats 追加 ✅
+  - CostDashboard にバージョン別統計テーブル追加 ✅
+  - バージョン名、使用回数、平均トークン数、コスト表示 ✅
 
 ### 8. E2E テスト (Playwright)
 

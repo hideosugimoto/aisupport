@@ -21,12 +21,26 @@ export default async function HistoryPage() {
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               判定履歴
             </h1>
-            <Link
-              href="/"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-            >
-              タスク決定に戻る
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                href="/compare"
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              >
+                比較
+              </Link>
+              <Link
+                href="/cost"
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              >
+                コスト確認
+              </Link>
+              <Link
+                href="/"
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              >
+                タスク決定に戻る
+              </Link>
+            </div>
           </div>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
             過去のAI判定結果を確認

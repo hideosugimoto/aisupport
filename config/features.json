@@ -10,5 +10,11 @@
     "claude": "claude-sonnet-4-20250514"
   },
   "monthly_budget_usd": 5.0,
-  "auto_fallback": false
+  "auto_fallback": false,
+  "prompt_ab_test": {
+    "enabled": false,
+    "variant_a": "default",
+    "variant_b": "v2",
+    "split_ratio": 0.5
+  }
 }

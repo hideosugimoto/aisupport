@@ -6,7 +6,18 @@ import featuresConfig from "../../../config/features.json";
 const PROMPTS_DIR = join(process.cwd(), "prompts");
 const templateCache = new Map<string, string>();
 
-function loadTemplate(relativePath: string): string {
+/**
+ * Load a prompt template file
+ * @param type - Template type (e.g., "task-decision", "task-breakdown")
+ * @param name - Template name (e.g., "system.md", "user-template.md")
+ * @param version - Optional version (e.g., "v2"). If specified, loads from {type}/{version}/{name}
+ * @returns Template content as string
+ */
+export function loadTemplate(type: string, name: string, version?: string): string {
+  const relativePath = version
+    ? `${type}/${version}/${name}`
+    : `${type}/${name}`;
+
   const cached = templateCache.get(relativePath);
   if (cached !== undefined) {
     return cached;
@@ -45,11 +56,12 @@ export interface TaskDecisionInput {
 }
 
 export function buildTaskDecisionMessages(
-  input: TaskDecisionInput
+  input: TaskDecisionInput,
+  version?: string
 ): Message[] {
-  const evaluationAxes = loadTemplate("shared/evaluation-axes.md");
-  const systemTemplate = loadTemplate("task-decision/system.md");
-  const userTemplate = loadTemplate("task-decision/user-template.md");
+  const evaluationAxes = loadTemplate("shared", "evaluation-axes.md");
+  const systemTemplate = loadTemplate("task-decision", "system.md", version);
+  const userTemplate = loadTemplate("task-decision", "user-template.md", version);
 
   const isAnxietyMode =
     input.energyLevel <= featuresConfig.anxiety_mode_threshold;
@@ -59,7 +71,7 @@ export function buildTaskDecisionMessages(
   });
 
   if (isAnxietyMode) {
-    const anxietyTemplate = loadTemplate("task-decision/anxiety-mode.md");
+    const anxietyTemplate = loadTemplate("task-decision", "anxiety-mode.md", version);
     systemPrompt += "\n\n" + anxietyTemplate;
   }
 
@@ -86,10 +98,11 @@ export interface TaskBreakdownInput {
 }
 
 export function buildTaskBreakdownMessages(
-  input: TaskBreakdownInput
+  input: TaskBreakdownInput,
+  version?: string
 ): Message[] {
-  const systemTemplate = loadTemplate("task-breakdown/system.md");
-  const userTemplate = loadTemplate("task-breakdown/user-template.md");
+  const systemTemplate = loadTemplate("task-breakdown", "system.md", version);
+  const userTemplate = loadTemplate("task-breakdown", "user-template.md", version);
 
   const isAnxietyMode =
     input.energyLevel <= featuresConfig.anxiety_mode_threshold;
@@ -97,7 +110,7 @@ export function buildTaskBreakdownMessages(
   let systemPrompt = systemTemplate;
 
   if (isAnxietyMode) {
-    const anxietyTemplate = loadTemplate("task-breakdown/anxiety-mode.md");
+    const anxietyTemplate = loadTemplate("task-breakdown", "anxiety-mode.md", version);
     systemPrompt += "\n\n" + anxietyTemplate;
   }
 
@@ -114,17 +127,17 @@ export function buildTaskBreakdownMessages(
 }
 
 const ALL_TEMPLATES = [
-  "shared/evaluation-axes.md",
-  "task-decision/system.md",
-  "task-decision/user-template.md",
-  "task-decision/anxiety-mode.md",
-  "task-breakdown/system.md",
-  "task-breakdown/user-template.md",
-  "task-breakdown/anxiety-mode.md",
+  { type: "shared", name: "evaluation-axes.md" },
+  { type: "task-decision", name: "system.md" },
+  { type: "task-decision", name: "user-template.md" },
+  { type: "task-decision", name: "anxiety-mode.md" },
+  { type: "task-breakdown", name: "system.md" },
+  { type: "task-breakdown", name: "user-template.md" },
+  { type: "task-breakdown", name: "anxiety-mode.md" },
 ];
 
 export function preloadTemplates(): void {
-  for (const path of ALL_TEMPLATES) {
-    loadTemplate(path);
+  for (const { type, name } of ALL_TEMPLATES) {
+    loadTemplate(type, name);
   }
 }

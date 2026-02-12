@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
     // 予算情報を取得
     const budget = await budgetChecker.checkBudget(year, month);
 
-    return Response.json({ summary, dailyCosts, budget });
+    // プロンプトバージョン別統計
+    const versionStats = await calculator.getPromptVersionStats(year, month);
+
+    return Response.json({ summary, dailyCosts, budget, versionStats });
   } catch (error) {
     return Response.json(
       { error: "コスト情報の取得に失敗しました" },

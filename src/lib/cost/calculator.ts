@@ -19,6 +19,17 @@ export interface MonthlyCostSummary {
   breakdowns: CostBreakdown[];
 }
 
+export interface PromptVersionStats {
+  version: string;
+  requestCount: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  avgInputTokens: number;
+  avgOutputTokens: number;
+  costUsd: number;
+  costJpy: number;
+}
+
 export class CostCalculator {
   constructor(private repository: UsageLogRepository) {}
 
@@ -67,6 +78,76 @@ export class CostCalculator {
         costUsd,
         costJpy: usdToJpy(costUsd),
       }));
+  }
+
+  async getPromptVersionStats(
+    year: number,
+    month: number
+  ): Promise<PromptVersionStats[]> {
+    const logs = await this.repository.findByMonth(year, month);
+
+    // metadata から prompt_version を抽出してグループ化
+    const versionMap = new Map<
+      string,
+      {
+        count: number;
+        totalInput: number;
+        totalOutput: number;
+        provider: string;
+        model: string;
+      }
+    >();
+
+    for (const log of logs) {
+      if (!log.metadata) continue;
+
+      try {
+        const metadata = JSON.parse(log.metadata);
+        const version = metadata.prompt_version || "default";
+
+        const existing = versionMap.get(version) || {
+          count: 0,
+          totalInput: 0,
+          totalOutput: 0,
+          provider: log.provider,
+          model: log.model,
+        };
+
+        versionMap.set(version, {
+          count: existing.count + 1,
+          totalInput: existing.totalInput + log.inputTokens,
+          totalOutput: existing.totalOutput + log.outputTokens,
+          provider: log.provider,
+          model: log.model,
+        });
+      } catch {
+        // JSON parse エラーは無視
+        continue;
+      }
+    }
+
+    // 統計情報を生成
+    return Array.from(versionMap.entries())
+      .map(([version, data]) => {
+        const costUsd = calculateCostUsd(
+          data.provider,
+          data.model,
+          data.totalInput,
+          data.totalOutput
+        );
+
+        return {
+          version,
+          requestCount: data.count,
+          totalInputTokens: data.totalInput,
+          totalOutputTokens: data.totalOutput,
+          avgInputTokens: Math.round(data.totalInput / data.count),
+          avgOutputTokens: Math.round(data.totalOutput / data.count),
+          costUsd,
+          costJpy: usdToJpy(costUsd),
+        };
+      })
+      .sort((a, b) => b.requestCount - a.requestCount); // リクエスト数降順
   }
 
   private toBreakdown(summary: ProviderCostSummary): CostBreakdown {
