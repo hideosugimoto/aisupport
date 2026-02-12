@@ -2,9 +2,15 @@ import { NextRequest } from "next/server";
 import { CostCalculator } from "@/lib/cost/calculator";
 import { PrismaUsageLogRepository } from "@/lib/db/prisma-usage-log-repository";
 import { prisma } from "@/lib/db/prisma";
+import { BudgetChecker } from "@/lib/budget/checker";
+import featuresConfig from "@/../config/features.json";
 
 const repository = new PrismaUsageLogRepository(prisma);
 const calculator = new CostCalculator(repository);
+const budgetChecker = new BudgetChecker(
+  calculator,
+  featuresConfig.monthly_budget_usd
+);
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +27,10 @@ export async function GET(request: NextRequest) {
     from.setDate(from.getDate() - 7);
     const dailyCosts = await calculator.getDailyCosts(from, to);
 
-    return Response.json({ summary, dailyCosts });
+    // 予算情報を取得
+    const budget = await budgetChecker.checkBudget(year, month);
+
+    return Response.json({ summary, dailyCosts, budget });
   } catch (error) {
     return Response.json(
       { error: "コスト情報の取得に失敗しました" },

@@ -24,9 +24,9 @@
   - `config/features.json` に `"claude"` 追加, `default_model.claude` ✅
   - `.env.local.example` に `ANTHROPIC_API_KEY` 追加 ✅
 
-- [ ] 28. UI にエンジン選択「Claude」追加
-  - TaskDecisionForm のプロバイダーボタンに Claude 追加
-  - ビルド確認
+- [x] 28. UI にエンジン選択「Claude」追加 `cc:done`
+  - TaskDecisionForm のプロバイダーボタンに Claude 追加 ✅
+  - ビルド確認 ✅
 
 ### 2. 履歴保存・検索
 
@@ -41,19 +41,19 @@
   - save, findAll, findByDateRange, search メソッド ✅
   - `__tests__/lib/db/task-decision-repository.test.ts` テスト (10/10 PASS) ✅
 
-- [ ] 31. /api/history ルート実装 `[feature:security]`
-  - `POST /api/history` — 判定結果保存
-  - `GET /api/history` — 検索 + ページネーション
-  - バリデーション + エラーハンドリング
+- [x] 31. /api/history ルート実装 `[feature:security]` `cc:done`
+  - `POST /api/history` — 判定結果保存 ✅
+  - `GET /api/history` — 検索 + ページネーション ✅
+  - バリデーション + エラーハンドリング ✅
 
-- [ ] 32. 履歴画面 UI 作成
-  - `src/app/history/page.tsx` 新規作成
-  - `src/components/HistoryList.tsx` 一覧コンポーネント
-  - キーワード検索、展開表示、「再利用」ボタン
+- [x] 32. 履歴画面 UI 作成 `cc:done`
+  - `src/app/history/page.tsx` 新規作成 ✅
+  - `src/components/HistoryList.tsx` 一覧コンポーネント ✅
+  - キーワード検索、展開表示、ページネーション ✅
 
-- [ ] 33. TaskDecisionForm に自動保存追加
-  - completed 時にバックグラウンドで POST /api/history
-  - ナビゲーションに履歴リンク追加
+- [x] 33. TaskDecisionForm に自動保存追加 `cc:done`
+  - completed 時にバックグラウンドで POST /api/history ✅
+  - ナビゲーションに履歴リンク追加 ✅
 
 ### 3. 予算アラート
 
@@ -63,12 +63,15 @@
   - `__tests__/lib/budget/checker.test.ts` テスト (7テスト) ✅
   - `config/features.json` に `monthly_budget_usd: 5.0` 追加 ✅
 
-- [ ] 35. /api/cost 拡張 + CostDashboard 予算表示
-  - GET /api/cost レスポンスに budget フィールド追加
-  - CostDashboard に予算プログレスバー + 警告バナー
+- [x] 35. /api/cost 拡張 + CostDashboard 予算表示 `cc:done`
+  - GET /api/cost レスポンスに budget フィールド追加 ✅
+  - CostDashboard に予算プログレスバー + 警告バナー ✅
+  - alertLevel に応じた色分け (ok=green, warning=yellow, exceeded=red) ✅
 
-- [ ] 36. タスク判定時の予算超過確認
-  - TaskDecisionForm で exceeded 時に確認ダイアログ表示
+- [x] 36. タスク判定時の予算超過確認 `cc:done`
+  - TaskDecisionForm で exceeded 時に確認ダイアログ表示 ✅
+  - warning 時に注意バナー表示 ✅
+  - フォーム送信前に GET /api/cost で予算状態確認 ✅
 
 ### 4. エンジン間自動フォールバック
 
@@ -78,10 +81,11 @@
   - RATE_LIMITED / SERVER_ERROR でフォールバック ✅
   - `__tests__/lib/llm/fallback-client.test.ts` テスト (11テスト) ✅
 
-- [ ] 38. client-factory フォールバック統合 + UI トグル
-  - auto_fallback: true 時に FallbackLLMClient でラップ
-  - `config/features.json` に `auto_fallback: false` 追加
-  - TaskDecisionForm にフォールバック ON/OFF トグル
+- [x] 38. client-factory フォールバック統合 + UI トグル `cc:done`
+  - auto_fallback: true 時に FallbackLLMClient でラップ ✅
+  - `config/features.json` に `auto_fallback: false` 追加 ✅
+  - TaskDecisionForm にフォールバック ON/OFF トグル ✅
+  - API routes (/api/decide, /api/breakdown) に fallback パラメータ追加 ✅
 
 ### 5. 並列AI比較
 

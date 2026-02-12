@@ -26,9 +26,18 @@ interface DailyCost {
   costJpy: number;
 }
 
+interface BudgetStatus {
+  budgetUsd: number;
+  spentUsd: number;
+  remainingUsd: number;
+  percentUsed: number;
+  alertLevel: "ok" | "warning" | "exceeded";
+}
+
 interface CostData {
   summary: MonthlyCostSummary;
   dailyCosts: DailyCost[];
+  budget: BudgetStatus;
 }
 
 export function CostDashboard() {
@@ -65,11 +74,73 @@ export function CostDashboard() {
 
   if (!data) return null;
 
-  const { summary, dailyCosts } = data;
+  const { summary, dailyCosts, budget } = data;
   const maxDailyCost = Math.max(...dailyCosts.map((d) => d.costJpy), 0.01);
+
+  // 予算アラートレベルに応じた色とメッセージ
+  const getAlertColor = () => {
+    if (budget.alertLevel === "exceeded") return "red";
+    if (budget.alertLevel === "warning") return "yellow";
+    return "green";
+  };
+
+  const getProgressBarColor = () => {
+    if (budget.alertLevel === "exceeded") return "bg-red-600 dark:bg-red-500";
+    if (budget.alertLevel === "warning") return "bg-yellow-600 dark:bg-yellow-500";
+    return "bg-green-600 dark:bg-green-500";
+  };
 
   return (
     <div className="space-y-8">
+      {/* 予算警告バナー */}
+      {budget.alertLevel === "exceeded" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">
+            月間予算を超過しています
+          </p>
+        </div>
+      )}
+      {budget.alertLevel === "warning" && (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
+          <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+            予算の80%を超えました
+          </p>
+        </div>
+      )}
+
+      {/* 予算プログレスバー */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+          月間予算
+        </h2>
+        <div className="space-y-2">
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              ${budget.spentUsd.toFixed(2)}
+            </span>
+            <span className="text-sm text-zinc-400">
+              / ${budget.budgetUsd.toFixed(2)}
+            </span>
+          </div>
+          <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${getProgressBarColor()} transition-all duration-300`}
+              style={{
+                width: `${Math.min(budget.percentUsed, 100)}%`,
+              }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-500 dark:text-zinc-400">
+              使用率: {budget.percentUsed.toFixed(1)}%
+            </span>
+            <span className="text-zinc-500 dark:text-zinc-400">
+              残額: ${budget.remainingUsd.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* 当月合計 */}
       <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">

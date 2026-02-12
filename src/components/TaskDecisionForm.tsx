@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState } from "react";
+import { useReducer, useState, useEffect } from "react";
 import { DecisionResult } from "./DecisionResult";
 import { BreakdownResult } from "./BreakdownResult";
 import featuresConfig from "../../config/features.json";
@@ -134,6 +134,8 @@ export function TaskDecisionForm() {
   const [availableTime, setAvailableTime] = useState(60);
   const [energyLevel, setEnergyLevel] = useState(3);
   const [provider, setProvider] = useState(featuresConfig.default_provider);
+  const [autoFallback, setAutoFallback] = useState(false);
+  const [budgetWarning, setBudgetWarning] = useState<string | null>(null);
 
   const addTask = () => {
     if (tasks.length < 10) setTasks([...tasks, ""]);
@@ -149,6 +151,31 @@ export function TaskDecisionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 予算確認
+    try {
+      const costResponse = await fetch("/api/cost");
+      if (costResponse.ok) {
+        const costData = await costResponse.json();
+        if (costData.budget) {
+          if (costData.budget.alertLevel === "exceeded") {
+            const confirmed = window.confirm(
+              "月間予算を超過しています。それでも実行しますか？"
+            );
+            if (!confirmed) {
+              return;
+            }
+          } else if (costData.budget.alertLevel === "warning") {
+            setBudgetWarning("予算の80%を超えています。注意してください。");
+          } else {
+            setBudgetWarning(null);
+          }
+        }
+      }
+    } catch {
+      // 予算確認に失敗しても処理は継続
+    }
+
     dispatch({ type: "START_LOADING" });
 
     try {
@@ -161,6 +188,7 @@ export function TaskDecisionForm() {
           energyLevel,
           provider,
           stream: true,
+          fallback: autoFallback,
         }),
       });
 
@@ -232,6 +260,38 @@ export function TaskDecisionForm() {
     }
   };
 
+  // Auto-save to history when decision is completed
+  useEffect(() => {
+    if (state.status === "completed" && state.content) {
+      const saveToHistory = async () => {
+        try {
+          const firstTask = tasks.find((t) => t.trim().length > 0) || "Unknown task";
+          await fetch("/api/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskTitle: firstTask,
+              taskDescription: tasks.join(", "),
+              category: "task-decision",
+              urgency: energyLevel,
+              decision: state.content,
+              provider: state.provider,
+              model: state.model,
+              availableTime,
+              promptTokens: state.inputTokens,
+              completionTokens: state.outputTokens,
+              costUsd: 0, // TODO: Calculate actual cost
+            }),
+          });
+          console.log("Decision saved to history");
+        } catch (error) {
+          console.error("Failed to save to history:", error);
+        }
+      };
+      saveToHistory();
+    }
+  }, [state.status, state.content, state.provider, state.model, state.inputTokens, state.outputTokens, tasks, energyLevel, availableTime]);
+
   const handleBreakdown = async (task: string) => {
     dispatch({ type: "START_BREAKDOWN" });
 
@@ -245,6 +305,7 @@ export function TaskDecisionForm() {
           energyLevel,
           provider,
           stream: true,
+          fallback: autoFallback,
         }),
       });
 
@@ -314,6 +375,15 @@ export function TaskDecisionForm() {
 
   return (
     <div className="space-y-6">
+      {/* 予算警告バナー */}
+      {budgetWarning && (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
+          <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+            {budgetWarning}
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* タスク候補 */}
         <div>
@@ -416,6 +486,19 @@ export function TaskDecisionForm() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* フォールバックトグル */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={autoFallback}
+              onChange={(e) => setAutoFallback(e.target.checked)}
+              className="rounded border-zinc-300 dark:border-zinc-600"
+            />
+            自動フォールバック（エラー時に他のエンジンに切り替え）
+          </label>
         </div>
 
         {/* 送信 */}

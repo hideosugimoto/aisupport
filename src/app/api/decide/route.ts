@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
 
     const provider = body.provider as LLMProvider;
     const model = body.model ?? getDefaultModel(provider);
+    const enableFallback = body.fallback ?? false;
 
-    const client = createLLMClient(provider);
+    const client = createLLMClient(provider, undefined, enableFallback);
     const engine = new TaskDecisionEngine(client, repository, provider, model);
 
     if (body.stream) {
