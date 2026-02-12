@@ -4,6 +4,7 @@ import { OpenAIClient } from "./openai-client";
 import { GeminiClient } from "./gemini-client";
 import { ClaudeClient } from "./claude-client";
 import { FallbackLLMClient } from "./fallback-client";
+import { E2EMockClient } from "./e2e-mock-client";
 import featuresConfig from "../../../config/features.json";
 
 const defaultRetryConfig: RetryConfig = {
@@ -16,6 +17,11 @@ export function createLLMClient(
   retryConfig?: RetryConfig,
   enableFallback = false
 ): LLMClient {
+  // E2E_MOCK mode: return mock client for testing
+  if (process.env.E2E_MOCK === "true") {
+    return new E2EMockClient();
+  }
+
   const config = retryConfig ?? defaultRetryConfig;
   let client: LLMClient;
 

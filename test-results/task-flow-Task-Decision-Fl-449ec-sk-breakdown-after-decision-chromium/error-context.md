@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - heading "AI意思決定アシスタント" [level=1] [ref=e6]
+        - generic [ref=e7]:
+          - link "比較" [ref=e8] [cursor=pointer]:
+            - /url: /compare
+          - link "履歴" [ref=e9] [cursor=pointer]:
+            - /url: /history
+          - link "コスト確認" [ref=e10] [cursor=pointer]:
+            - /url: /cost
+      - paragraph [ref=e11]: 構造と論理で判断。選択肢を削り、完璧より前進。
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: タスク候補
+          - textbox "タスク 1" [ref=e17]: 分解対象タスク
+          - button "+ タスクを追加" [ref=e18]
+        - generic [ref=e19]:
+          - generic [ref=e20]: 利用可能時間（分）
+          - spinbutton [ref=e21]: "60"
+        - generic [ref=e22]:
+          - generic [ref=e23]: エネルギー状態
+          - generic [ref=e24]:
+            - button "1" [ref=e25]
+            - button "2" [ref=e26]
+            - button "3" [ref=e27]
+            - button "4" [ref=e28]
+            - button "5" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]: AIエンジン
+          - generic [ref=e32]:
+            - button "openai" [ref=e33]
+            - button "gemini" [ref=e34]
+            - button "claude" [ref=e35]
+        - generic [ref=e37]:
+          - checkbox "自動フォールバック（エラー時に他のエンジンに切り替え）" [ref=e38]
+          - text: 自動フォールバック（エラー時に他のエンジンに切り替え）
+        - button "最適タスクを判断" [ref=e39]
+      - alert [ref=e41]:
+        - paragraph [ref=e42]: リクエスト制限に達しました。しばらく待ってから再試行してください
+        - button "リトライ" [ref=e43]
+  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]:
+    - img [ref=e50]
+  - alert [ref=e53]
+```
