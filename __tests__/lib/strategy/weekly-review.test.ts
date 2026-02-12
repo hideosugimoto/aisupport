@@ -155,7 +155,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     expect(client.lastRequest.messages[1].content).toMatch(/\d{4}-\d{2}-\d{2}/);
   });
 
-  it("プロバイダー別のモデル選択", async () => {
+  it("プロバイダー別のモデル選択（config/features.json から取得）", async () => {
     const mockResponse: LLMResponse = {
       content: "レビュー",
       usage: mockUsage,
@@ -166,10 +166,10 @@ describe("DefaultWeeklyReviewEngine", () => {
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
     await engine.generateReview("claude");
-    expect(client.lastRequest.model).toBe("claude-3-5-sonnet-20241022");
+    expect(client.lastRequest.model).toBe("claude-sonnet-4-20250514");
 
     await engine.generateReview("gemini");
-    expect(client.lastRequest.model).toBe("gemini-2.0-flash-exp");
+    expect(client.lastRequest.model).toBe("gemini-2.0-flash");
 
     await engine.generateReview("openai");
     expect(client.lastRequest.model).toBe("gpt-4o-mini");
@@ -191,7 +191,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     expect(result.costUsd).toBeCloseTo(0.00045, 5);
   });
 
-  it("Geminiは無料なのでコスト0", async () => {
+  it("Geminiコスト計算（pricing.jsonから取得）", async () => {
     const mockResponse: LLMResponse = {
       content: "レビュー",
       usage: { inputTokens: 1000, outputTokens: 500, totalTokens: 1500 },
@@ -202,7 +202,9 @@ describe("DefaultWeeklyReviewEngine", () => {
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
     const result = await engine.generateReview("gemini");
-    expect(result.costUsd).toBe(0);
+    // Gemini (gemini-2.0-flash): input $0.10/M, output $0.40/M
+    // (1000/1M * 0.10) + (500/1M * 0.40) = 0.0001 + 0.0002 = 0.0003
+    expect(result.costUsd).toBeCloseTo(0.0003, 5);
   });
 
   it("決定履歴のフォーマットが正しい", async () => {

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 有効な全プロバイダーのクライアントを作成
-    const clients: Partial<Record<LLMProvider, any>> = {};
+    const clients: Partial<Record<LLMProvider, ReturnType<typeof createLLMClient>>> = {};
     for (const provider of featuresConfig.enabled_providers as LLMProvider[]) {
       clients[provider] = createLLMClient(provider);
     }

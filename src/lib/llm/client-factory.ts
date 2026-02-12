@@ -17,8 +17,8 @@ export function createLLMClient(
   retryConfig?: RetryConfig,
   enableFallback = false
 ): LLMClient {
-  // E2E_MOCK mode: return mock client for testing
-  if (process.env.E2E_MOCK === "true") {
+  // E2E_MOCK mode: return mock client for testing (disabled in production)
+  if (process.env.E2E_MOCK === "true" && process.env.NODE_ENV !== "production") {
     return new E2EMockClient();
   }
 

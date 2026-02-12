@@ -83,25 +83,13 @@ export function HistoryList({
     }
   };
 
-  const formatCost = (provider: string, inputTokens: number, outputTokens: number) => {
-    // Simple cost calculation (this should match the cost calculation in the app)
-    const costs: Record<string, { input: number; output: number }> = {
-      openai: { input: 0.00015, output: 0.0006 },
-      google: { input: 0.000075, output: 0.0003 },
-      claude: { input: 0.003, output: 0.015 },
-    };
-
-    const rates = costs[provider] || { input: 0, output: 0 };
-    const costUsd =
-      (inputTokens / 1000) * rates.input + (outputTokens / 1000) * rates.output;
-    return `$${costUsd.toFixed(6)}`;
-  };
-
   return (
     <div className="space-y-6">
       {/* Search */}
       <form onSubmit={handleSearch} className="flex gap-2">
+        <label htmlFor="history-search" className="sr-only">キーワードで検索</label>
         <input
+          id="history-search"
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

@@ -10,22 +10,32 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    const MAX_STRING_LENGTH = 10000;
+
     // Validation
     const errors: string[] = [];
     if (!body.taskTitle || typeof body.taskTitle !== "string") {
       errors.push("taskTitle is required and must be a string");
+    } else if (body.taskTitle.length > 200) {
+      errors.push("taskTitle must be at most 200 characters");
     }
     if (!body.taskDescription || typeof body.taskDescription !== "string") {
       errors.push("taskDescription is required and must be a string");
+    } else if (body.taskDescription.length > MAX_STRING_LENGTH) {
+      errors.push("taskDescription must be at most 10000 characters");
     }
     if (!body.category || typeof body.category !== "string") {
       errors.push("category is required and must be a string");
+    } else if (body.category.length > 100) {
+      errors.push("category must be at most 100 characters");
     }
     if (typeof body.urgency !== "number" || body.urgency < 1 || body.urgency > 5) {
       errors.push("urgency is required and must be a number between 1 and 5");
     }
     if (!body.decision || typeof body.decision !== "string") {
       errors.push("decision is required and must be a string");
+    } else if (body.decision.length > MAX_STRING_LENGTH) {
+      errors.push("decision must be at most 10000 characters");
     }
     if (!body.provider || typeof body.provider !== "string") {
       errors.push("provider is required and must be a string");

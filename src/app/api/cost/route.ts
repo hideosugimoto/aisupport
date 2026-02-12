@@ -19,19 +19,18 @@ export async function GET(request: NextRequest) {
     const year = Number(searchParams.get("year")) || now.getFullYear();
     const month = Number(searchParams.get("month")) || now.getMonth() + 1;
 
-    const summary = await calculator.getMonthlySummary(year, month);
-
-    // 直近7日の日別推移
+    // 直近7日の日別推移用の日付範囲
     const to = new Date();
     const from = new Date();
     from.setDate(from.getDate() - 7);
-    const dailyCosts = await calculator.getDailyCosts(from, to);
 
-    // 予算情報を取得
-    const budget = await budgetChecker.checkBudget(year, month);
-
-    // プロンプトバージョン別統計
-    const versionStats = await calculator.getPromptVersionStats(year, month);
+    // 並列実行: summary, dailyCosts, budget, versionStats
+    const [summary, dailyCosts, budget, versionStats] = await Promise.all([
+      calculator.getMonthlySummary(year, month),
+      calculator.getDailyCosts(from, to),
+      budgetChecker.checkBudget(year, month),
+      calculator.getPromptVersionStats(year, month),
+    ]);
 
     return Response.json({ summary, dailyCosts, budget, versionStats });
   } catch (error) {

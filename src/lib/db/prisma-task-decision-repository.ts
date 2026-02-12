@@ -35,6 +35,7 @@ export class PrismaTaskDecisionRepository implements TaskDecisionRepository {
         createdAt: { gte: from, lt: to },
       },
       orderBy: { createdAt: "desc" },
+      take: 500,
     });
   }
 

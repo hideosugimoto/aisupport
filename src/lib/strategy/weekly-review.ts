@@ -1,5 +1,7 @@
 import type { LLMClient, Message, TokenUsage } from "../llm/types";
 import type { TaskDecisionRepository } from "../db/types";
+import { getDefaultModel } from "../config/types";
+import { calculateCostUsd } from "../cost/pricing";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -127,28 +129,11 @@ ${d.result.split("\n").slice(0, 5).join("\n")}
   }
 
   private getModelForProvider(provider: string): string {
-    const modelMap: Record<string, string> = {
-      openai: "gpt-4o-mini",
-      gemini: "gemini-2.0-flash-exp",
-      claude: "claude-3-5-sonnet-20241022",
-    };
-    return modelMap[provider] || "gpt-4o-mini";
+    return getDefaultModel(provider) || "gpt-4o-mini";
   }
 
   private calculateCost(usage: TokenUsage, provider: string): number {
-    const costPerMillion: Record<
-      string,
-      { input: number; output: number }
-    > = {
-      openai: { input: 0.15, output: 0.6 },
-      gemini: { input: 0.0, output: 0.0 },
-      claude: { input: 3.0, output: 15.0 },
-    };
-
-    const rates = costPerMillion[provider] || costPerMillion.openai;
-    const inputCost = (usage.inputTokens / 1_000_000) * rates.input;
-    const outputCost = (usage.outputTokens / 1_000_000) * rates.output;
-
-    return inputCost + outputCost;
+    const model = this.getModelForProvider(provider);
+    return calculateCostUsd(provider, model, usage.inputTokens, usage.outputTokens);
   }
 }

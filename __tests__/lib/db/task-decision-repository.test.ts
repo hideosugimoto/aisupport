@@ -145,6 +145,7 @@ describe("PrismaTaskDecisionRepository", () => {
           createdAt: { gte: from, lt: to },
         },
         orderBy: { createdAt: "desc" },
+        take: 500,
       });
       expect(result).toEqual(mockRecords);
     });

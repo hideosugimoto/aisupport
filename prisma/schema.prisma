@@ -19,6 +19,7 @@ model LlmUsageLog {
   metadata     String?
   createdAt    DateTime @default(now()) @map("created_at")
 
+  @@index([createdAt])
   @@map("llm_usage_logs")
 }
 
@@ -32,5 +33,6 @@ model TaskDecision {
   result        String
   createdAt     DateTime @default(now()) @map("created_at")
 
+  @@index([createdAt])
   @@map("task_decisions")
 }

@@ -174,6 +174,11 @@ export function CostDashboard() {
           </div>
           <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
             <div
+              role="progressbar"
+              aria-valuenow={Math.round(budget.percentUsed)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`予算使用率 ${budget.percentUsed.toFixed(1)}%`}
               className={`h-full ${getProgressBarColor()} transition-all duration-300`}
               style={{
                 width: `${Math.min(budget.percentUsed, 100)}%`,
@@ -331,6 +336,7 @@ export function CostDashboard() {
       <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         <button
           onClick={() => setReviewExpanded(!reviewExpanded)}
+          aria-expanded={reviewExpanded}
           className="w-full p-6 text-left flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
         >
           <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
@@ -389,18 +395,8 @@ export function CostDashboard() {
                   <span>分析件数: {reviewData.decisionsCount}件</span>
                 </div>
 
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <div
-                    className="text-sm text-zinc-700 dark:text-zinc-300"
-                    dangerouslySetInnerHTML={{
-                      __html: reviewData.review
-                        .replace(/^### /gm, "<h3>")
-                        .replace(/\n/g, "</h3>\n")
-                        .replace(/^- /gm, "<li>")
-                        .replace(/<\/h3>\n<li>/g, "</h3>\n<ul>\n<li>")
-                        .replace(/(<li>.*\n)(?!<li>)/g, "$1</ul>\n"),
-                    }}
-                  />
+                <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                  {reviewData.review}
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
