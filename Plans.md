@@ -149,3 +149,23 @@
   - `npx tsc --noEmit` 型エラー 0
   - `npx next build` ビルド成功
   - 完了日時: 2026-02-12
+
+### Security Critical 対応
+
+- [x] 22. Rate Limiter IP スプーフィング対策 `cc:DONE` `[feature:security]`
+  - `x-forwarded-for` 直接信頼を廃止（最後のエントリを使用）
+  - `setInterval` を削除し、リクエスト時の遅延クリーンアップに変更
+  - Map サイズ上限 10000 でメモリリーク防止
+  - 完了日時: 2026-02-12
+
+- [x] 23. CSP unsafe-inline/unsafe-eval 除去 `cc:DONE` `[feature:security]`
+  - `unsafe-eval` を削除（本番不要）
+  - 環境別 CSP 設定（dev: 緩い / prod: 厳格）
+  - `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'` 追加
+  - 完了日時: 2026-02-12
+
+- [x] 24. 全体テスト＆ビルド確認 `cc:DONE`
+  - `npx vitest run` 全テスト PASS (60/60)
+  - `npx tsc --noEmit` 型エラー 0
+  - `npx next build` ビルド成功
+  - 完了日時: 2026-02-12
