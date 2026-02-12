@@ -448,7 +448,7 @@ export function TaskDecisionForm() {
                 key={level}
                 type="button"
                 onClick={() => setEnergyLevel(level)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium border transition-colors ${
+                className={`w-11 h-11 rounded-lg text-sm font-medium border transition-colors ${
                   energyLevel === level
                     ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
                     : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
@@ -476,7 +476,7 @@ export function TaskDecisionForm() {
                 key={p}
                 type="button"
                 onClick={() => setProvider(p)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium border transition-colors ${
+                className={`rounded-lg px-4 py-2.5 text-sm font-medium border transition-colors ${
                   provider === p
                     ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
                     : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"

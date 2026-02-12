@@ -16,12 +16,11 @@ export class E2EMockClient implements LLMClient {
   async chat(request: LLMRequest): Promise<LLMResponse> {
     this.callCount++;
 
-    // Check if this is a breakdown request
-    const lastMessage = request.messages[request.messages.length - 1];
+    // Check if this is a breakdown request by examining the system prompt
+    const systemMessage = request.messages.find((m) => m.role === "system");
     const isBreakdown =
-      lastMessage?.content.includes("サブタスク") ||
-      lastMessage?.content.includes("分解") ||
-      lastMessage?.content.includes("ステップ");
+      systemMessage?.content.includes("サブタスクに分解") ||
+      systemMessage?.content.includes("タスク分解");
 
     const content = isBreakdown
       ? this.getBreakdownResponse()

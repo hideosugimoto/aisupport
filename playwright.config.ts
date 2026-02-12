@@ -25,12 +25,8 @@ export default defineConfig({
 
   /* Run Next.js dev server before tests */
   webServer: {
-    command: 'E2E_MOCK=true npm run dev',
+    command: 'npm run dev:e2e',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    env: {
-      E2E_MOCK: 'true',
-      NODE_ENV: process.env.NODE_ENV || 'test',
-    },
+    reuseExistingServer: false,
   },
 });

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "dev:e2e": "E2E_MOCK=true next dev",
     "test:e2e": "E2E_MOCK=true npx playwright test"
   },
   "dependencies": {

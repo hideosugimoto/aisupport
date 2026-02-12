@@ -52,6 +52,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // E2Eテスト時はレート制限をスキップ
+  if (process.env.E2E_MOCK === "true" && process.env.NODE_ENV !== "production") {
+    return NextResponse.next();
+  }
+
   const ip = getClientIP(request);
   const now = Date.now();
 

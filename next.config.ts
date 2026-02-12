@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data:",
       "font-src 'self'",
       "connect-src 'self'",
+      "worker-src 'self'",
       // 追加のセキュリティディレクティブ
       "frame-ancestors 'none'", // iframe 埋め込みを禁止（X-Frame-Options と同等）
       "base-uri 'self'", // base タグの悪用防止

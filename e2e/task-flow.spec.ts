@@ -56,7 +56,7 @@ test.describe('Task Decision Flow', () => {
 
   test('should allow task breakdown after decision', async ({ page }) => {
     // Complete initial decision
-    await page.locator('input[placeholder*="タスク"]').first().fill('分解対象タスク');
+    await page.locator('input[placeholder*="タスク"]').first().fill('大きなタスク');
     await page.locator('button:has-text("openai")').click();
     await page.locator('button:has-text("最適タスクを判断")').click();
 
@@ -75,7 +75,7 @@ test.describe('Task Decision Flow', () => {
 
     // Verify breakdown content is displayed
     await expect(page.locator('text=要件定義')).toBeVisible();
-    await expect(page.locator('text=設計')).toBeVisible();
+    await expect(page.getByText('設計', { exact: true })).toBeVisible();
   });
 
   test('should show error when form is invalid', async ({ page }) => {
