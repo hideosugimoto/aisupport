@@ -1,6 +1,7 @@
 # Plans
 
 > Phase 1 完了タスク (1-24): [docs/plans/archive-phase1.md](docs/plans/archive-phase1.md)
+> Phase 2 完了タスク (25-48): 下記参照
 
 ## Phase 2（要件定義書 セクション10）
 
@@ -156,3 +157,41 @@
   - `npx tsc --noEmit` 型エラー 0 ✅
   - `npx next build` ビルド成功 ✅
   - `npx playwright test` E2E 20/22 PASS ✅
+
+---
+
+## Phase 3.1（E2E修正 + PWA化）
+
+> **Goal:** E2E全件グリーン + PWA対応でスマホ・PCから即起動
+> **Design:** `docs/plans/2026-02-12-phase3-1-design.md`
+
+### 1. E2E テスト修正
+
+- [ ] 49. E2E 環境変数伝播修正 → 22/22 PASS
+  - `playwright.config.ts` の webServer 設定見直し
+  - `e2e/task-flow.spec.ts` 2件の失敗修正
+  - `npx playwright test` 全件 PASS 確認
+
+### 2. PWA 対応
+
+- [ ] 50. PWA マニフェスト + アイコン
+  - `public/manifest.json` 作成
+  - アイコン生成 (192x192, 512x512)
+  - `src/app/layout.tsx` にメタタグ追加
+
+- [ ] 51. Service Worker 導入
+  - `@serwist/next` インストール + セットアップ
+  - NetworkFirst 戦略（オンライン前提）
+  - 静的アセットのみキャッシュ
+
+- [ ] 52. レスポンシブ微調整
+  - タッチターゲット 44x44px 確認
+  - モバイル表示のパディング・フォントサイズ調整
+
+### 3. 全体検証
+
+- [ ] 53. 全体テスト＆ビルド＆PWA確認
+  - `npx vitest run` 全テスト PASS
+  - `npx playwright test` E2E 22/22 PASS
+  - `npx next build` ビルド成功
+  - Lighthouse PWA スコア確認
