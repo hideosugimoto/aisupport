@@ -2,6 +2,7 @@ import type { LLMClient, LLMProvider } from "./types";
 import { LLMClientWrapper, type RetryConfig } from "./client-wrapper";
 import { OpenAIClient } from "./openai-client";
 import { GeminiClient } from "./gemini-client";
+import { ClaudeClient } from "./claude-client";
 import featuresConfig from "../../../config/features.json";
 
 const defaultRetryConfig: RetryConfig = {
@@ -22,6 +23,9 @@ export function createLLMClient(
       break;
     case "gemini":
       client = new GeminiClient();
+      break;
+    case "claude":
+      client = new ClaudeClient();
       break;
     default:
       throw new Error(`Unknown provider: ${provider}`);

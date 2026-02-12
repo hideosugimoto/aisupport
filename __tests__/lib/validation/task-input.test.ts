@@ -84,13 +84,18 @@ describe("validateTaskInput", () => {
 
   // エンジン選択バリデーション
   it("should fail with invalid provider", () => {
-    const result = validateTaskInput({ ...validInput, provider: "claude" });
+    const result = validateTaskInput({ ...validInput, provider: "invalid-provider" });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("エンジンを選択してください");
   });
 
   it("should pass with gemini provider", () => {
     const result = validateTaskInput({ ...validInput, provider: "gemini" });
+    expect(result.valid).toBe(true);
+  });
+
+  it("should pass with claude provider", () => {
+    const result = validateTaskInput({ ...validInput, provider: "claude" });
     expect(result.valid).toBe(true);
   });
 

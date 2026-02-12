@@ -2,10 +2,12 @@
   "anxiety_mode_threshold": 2,
   "default_timeout_ms": 30000,
   "max_retry_count": 3,
-  "enabled_providers": ["openai", "gemini"],
+  "enabled_providers": ["openai", "gemini", "claude"],
   "default_provider": "openai",
   "default_model": {
     "openai": "gpt-4o-mini",
-    "gemini": "gemini-2.0-flash"
-  }
+    "gemini": "gemini-2.0-flash",
+    "claude": "claude-sonnet-4-20250514"
+  },
+  "monthly_budget_usd": 5.0
 }

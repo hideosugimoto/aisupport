@@ -9,21 +9,20 @@
 
 ### 1. Claude API (Sonnet) 追加
 
-- [ ] 25. Anthropic SDK インストール + ClaudeClient テスト作成 `[feature:tdd]`
-  - `npm install @anthropic-ai/sdk`
-  - `__tests__/lib/llm/claude-client.test.ts` 新規作成
-  - MockLLMClient パターンで chat/chatStream/extractUsage テスト
+- [x] 25. Anthropic SDK インストール + ClaudeClient テスト作成 `[feature:tdd]` `cc:done`
+  - `npm install @anthropic-ai/sdk` ✅
+  - `__tests__/lib/llm/claude-client.test.ts` 新規作成 (10テスト) ✅
+  - MockLLMClient パターンで chat/chatStream/extractUsage テスト ✅
 
-- [ ] 26. ClaudeClient 実装
-  - `src/lib/llm/claude-client.ts` スタブ → 本実装
-  - chat(), chatStream(), extractUsage() メソッド
-  - Anthropic SDK の messages.create / messages.stream 使用
+- [x] 26. ClaudeClient 実装 `cc:done`
+  - `src/lib/llm/claude-client.ts` 本実装 ✅
+  - chat(), chatStream(), extractUsage() メソッド ✅
+  - Anthropic SDK の messages.create / messages.stream 使用 ✅
 
-- [ ] 27. client-factory + config 更新
-  - `src/lib/llm/client-factory.ts` に `claude` ケース追加
-  - `config/features.json` に `"claude"` 追加, `default_model.claude`
-  - `config/pricing.json` に Claude Sonnet 単価追加
-  - `.env.local.example` に `ANTHROPIC_API_KEY` 追加
+- [x] 27. client-factory + config 更新 `cc:done`
+  - `src/lib/llm/client-factory.ts` に `claude` ケース追加 ✅
+  - `config/features.json` に `"claude"` 追加, `default_model.claude` ✅
+  - `.env.local.example` に `ANTHROPIC_API_KEY` 追加 ✅
 
 - [ ] 28. UI にエンジン選択「Claude」追加
   - TaskDecisionForm のプロバイダーボタンに Claude 追加
@@ -31,15 +30,16 @@
 
 ### 2. 履歴保存・検索
 
-- [ ] 29. TaskDecision テーブル追加 (Prisma migration)
-  - `prisma/schema.prisma` に TaskDecision モデル追加
-  - `npx prisma migrate dev` 実行
+- [x] 29. TaskDecision テーブル追加 (Prisma migration) `cc:done`
+  - `prisma/schema.prisma` に TaskDecision モデル追加 ✅
+  - `npx prisma migrate dev` 実行 ✅
+  - Migration: 20260212054217_add_task_decisions
 
-- [ ] 30. TaskDecisionRepository テスト＆実装 `[feature:tdd]`
-  - `src/lib/db/types.ts` に TaskDecisionRepository interface 追加
-  - `src/lib/db/prisma-task-decision-repository.ts` 新規作成
-  - save, findAll, findByDateRange, search メソッド
-  - `__tests__/lib/db/task-decision-repository.test.ts` テスト
+- [x] 30. TaskDecisionRepository テスト＆実装 `[feature:tdd]` `cc:done`
+  - `src/lib/db/types.ts` に TaskDecisionRepository interface 追加 ✅
+  - `src/lib/db/prisma-task-decision-repository.ts` 新規作成 ✅
+  - save, findAll, findByDateRange, search メソッド ✅
+  - `__tests__/lib/db/task-decision-repository.test.ts` テスト (10/10 PASS) ✅
 
 - [ ] 31. /api/history ルート実装 `[feature:security]`
   - `POST /api/history` — 判定結果保存
@@ -57,11 +57,11 @@
 
 ### 3. 予算アラート
 
-- [ ] 34. BudgetChecker テスト＆実装 `[feature:tdd]`
-  - `src/lib/budget/checker.ts` 新規作成
-  - checkBudget(year, month) → alertLevel 判定
-  - `__tests__/lib/budget/checker.test.ts` テスト
-  - `config/features.json` に `monthly_budget_usd: 5.00` 追加
+- [x] 34. BudgetChecker テスト＆実装 `[feature:tdd]` `cc:done`
+  - `src/lib/budget/checker.ts` 新規作成 ✅
+  - checkBudget(year, month) → alertLevel 判定 ✅
+  - `__tests__/lib/budget/checker.test.ts` テスト (7テスト) ✅
+  - `config/features.json` に `monthly_budget_usd: 5.0` 追加 ✅
 
 - [ ] 35. /api/cost 拡張 + CostDashboard 予算表示
   - GET /api/cost レスポンスに budget フィールド追加
@@ -72,11 +72,11 @@
 
 ### 4. エンジン間自動フォールバック
 
-- [ ] 37. FallbackLLMClient テスト＆実装 `[feature:tdd]`
-  - `src/lib/llm/fallback-client.ts` 新規作成
-  - FallbackLLMClient implements LLMClient
-  - RATE_LIMITED / SERVER_ERROR でフォールバック
-  - `__tests__/lib/llm/fallback-client.test.ts` テスト
+- [x] 37. FallbackLLMClient テスト＆実装 `[feature:tdd]` `cc:done`
+  - `src/lib/llm/fallback-client.ts` 新規作成 ✅
+  - FallbackLLMClient implements LLMClient ✅
+  - RATE_LIMITED / SERVER_ERROR でフォールバック ✅
+  - `__tests__/lib/llm/fallback-client.test.ts` テスト (11テスト) ✅
 
 - [ ] 38. client-factory フォールバック統合 + UI トグル
   - auto_fallback: true 時に FallbackLLMClient でラップ

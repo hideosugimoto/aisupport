@@ -21,3 +21,16 @@ model LlmUsageLog {
 
   @@map("llm_usage_logs")
 }
+
+model TaskDecision {
+  id            Int      @id @default(autoincrement())
+  tasksInput    String   @map("tasks_input")
+  energyLevel   Int      @map("energy_level")
+  availableTime Int      @map("available_time")
+  provider      String
+  model         String
+  result        String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("task_decisions")
+}

@@ -29,3 +29,30 @@ export interface UsageLogRepository {
     month: number
   ): Promise<ProviderCostSummary[]>;
 }
+
+export interface TaskDecisionEntry {
+  tasksInput: string; // JSON string of task array
+  energyLevel: number;
+  availableTime: number;
+  provider: string;
+  model: string;
+  result: string;
+}
+
+export interface TaskDecisionRecord extends TaskDecisionEntry {
+  id: number;
+  createdAt: Date;
+}
+
+export interface TaskDecisionRepository {
+  save(entry: TaskDecisionEntry): Promise<void>;
+  findAll(limit: number, offset: number): Promise<TaskDecisionRecord[]>;
+  findByDateRange(from: Date, to: Date): Promise<TaskDecisionRecord[]>;
+  search(
+    keyword: string,
+    limit: number,
+    offset: number
+  ): Promise<TaskDecisionRecord[]>;
+  count(): Promise<number>;
+  countBySearch(keyword: string): Promise<number>;
+}
