@@ -1,171 +1,144 @@
 # Plans
 
-## ✅ 完了したタスク
+> Phase 1 完了タスク (1-24): [docs/plans/archive-phase1.md](docs/plans/archive-phase1.md)
 
-- [x] DecisionResult.tsx の XSS脆弱性を修正 `cc:DONE`
-  - 依頼内容: dangerouslySetInnerHTML を削除し、React要素による安全なマークダウンレンダリングに書き換え
-  - 追加日時: 2026-02-12
-  - 完了日時: 2026-02-12
-  - 変更内容:
-    - `dangerouslySetInnerHTML` を削除
-    - `formatMarkdown` 関数を削除
-    - `MarkdownContent` コンポーネントを追加（React要素として安全にレンダリング）
-    - `formatInlineMarkdown` 関数を追加（インライン要素の処理）
-    - ビルド成功確認済み
+## Phase 2（要件定義書 セクション10）
 
-## 🟡 未着手のタスク
+> **Goal:** 全8機能 + E2E テスト基盤を実装
+> **Design:** `docs/plans/2026-02-12-phase2-design.md`
 
-### タスク分解機能（要件定義書 3.2） `[feature:tdd]`
+### 1. Claude API (Sonnet) 追加
 
-> **Goal:** タスク決定結果から選ばれたタスクを具体的なサブタスクに分解する機能
-> **Design:** `docs/plans/2026-02-12-task-breakdown.md`
-> **Architecture:** TaskDecisionEngine と同パターンで TaskBreakdownEngine を実装。SSE ストリーミング対応。DecisionResult にボタン追加、同一画面内インライン表示。
+- [ ] 25. Anthropic SDK インストール + ClaudeClient テスト作成 `[feature:tdd]`
+  - `npm install @anthropic-ai/sdk`
+  - `__tests__/lib/llm/claude-client.test.ts` 新規作成
+  - MockLLMClient パターンで chat/chatStream/extractUsage テスト
 
-- [x] 1. タスク分解プロンプトテンプレート作成 `cc:DONE`
-  - `prompts/task-breakdown/system.md` を本実装に置き換え
-  - `prompts/task-breakdown/user-template.md` 新規作成
-  - `prompts/task-breakdown/anxiety-mode.md` 新規作成（5〜10分粒度）
-  - 完了日時: 2026-02-12
+- [ ] 26. ClaudeClient 実装
+  - `src/lib/llm/claude-client.ts` スタブ → 本実装
+  - chat(), chatStream(), extractUsage() メソッド
+  - Anthropic SDK の messages.create / messages.stream 使用
 
-- [x] 2. buildTaskBreakdownMessages テスト作成 `cc:DONE` `[feature:tdd]`
-  - `__tests__/lib/llm/prompt-builder-breakdown.test.ts` 新規作成
-  - system/user メッセージ構築、anxiety mode ON/OFF の 5 テスト
-  - 完了日時: 2026-02-12
-  - テスト: PASS (5/5)
+- [ ] 27. client-factory + config 更新
+  - `src/lib/llm/client-factory.ts` に `claude` ケース追加
+  - `config/features.json` に `"claude"` 追加, `default_model.claude`
+  - `config/pricing.json` に Claude Sonnet 単価追加
+  - `.env.local.example` に `ANTHROPIC_API_KEY` 追加
 
-- [x] 3. buildTaskBreakdownMessages 実装 `cc:DONE`
-  - `src/lib/llm/prompt-builder.ts` に TaskBreakdownInput 型 + buildTaskBreakdownMessages 追加
-  - テスト GREEN 確認
-  - 完了日時: 2026-02-12
+- [ ] 28. UI にエンジン選択「Claude」追加
+  - TaskDecisionForm のプロバイダーボタンに Claude 追加
+  - ビルド確認
 
-- [x] 4. TaskBreakdownEngine テスト作成 `cc:DONE` `[feature:tdd]`
-  - `__tests__/lib/decision/task-breakdown-engine.test.ts` 新規作成
-  - LLM呼び出し、usage log 記録、カスタムモデルの 3 テスト
-  - 完了日時: 2026-02-12
-  - テスト: PASS (3/3)
+### 2. 履歴保存・検索
 
-- [x] 5. TaskBreakdownEngine 実装 `cc:DONE`
-  - `src/lib/decision/task-breakdown-engine.ts` 新規作成
-  - breakdown() + breakdownStream() メソッド（try/finally パターン）
-  - テスト GREEN 確認
-  - 完了日時: 2026-02-12
-  - 全テスト: PASS (57/57)
+- [ ] 29. TaskDecision テーブル追加 (Prisma migration)
+  - `prisma/schema.prisma` に TaskDecision モデル追加
+  - `npx prisma migrate dev` 実行
 
-- [x] 6. タスク分解バリデーション テスト＆実装 `cc:DONE` `[feature:tdd]`
-  - `__tests__/lib/validation/task-breakdown-input.test.ts` 新規作成（6テスト）
-  - `src/lib/validation/task-breakdown-input.ts` 新規作成
-  - 完了日時: 2026-02-12
-  - テスト: PASS (6/6)
-  - TypeScript: 型エラー 0件
+- [ ] 30. TaskDecisionRepository テスト＆実装 `[feature:tdd]`
+  - `src/lib/db/types.ts` に TaskDecisionRepository interface 追加
+  - `src/lib/db/prisma-task-decision-repository.ts` 新規作成
+  - save, findAll, findByDateRange, search メソッド
+  - `__tests__/lib/db/task-decision-repository.test.ts` テスト
 
-- [x] 7. /api/breakdown ルート実装 `cc:DONE` `[feature:security]`
-  - `src/app/api/breakdown/route.ts` スタブ → 本実装
-  - バリデーション → LLM呼び出し → SSE ストリーミング → エラーハンドリング
-  - エラーメッセージはサニタイズ済みの日本語メッセージ
-  - 完了日時: 2026-02-12
-  - TypeScript: 型エラー 0件
+- [ ] 31. /api/history ルート実装 `[feature:security]`
+  - `POST /api/history` — 判定結果保存
+  - `GET /api/history` — 検索 + ページネーション
+  - バリデーション + エラーハンドリング
 
-- [x] 8. BreakdownResult コンポーネント作成 `cc:DONE`
-  - `src/components/BreakdownResult.tsx` 新規作成
-  - anxiety mode 表示、MarkdownContent でレンダリング
-  - 完了日時: 2026-02-12
-  - TypeScript: 型エラー 0件
+- [ ] 32. 履歴画面 UI 作成
+  - `src/app/history/page.tsx` 新規作成
+  - `src/components/HistoryList.tsx` 一覧コンポーネント
+  - キーワード検索、展開表示、「再利用」ボタン
 
-- [x] 9. MarkdownContent 共有化 + DecisionResult にボタン追加 `cc:DONE`
-  - `src/components/MarkdownContent.tsx` を DecisionResult.tsx から抽出
-  - DecisionResult に `onBreakdown` コールバック prop 追加
-  - 「このタスクを分解する」ボタン表示
-  - 完了日時: 2026-02-12
-  - TypeScript: 型エラー 0件
+- [ ] 33. TaskDecisionForm に自動保存追加
+  - completed 時にバックグラウンドで POST /api/history
+  - ナビゲーションに履歴リンク追加
 
-- [x] 10. TaskDecisionForm にタスク分解状態管理追加 `cc:DONE`
-  - useReducer に breakdown 状態 (breakdownStatus, breakdownContent 等) 追加
-  - handleBreakdown 関数追加（/api/breakdown SSE ストリーミング）
-  - DecisionResult に onBreakdown={handleBreakdown} を渡す
-  - BreakdownResult をインライン表示
-  - 完了日時: 2026-02-12
-  - TypeScript: 型エラー 0件
+### 3. 予算アラート
 
-- [x] 11. 全体テスト＆ビルド確認 `cc:DONE`
-  - `npx vitest run` 全テスト PASS (57/57)
+- [ ] 34. BudgetChecker テスト＆実装 `[feature:tdd]`
+  - `src/lib/budget/checker.ts` 新規作成
+  - checkBudget(year, month) → alertLevel 判定
+  - `__tests__/lib/budget/checker.test.ts` テスト
+  - `config/features.json` に `monthly_budget_usd: 5.00` 追加
+
+- [ ] 35. /api/cost 拡張 + CostDashboard 予算表示
+  - GET /api/cost レスポンスに budget フィールド追加
+  - CostDashboard に予算プログレスバー + 警告バナー
+
+- [ ] 36. タスク判定時の予算超過確認
+  - TaskDecisionForm で exceeded 時に確認ダイアログ表示
+
+### 4. エンジン間自動フォールバック
+
+- [ ] 37. FallbackLLMClient テスト＆実装 `[feature:tdd]`
+  - `src/lib/llm/fallback-client.ts` 新規作成
+  - FallbackLLMClient implements LLMClient
+  - RATE_LIMITED / SERVER_ERROR でフォールバック
+  - `__tests__/lib/llm/fallback-client.test.ts` テスト
+
+- [ ] 38. client-factory フォールバック統合 + UI トグル
+  - auto_fallback: true 時に FallbackLLMClient でラップ
+  - `config/features.json` に `auto_fallback: false` 追加
+  - TaskDecisionForm にフォールバック ON/OFF トグル
+
+### 5. 並列AI比較
+
+- [ ] 39. ParallelDecisionEngine テスト＆実装 `[feature:tdd]`
+  - `src/lib/compare/parallel-engine.ts` 新規作成
+  - Promise.allSettled() で全有効エンジン同時呼び出し
+  - `__tests__/lib/compare/parallel-engine.test.ts` テスト
+
+- [ ] 40. /api/compare ルート + 比較画面 UI
+  - `POST /api/compare` — SSE で到着順に送信
+  - `src/app/compare/page.tsx` + `src/components/CompareResult.tsx`
+  - カード横並び、所要時間・コスト表示、「採用」ボタン
+
+### 6. 週次戦略レビュー
+
+- [ ] 41. 週次レビュープロンプト + WeeklyReviewEngine `[feature:tdd]`
+  - `prompts/weekly-review/system.md`, `user-template.md` 新規作成
+  - `src/lib/strategy/weekly-review.ts` 新規作成
+  - 直近7日の判定履歴を集約 → LLM で振り返り生成
+  - `__tests__/lib/strategy/weekly-review.test.ts` テスト
+
+- [ ] 42. /api/weekly-review + CostDashboard レビューセクション
+  - `POST /api/weekly-review` — SSE ストリーミング
+  - `/cost` ページに「今週のレビュー」展開セクション追加
+
+### 7. プロンプト A/B テスト
+
+- [ ] 43. prompt-builder バージョン対応 `[feature:tdd]`
+  - loadTemplate() にバージョン指定パラメータ追加
+  - `prompts/task-decision/v2/` サンプルプロンプト作成
+  - `config/features.json` に `prompt_ab_test` 設定追加
+  - metadata に prompt_version 記録
+  - `__tests__/lib/llm/prompt-builder-ab.test.ts` テスト
+
+- [ ] 44. CostDashboard バージョン別フィルタ
+  - プロンプトバージョン別のコスト・トークン比較表示
+
+### 8. E2E テスト (Playwright)
+
+- [ ] 45. Playwright セットアップ
+  - `npm install -D @playwright/test`
+  - `playwright.config.ts` 作成（Next.js dev server 自動起動）
+  - `E2E_MOCK=true` 環境変数対応を client-factory に追加
+
+- [ ] 46. E2E: タスク判定フロー
+  - `e2e/task-flow.spec.ts` 新規作成
+  - タスク入力 → エンジン選択 → 送信 → 結果表示 → 分解ボタン
+
+- [ ] 47. E2E: コスト + 履歴 + 比較
+  - `e2e/cost.spec.ts` — ダッシュボード表示 + 予算アラート
+  - `e2e/history.spec.ts` — 一覧・検索・展開
+  - `e2e/compare.spec.ts` — 並列比較フロー
+
+### 9. 全体検証
+
+- [ ] 48. 全体テスト＆ビルド確認
+  - `npx vitest run` 全テスト PASS
   - `npx tsc --noEmit` 型エラー 0
   - `npx next build` ビルド成功
-  - 完了日時: 2026-02-12
-
-### レビュー指摘対応（Security/Quality/Performance/a11y）
-
-- [x] 12. Rate Limiting 実装 `cc:DONE` `[feature:security]`
-  - `src/middleware.ts` 新規作成
-  - IP ベースのインメモリ rate limiter（外部依存なし）
-  - `/api/*` に 1分10リクエスト制限、429 レスポンス
-  - 完了日時: 2026-02-12
-
-- [x] 13. CSP/CORS ヘッダー設定 `cc:DONE` `[feature:security]`
-  - `next.config.ts` に `headers()` 追加
-  - X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP
-  - 完了日時: 2026-02-12
-
-- [x] 14. Prompt Injection 対策 `cc:DONE` `[feature:security]`
-  - `src/lib/llm/prompt-builder.ts` に `sanitizePromptInput()` 追加
-  - コードブロック・特殊トークン除去
-  - buildTaskDecisionMessages, buildTaskBreakdownMessages の入力に適用
-  - 完了日時: 2026-02-12
-
-- [x] 15. formatError 共通化 `cc:DONE`
-  - `src/lib/api/format-error.ts` 新規作成済み（既存）
-  - decide/route.ts と breakdown/route.ts から共通関数を import済み
-  - 完了日時: 2026-02-12
-
-- [x] 16. breakdownStream テスト追加 `cc:DONE` `[feature:tdd]`
-  - `__tests__/lib/decision/task-breakdown-engine.test.ts` にストリーミングテスト3件追加
-  - 正常系、usage 記録、エラー時のfinally確認
-  - 完了日時: 2026-02-12
-  - テスト: PASS (6/6)
-
-- [x] 17. featuresConfig 型安全性 `cc:DONE`
-  - `src/lib/config/types.ts` 新規作成（FeaturesConfig, ProviderKey, getDefaultModel）
-  - decide/breakdown route + engine 4ファイルから型アサーション除去
-  - 完了日時: 2026-02-12
-
-- [x] 18. テンプレートプリロード `cc:DONE`
-  - `src/lib/llm/prompt-builder.ts` に `preloadTemplates()` 追加
-  - 全7テンプレートを起動時にキャッシュ可能
-  - 完了日時: 2026-02-12
-
-- [x] 19. aria-live + aria-busy 追加 `cc:DONE` `[feature:a11y]`
-  - TaskDecisionForm: 結果表示エリアに `aria-live="polite"` 追加
-  - ローディング表示に `role="status"` + `aria-busy="true"` 追加
-  - エラー表示に `role="alert"` 追加
-  - 送信ボタンに `aria-busy` 追加
-  - 完了日時: 2026-02-12
-
-- [x] 20. MarkdownContent 見出しレベル対応 `cc:DONE` `[feature:a11y]`
-  - MarkdownContent に `headingOffset` prop 追加（デフォルト 0）
-  - h2 → h2+offset, h3 → h3+offset として適切なレベルに調整
-  - 完了日時: 2026-02-12
-
-- [x] 21. 全体テスト＆ビルド確認 `cc:DONE`
-  - `npx vitest run` 全テスト PASS (60/60)
-  - `npx tsc --noEmit` 型エラー 0
-  - `npx next build` ビルド成功
-  - 完了日時: 2026-02-12
-
-### Security Critical 対応
-
-- [x] 22. Rate Limiter IP スプーフィング対策 `cc:DONE` `[feature:security]`
-  - `x-forwarded-for` 直接信頼を廃止（最後のエントリを使用）
-  - `setInterval` を削除し、リクエスト時の遅延クリーンアップに変更
-  - Map サイズ上限 10000 でメモリリーク防止
-  - 完了日時: 2026-02-12
-
-- [x] 23. CSP unsafe-inline/unsafe-eval 除去 `cc:DONE` `[feature:security]`
-  - `unsafe-eval` を削除（本番不要）
-  - 環境別 CSP 設定（dev: 緩い / prod: 厳格）
-  - `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'` 追加
-  - 完了日時: 2026-02-12
-
-- [x] 24. 全体テスト＆ビルド確認 `cc:DONE`
-  - `npx vitest run` 全テスト PASS (60/60)
-  - `npx tsc --noEmit` 型エラー 0
-  - `npx next build` ビルド成功
-  - 完了日時: 2026-02-12
+  - `npx playwright test` E2E PASS
