@@ -68,3 +68,37 @@ export function buildTaskDecisionMessages(
     { role: "user", content: userPrompt },
   ];
 }
+
+export interface TaskBreakdownInput {
+  task: string;
+  availableTime: number;
+  energyLevel: number;
+}
+
+export function buildTaskBreakdownMessages(
+  input: TaskBreakdownInput
+): Message[] {
+  const systemTemplate = loadTemplate("task-breakdown/system.md");
+  const userTemplate = loadTemplate("task-breakdown/user-template.md");
+
+  const isAnxietyMode =
+    input.energyLevel <= featuresConfig.anxiety_mode_threshold;
+
+  let systemPrompt = systemTemplate;
+
+  if (isAnxietyMode) {
+    const anxietyTemplate = loadTemplate("task-breakdown/anxiety-mode.md");
+    systemPrompt += "\n\n" + anxietyTemplate;
+  }
+
+  const userPrompt = replaceVariables(userTemplate, {
+    task: input.task,
+    available_time: String(input.availableTime),
+    energy_level: String(input.energyLevel),
+  });
+
+  return [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+}

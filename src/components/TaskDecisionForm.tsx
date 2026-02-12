@@ -2,6 +2,7 @@
 
 import { useReducer, useState } from "react";
 import { DecisionResult } from "./DecisionResult";
+import { BreakdownResult } from "./BreakdownResult";
 import featuresConfig from "../../config/features.json";
 
 type UIState = "idle" | "loading" | "streaming" | "completed" | "error";
@@ -15,6 +16,11 @@ interface State {
   inputTokens: number;
   outputTokens: number;
   error: string | null;
+  breakdownStatus: "idle" | "loading" | "streaming" | "completed" | "error";
+  breakdownContent: string;
+  breakdownInputTokens: number;
+  breakdownOutputTokens: number;
+  breakdownError: string | null;
 }
 
 type Action =
@@ -35,7 +41,12 @@ type Action =
       outputTokens: number;
     }
   | { type: "ERROR"; error: string }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  | { type: "START_BREAKDOWN" }
+  | { type: "START_BREAKDOWN_STREAMING" }
+  | { type: "APPEND_BREAKDOWN_CONTENT"; content: string }
+  | { type: "COMPLETE_BREAKDOWN"; inputTokens: number; outputTokens: number }
+  | { type: "BREAKDOWN_ERROR"; error: string };
 
 const initialState: State = {
   status: "idle",
@@ -46,6 +57,11 @@ const initialState: State = {
   inputTokens: 0,
   outputTokens: 0,
   error: null,
+  breakdownStatus: "idle",
+  breakdownContent: "",
+  breakdownInputTokens: 0,
+  breakdownOutputTokens: 0,
+  breakdownError: null,
 };
 
 function reducer(state: State, action: Action): State {
@@ -78,6 +94,35 @@ function reducer(state: State, action: Action): State {
       return { ...state, status: "error", error: action.error };
     case "RESET":
       return initialState;
+    case "START_BREAKDOWN":
+      return {
+        ...state,
+        breakdownStatus: "loading",
+        breakdownContent: "",
+        breakdownInputTokens: 0,
+        breakdownOutputTokens: 0,
+        breakdownError: null,
+      };
+    case "START_BREAKDOWN_STREAMING":
+      return { ...state, breakdownStatus: "streaming" };
+    case "APPEND_BREAKDOWN_CONTENT":
+      return {
+        ...state,
+        breakdownContent: state.breakdownContent + action.content,
+      };
+    case "COMPLETE_BREAKDOWN":
+      return {
+        ...state,
+        breakdownStatus: "completed",
+        breakdownInputTokens: action.inputTokens,
+        breakdownOutputTokens: action.outputTokens,
+      };
+    case "BREAKDOWN_ERROR":
+      return {
+        ...state,
+        breakdownStatus: "error",
+        breakdownError: action.error,
+      };
     default:
       return state;
   }
@@ -182,6 +227,84 @@ export function TaskDecisionForm() {
     } catch (error) {
       dispatch({
         type: "ERROR",
+        error: error instanceof Error ? error.message : "通信エラー",
+      });
+    }
+  };
+
+  const handleBreakdown = async (task: string) => {
+    dispatch({ type: "START_BREAKDOWN" });
+
+    try {
+      const response = await fetch("/api/breakdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task,
+          availableTime,
+          energyLevel,
+          provider,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        dispatch({
+          type: "BREAKDOWN_ERROR",
+          error: errorData.errors?.join(", ") ?? errorData.error ?? "エラーが発生しました",
+        });
+        return;
+      }
+
+      dispatch({ type: "START_BREAKDOWN_STREAMING" });
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader");
+
+      const decoder = new TextDecoder();
+      let lastInputTokens = 0;
+      let lastOutputTokens = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split("\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") continue;
+
+          try {
+            const chunk = JSON.parse(data);
+            if (chunk.error) {
+              dispatch({ type: "BREAKDOWN_ERROR", error: chunk.error.error });
+              return;
+            }
+            if (chunk.content) {
+              dispatch({ type: "APPEND_BREAKDOWN_CONTENT", content: chunk.content });
+            }
+            if (chunk.usage) {
+              lastInputTokens = chunk.usage.inputTokens;
+              lastOutputTokens = chunk.usage.outputTokens;
+            }
+          } catch {
+            // skip invalid JSON
+          }
+        }
+      }
+
+      dispatch({
+        type: "COMPLETE_BREAKDOWN",
+        inputTokens: lastInputTokens,
+        outputTokens: lastOutputTokens,
+      });
+    } catch (error) {
+      dispatch({
+        type: "BREAKDOWN_ERROR",
         error: error instanceof Error ? error.message : "通信エラー",
       });
     }
@@ -335,6 +458,37 @@ export function TaskDecisionForm() {
             }
             inputTokens={state.inputTokens}
             outputTokens={state.outputTokens}
+            onBreakdown={state.status === "completed" ? handleBreakdown : undefined}
+          />
+        )}
+
+      {/* タスク分解ローディング */}
+      {state.breakdownStatus === "loading" && (
+        <div className="text-sm text-zinc-500 dark:text-zinc-400">タスクを分解中...</div>
+      )}
+
+      {/* タスク分解エラー */}
+      {state.breakdownStatus === "error" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+          <p className="text-sm text-red-700 dark:text-red-300">{state.breakdownError}</p>
+        </div>
+      )}
+
+      {/* タスク分解結果 */}
+      {(state.breakdownStatus === "streaming" || state.breakdownStatus === "completed") &&
+        state.breakdownContent && (
+          <BreakdownResult
+            content={state.breakdownContent}
+            isAnxietyMode={energyLevel <= featuresConfig.anxiety_mode_threshold}
+            provider={state.provider || provider}
+            model={
+              state.model ||
+              featuresConfig.default_model[
+                provider as keyof typeof featuresConfig.default_model
+              ]
+            }
+            inputTokens={state.breakdownInputTokens}
+            outputTokens={state.breakdownOutputTokens}
           />
         )}
     </div>
