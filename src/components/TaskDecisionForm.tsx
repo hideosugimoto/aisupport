@@ -134,6 +134,11 @@ export function TaskDecisionForm() {
   const [availableTime, setAvailableTime] = useState(60);
   const [energyLevel, setEnergyLevel] = useState(3);
   const [provider, setProvider] = useState(featuresConfig.default_provider);
+  const [model, setModel] = useState(
+    featuresConfig.default_model[
+      featuresConfig.default_provider as keyof typeof featuresConfig.default_model
+    ]
+  );
   const [autoFallback, setAutoFallback] = useState(false);
   const [budgetWarning, setBudgetWarning] = useState<string | null>(null);
 
@@ -187,6 +192,7 @@ export function TaskDecisionForm() {
           availableTime,
           energyLevel,
           provider,
+          model,
           stream: true,
           fallback: autoFallback,
         }),
@@ -244,10 +250,7 @@ export function TaskDecisionForm() {
       dispatch({
         type: "COMPLETE",
         provider,
-        model:
-          featuresConfig.default_model[
-            provider as keyof typeof featuresConfig.default_model
-          ],
+        model,
         inputTokens: lastInputTokens,
         outputTokens: lastOutputTokens,
         isAnxietyMode: energyLevel <= featuresConfig.anxiety_mode_threshold,
@@ -304,6 +307,7 @@ export function TaskDecisionForm() {
           availableTime,
           energyLevel,
           provider,
+          model,
           stream: true,
           fallback: autoFallback,
         }),
@@ -475,7 +479,14 @@ export function TaskDecisionForm() {
               <button
                 key={p}
                 type="button"
-                onClick={() => setProvider(p)}
+                onClick={() => {
+                  setProvider(p);
+                  setModel(
+                    featuresConfig.default_model[
+                      p as keyof typeof featuresConfig.default_model
+                    ]
+                  );
+                }}
                 className={`rounded-lg px-4 py-2.5 text-sm font-medium border transition-colors ${
                   provider === p
                     ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
@@ -486,6 +497,28 @@ export function TaskDecisionForm() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* モデル選択 */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            モデル
+          </label>
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          >
+            {(
+              featuresConfig.available_models[
+                provider as keyof typeof featuresConfig.available_models
+              ] ?? []
+            ).map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* フォールバックトグル */}
@@ -536,12 +569,7 @@ export function TaskDecisionForm() {
                 energyLevel <= featuresConfig.anxiety_mode_threshold
               }
               provider={state.provider || provider}
-              model={
-                state.model ||
-                featuresConfig.default_model[
-                  provider as keyof typeof featuresConfig.default_model
-                ]
-              }
+              model={state.model || model}
               inputTokens={state.inputTokens}
               outputTokens={state.outputTokens}
               onBreakdown={state.status === "completed" ? handleBreakdown : undefined}
@@ -569,12 +597,7 @@ export function TaskDecisionForm() {
               content={state.breakdownContent}
               isAnxietyMode={energyLevel <= featuresConfig.anxiety_mode_threshold}
               provider={state.provider || provider}
-              model={
-                state.model ||
-                featuresConfig.default_model[
-                  provider as keyof typeof featuresConfig.default_model
-                ]
-              }
+              model={state.model || model}
               inputTokens={state.breakdownInputTokens}
               outputTokens={state.breakdownOutputTokens}
             />

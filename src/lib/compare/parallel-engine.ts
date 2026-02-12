@@ -15,7 +15,7 @@ export interface CompareResult {
 }
 
 export interface ParallelDecisionEngine {
-  compareAll(input: TaskDecisionInput): Promise<CompareResult[]>;
+  compareAll(input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]>;
 }
 
 export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
@@ -23,7 +23,7 @@ export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
     private clients: Partial<Record<LLMProvider, LLMClient>>
   ) {}
 
-  async compareAll(input: TaskDecisionInput): Promise<CompareResult[]> {
+  async compareAll(input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]> {
     const messages = buildTaskDecisionMessages(input);
 
     // 各エンジンの実行タスクを準備
@@ -31,7 +31,7 @@ export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
       async ([provider, client]) => {
         const startTime = Date.now();
         const providerKey = provider as LLMProvider;
-        const model = getDefaultModel(providerKey);
+        const model = models?.[providerKey] ?? getDefaultModel(providerKey);
 
         try {
           const response = await client.chat({ model, messages });

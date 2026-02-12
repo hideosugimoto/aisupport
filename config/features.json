@@ -9,6 +9,11 @@
     "gemini": "gemini-2.0-flash",
     "claude": "claude-sonnet-4-20250514"
   },
+  "available_models": {
+    "openai": ["gpt-4o-mini", "gpt-4o"],
+    "gemini": ["gemini-2.0-flash", "gemini-2.0-pro"],
+    "claude": ["claude-sonnet-4-20250514", "claude-opus-4-20250514"]
+  },
   "monthly_budget_usd": 5.0,
   "auto_fallback": false,
   "prompt_ab_test": {

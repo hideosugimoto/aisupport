@@ -36,3 +36,48 @@ model TaskDecision {
   @@index([createdAt])
   @@map("task_decisions")
 }
+
+model Document {
+  id        Int             @id @default(autoincrement())
+  filename  String
+  mimeType  String          @map("mime_type")
+  sizeBytes Int             @map("size_bytes")
+  createdAt DateTime        @default(now()) @map("created_at")
+  chunks    DocumentChunk[]
+
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id         Int      @id @default(autoincrement())
+  documentId Int      @map("document_id")
+  content    String
+  chunkIndex Int      @map("chunk_index")
+  embedding  Bytes
+  createdAt  DateTime @default(now()) @map("created_at")
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("document_chunks")
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("push_subscriptions")
+}
+
+model NotificationSetting {
+  id               Int      @id @default(autoincrement())
+  reminderEnabled  Boolean  @default(false) @map("reminder_enabled")
+  reminderTime     String   @default("09:00") @map("reminder_time")
+  budgetAlert      Boolean  @default(true) @map("budget_alert")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_settings")
+}

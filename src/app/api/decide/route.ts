@@ -6,6 +6,9 @@ import { PrismaUsageLogRepository } from "@/lib/db/prisma-usage-log-repository";
 import { prisma } from "@/lib/db/prisma";
 import { formatError } from "@/lib/api/format-error";
 import { getDefaultModel } from "@/lib/config/types";
+import { DefaultRetriever } from "@/lib/rag/retriever";
+import { OpenAIEmbedder } from "@/lib/rag/embedder";
+import { PrismaVectorStore } from "@/lib/rag/vector-store";
 import type { LLMProvider } from "@/lib/llm/types";
 
 const repository = new PrismaUsageLogRepository(prisma);
@@ -31,6 +34,16 @@ export async function POST(request: NextRequest) {
 
     const client = createLLMClient(provider, undefined, enableFallback);
     const engine = new TaskDecisionEngine(client, repository, provider, model);
+
+    // RAG: ドキュメントがあれば retriever を設定
+    if (process.env.OPENAI_API_KEY) {
+      const vectorStore = new PrismaVectorStore();
+      const docs = await vectorStore.listDocuments();
+      if (docs.length > 0) {
+        const embedder = new OpenAIEmbedder();
+        engine.setRetriever(new DefaultRetriever(embedder, vectorStore));
+      }
+    }
 
     if (body.stream) {
       const encoder = new TextEncoder();

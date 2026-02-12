@@ -57,7 +57,8 @@ export interface TaskDecisionInput {
 
 export function buildTaskDecisionMessages(
   input: TaskDecisionInput,
-  version?: string
+  version?: string,
+  ragContext?: string
 ): Message[] {
   const evaluationAxes = loadTemplate("shared", "evaluation-axes.md");
   const systemTemplate = loadTemplate("task-decision", "system.md", version);
@@ -73,6 +74,10 @@ export function buildTaskDecisionMessages(
   if (isAnxietyMode) {
     const anxietyTemplate = loadTemplate("task-decision", "anxiety-mode.md", version);
     systemPrompt += "\n\n" + anxietyTemplate;
+  }
+
+  if (ragContext) {
+    systemPrompt += "\n\n" + ragContext;
   }
 
   const tasksFormatted = input.tasks

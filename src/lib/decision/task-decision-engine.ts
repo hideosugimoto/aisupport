@@ -1,5 +1,6 @@
 import type { LLMClient, LLMStreamChunk } from "../llm/types";
 import type { UsageLogRepository } from "../db/types";
+import type { Retriever } from "../rag/retriever";
 import {
   buildTaskDecisionMessages,
   type TaskDecisionInput,
@@ -19,6 +20,8 @@ export interface DecisionResult {
 }
 
 export class TaskDecisionEngine {
+  private retriever?: Retriever;
+
   constructor(
     private client: LLMClient,
     private repository: UsageLogRepository,
@@ -26,10 +29,27 @@ export class TaskDecisionEngine {
     private model?: string
   ) {}
 
+  setRetriever(retriever: Retriever): void {
+    this.retriever = retriever;
+  }
+
+  private async fetchRagContext(input: TaskDecisionInput): Promise<string | undefined> {
+    if (!this.retriever) return undefined;
+    try {
+      const query = input.tasks.join(" ");
+      const result = await this.retriever.retrieve(query);
+      return result.contextText || undefined;
+    } catch (error) {
+      console.warn("[RAG] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
+      return undefined;
+    }
+  }
+
   async decide(input: TaskDecisionInput): Promise<DecisionResult> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const messages = buildTaskDecisionMessages(input, promptVersion);
+    const ragContext = await this.fetchRagContext(input);
+    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
     const response = await this.client.chat({ model, messages });
@@ -97,7 +117,8 @@ export class TaskDecisionEngine {
   ): AsyncIterable<LLMStreamChunk> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const messages = buildTaskDecisionMessages(input, promptVersion);
+    const ragContext = await this.fetchRagContext(input);
+    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
     let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };

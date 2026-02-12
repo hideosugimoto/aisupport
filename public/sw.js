@@ -1,8 +1,8 @@
 // Service Worker for PWA installability
 // Strategy: NetworkFirst for all requests, static asset caching for performance
 
-const CACHE_NAME = "ai-assistant-v1";
-const STATIC_ASSETS = ["/", "/compare", "/history", "/cost"];
+const CACHE_NAME = "ai-assistant-v2";
+const STATIC_ASSETS = ["/", "/compare", "/history", "/cost", "/documents"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -41,5 +41,44 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => caches.match(request))
+  );
+});
+
+// Push notification handler
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body || "",
+      icon: "/icons/icon-192x192.svg",
+      badge: "/icons/icon-192x192.svg",
+      data: { url: data.url || "/" },
+    };
+
+    event.waitUntil(self.registration.showNotification(data.title || "AI意思決定アシスタント", options));
+  } catch {
+    // Ignore malformed push data
+  }
+});
+
+// Notification click handler
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      // Focus existing window if available
+      for (const client of clients) {
+        if (client.url.includes(url) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      // Open new window
+      return self.clients.openWindow(url);
+    })
   );
 });

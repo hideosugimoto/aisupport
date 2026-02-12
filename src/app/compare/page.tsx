@@ -4,12 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { CompareResult as CompareResultComponent } from "@/components/CompareResult";
 import type { CompareResult } from "@/lib/compare/parallel-engine";
+import featuresConfig from "../../../config/features.json";
 
 export default function ComparePage() {
   const [tasks, setTasks] = useState<string[]>([""]);
   const [availableTime, setAvailableTime] = useState(120);
   const [energyLevel, setEnergyLevel] = useState(3);
   const [results, setResults] = useState<CompareResult[]>([]);
+  const [models, setModels] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    for (const p of featuresConfig.enabled_providers) {
+      initial[p] = featuresConfig.default_model[p as keyof typeof featuresConfig.default_model];
+    }
+    return initial;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +49,7 @@ export default function ComparePage() {
           tasks: tasks.filter((t) => t.trim().length > 0),
           availableTime,
           energyLevel,
+          models,
         }),
       });
 
@@ -165,8 +174,41 @@ export default function ComparePage() {
               </div>
             </div>
 
+            {/* モデル選択（各プロバイダー） */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                各エンジンのモデル
+              </label>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {featuresConfig.enabled_providers.map((p) => (
+                  <div key={p}>
+                    <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                      {p}
+                    </label>
+                    <select
+                      value={models[p] ?? ""}
+                      onChange={(e) =>
+                        setModels((prev) => ({ ...prev, [p]: e.target.value }))
+                      }
+                      className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                    >
+                      {(
+                        featuresConfig.available_models[
+                          p as keyof typeof featuresConfig.available_models
+                        ] ?? []
+                      ).map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
                 {error}
               </div>
             )}

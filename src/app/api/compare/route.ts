@@ -29,11 +29,14 @@ export async function POST(request: NextRequest) {
 
     const engine = new DefaultParallelDecisionEngine(clients);
 
-    const results = await engine.compareAll({
-      tasks: body.tasks,
-      availableTime: body.availableTime,
-      energyLevel: body.energyLevel,
-    });
+    const results = await engine.compareAll(
+      {
+        tasks: body.tasks,
+        availableTime: body.availableTime,
+        energyLevel: body.energyLevel,
+      },
+      body.models
+    );
 
     return Response.json({ results });
   } catch (error) {
