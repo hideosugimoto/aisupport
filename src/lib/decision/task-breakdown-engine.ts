@@ -4,6 +4,7 @@ import {
   buildTaskBreakdownMessages,
   type TaskBreakdownInput,
 } from "../llm/prompt-builder";
+import { getDefaultModel } from "../config/types";
 import featuresConfig from "../../../config/features.json";
 
 export interface BreakdownResult {
@@ -25,11 +26,7 @@ export class TaskBreakdownEngine {
 
   async breakdown(input: TaskBreakdownInput): Promise<BreakdownResult> {
     const messages = buildTaskBreakdownMessages(input);
-    const model =
-      this.model ??
-      featuresConfig.default_model[
-        this.provider as keyof typeof featuresConfig.default_model
-      ];
+    const model = this.model ?? getDefaultModel(this.provider);
 
     const response = await this.client.chat({ model, messages });
 
@@ -57,11 +54,7 @@ export class TaskBreakdownEngine {
     input: TaskBreakdownInput
   ): AsyncIterable<LLMStreamChunk> {
     const messages = buildTaskBreakdownMessages(input);
-    const model =
-      this.model ??
-      featuresConfig.default_model[
-        this.provider as keyof typeof featuresConfig.default_model
-      ];
+    const model = this.model ?? getDefaultModel(this.provider);
 
     let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
     let hasUsage = false;

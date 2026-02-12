@@ -91,3 +91,61 @@
   - `npx tsc --noEmit` 型エラー 0
   - `npx next build` ビルド成功
   - 完了日時: 2026-02-12
+
+### レビュー指摘対応（Security/Quality/Performance/a11y）
+
+- [x] 12. Rate Limiting 実装 `cc:DONE` `[feature:security]`
+  - `src/middleware.ts` 新規作成
+  - IP ベースのインメモリ rate limiter（外部依存なし）
+  - `/api/*` に 1分10リクエスト制限、429 レスポンス
+  - 完了日時: 2026-02-12
+
+- [x] 13. CSP/CORS ヘッダー設定 `cc:DONE` `[feature:security]`
+  - `next.config.ts` に `headers()` 追加
+  - X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP
+  - 完了日時: 2026-02-12
+
+- [x] 14. Prompt Injection 対策 `cc:DONE` `[feature:security]`
+  - `src/lib/llm/prompt-builder.ts` に `sanitizePromptInput()` 追加
+  - コードブロック・特殊トークン除去
+  - buildTaskDecisionMessages, buildTaskBreakdownMessages の入力に適用
+  - 完了日時: 2026-02-12
+
+- [x] 15. formatError 共通化 `cc:DONE`
+  - `src/lib/api/format-error.ts` 新規作成済み（既存）
+  - decide/route.ts と breakdown/route.ts から共通関数を import済み
+  - 完了日時: 2026-02-12
+
+- [x] 16. breakdownStream テスト追加 `cc:DONE` `[feature:tdd]`
+  - `__tests__/lib/decision/task-breakdown-engine.test.ts` にストリーミングテスト3件追加
+  - 正常系、usage 記録、エラー時のfinally確認
+  - 完了日時: 2026-02-12
+  - テスト: PASS (6/6)
+
+- [x] 17. featuresConfig 型安全性 `cc:DONE`
+  - `src/lib/config/types.ts` 新規作成（FeaturesConfig, ProviderKey, getDefaultModel）
+  - decide/breakdown route + engine 4ファイルから型アサーション除去
+  - 完了日時: 2026-02-12
+
+- [x] 18. テンプレートプリロード `cc:DONE`
+  - `src/lib/llm/prompt-builder.ts` に `preloadTemplates()` 追加
+  - 全7テンプレートを起動時にキャッシュ可能
+  - 完了日時: 2026-02-12
+
+- [x] 19. aria-live + aria-busy 追加 `cc:DONE` `[feature:a11y]`
+  - TaskDecisionForm: 結果表示エリアに `aria-live="polite"` 追加
+  - ローディング表示に `role="status"` + `aria-busy="true"` 追加
+  - エラー表示に `role="alert"` 追加
+  - 送信ボタンに `aria-busy` 追加
+  - 完了日時: 2026-02-12
+
+- [x] 20. MarkdownContent 見出しレベル対応 `cc:DONE` `[feature:a11y]`
+  - MarkdownContent に `headingOffset` prop 追加（デフォルト 0）
+  - h2 → h2+offset, h3 → h3+offset として適切なレベルに調整
+  - 完了日時: 2026-02-12
+
+- [x] 21. 全体テスト＆ビルド確認 `cc:DONE`
+  - `npx vitest run` 全テスト PASS (60/60)
+  - `npx tsc --noEmit` 型エラー 0
+  - `npx next build` ビルド成功
+  - 完了日時: 2026-02-12

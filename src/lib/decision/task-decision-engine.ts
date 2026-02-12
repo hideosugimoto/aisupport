@@ -4,6 +4,7 @@ import {
   buildTaskDecisionMessages,
   type TaskDecisionInput,
 } from "../llm/prompt-builder";
+import { getDefaultModel } from "../config/types";
 import featuresConfig from "../../../config/features.json";
 
 export interface DecisionResult {
@@ -26,11 +27,7 @@ export class TaskDecisionEngine {
 
   async decide(input: TaskDecisionInput): Promise<DecisionResult> {
     const messages = buildTaskDecisionMessages(input);
-    const model =
-      this.model ??
-      featuresConfig.default_model[
-        this.provider as keyof typeof featuresConfig.default_model
-      ];
+    const model = this.model ?? getDefaultModel(this.provider);
 
     const response = await this.client.chat({ model, messages });
 
@@ -62,11 +59,7 @@ export class TaskDecisionEngine {
     input: TaskDecisionInput
   ): AsyncIterable<LLMStreamChunk> {
     const messages = buildTaskDecisionMessages(input);
-    const model =
-      this.model ??
-      featuresConfig.default_model[
-        this.provider as keyof typeof featuresConfig.default_model
-      ];
+    const model = this.model ?? getDefaultModel(this.provider);
 
     let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
     let hasUsage = false;

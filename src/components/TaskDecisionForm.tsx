@@ -422,75 +422,81 @@ export function TaskDecisionForm() {
         <button
           type="submit"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
           className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
         >
           {isSubmitting ? "判断中..." : "最適タスクを判断"}
         </button>
       </form>
 
-      {/* エラー表示 */}
-      {state.status === "error" && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
-          <p className="text-sm text-red-700 dark:text-red-300">{state.error}</p>
-          <button
-            onClick={() => dispatch({ type: "RESET" })}
-            className="mt-2 text-sm text-red-600 underline hover:text-red-800 dark:text-red-400"
-          >
-            リトライ
-          </button>
-        </div>
-      )}
-
-      {/* 結果表示 */}
-      {(state.status === "streaming" || state.status === "completed") &&
-        state.content && (
-          <DecisionResult
-            content={state.content}
-            isAnxietyMode={
-              energyLevel <= featuresConfig.anxiety_mode_threshold
-            }
-            provider={state.provider || provider}
-            model={
-              state.model ||
-              featuresConfig.default_model[
-                provider as keyof typeof featuresConfig.default_model
-              ]
-            }
-            inputTokens={state.inputTokens}
-            outputTokens={state.outputTokens}
-            onBreakdown={state.status === "completed" ? handleBreakdown : undefined}
-          />
+      {/* 結果エリア */}
+      <div aria-live="polite">
+        {/* エラー表示 */}
+        {state.status === "error" && (
+          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+            <p className="text-sm text-red-700 dark:text-red-300">{state.error}</p>
+            <button
+              onClick={() => dispatch({ type: "RESET" })}
+              className="mt-2 text-sm text-red-600 underline hover:text-red-800 dark:text-red-400"
+            >
+              リトライ
+            </button>
+          </div>
         )}
 
-      {/* タスク分解ローディング */}
-      {state.breakdownStatus === "loading" && (
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">タスクを分解中...</div>
-      )}
+        {/* 結果表示 */}
+        {(state.status === "streaming" || state.status === "completed") &&
+          state.content && (
+            <DecisionResult
+              content={state.content}
+              isAnxietyMode={
+                energyLevel <= featuresConfig.anxiety_mode_threshold
+              }
+              provider={state.provider || provider}
+              model={
+                state.model ||
+                featuresConfig.default_model[
+                  provider as keyof typeof featuresConfig.default_model
+                ]
+              }
+              inputTokens={state.inputTokens}
+              outputTokens={state.outputTokens}
+              onBreakdown={state.status === "completed" ? handleBreakdown : undefined}
+            />
+          )}
 
-      {/* タスク分解エラー */}
-      {state.breakdownStatus === "error" && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
-          <p className="text-sm text-red-700 dark:text-red-300">{state.breakdownError}</p>
-        </div>
-      )}
-
-      {/* タスク分解結果 */}
-      {(state.breakdownStatus === "streaming" || state.breakdownStatus === "completed") &&
-        state.breakdownContent && (
-          <BreakdownResult
-            content={state.breakdownContent}
-            isAnxietyMode={energyLevel <= featuresConfig.anxiety_mode_threshold}
-            provider={state.provider || provider}
-            model={
-              state.model ||
-              featuresConfig.default_model[
-                provider as keyof typeof featuresConfig.default_model
-              ]
-            }
-            inputTokens={state.breakdownInputTokens}
-            outputTokens={state.breakdownOutputTokens}
-          />
+        {/* タスク分解ローディング */}
+        {state.breakdownStatus === "loading" && (
+          <div role="status" aria-busy="true" className="text-sm text-zinc-500 dark:text-zinc-400">
+            タスクを分解中...
+          </div>
         )}
+
+        {/* タスク分解エラー */}
+        {state.breakdownStatus === "error" && (
+          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+            <p className="text-sm text-red-700 dark:text-red-300">{state.breakdownError}</p>
+          </div>
+        )}
+
+        {/* タスク分解結果 */}
+        {(state.breakdownStatus === "streaming" || state.breakdownStatus === "completed") &&
+          state.breakdownContent && (
+            <BreakdownResult
+              content={state.breakdownContent}
+              isAnxietyMode={energyLevel <= featuresConfig.anxiety_mode_threshold}
+              provider={state.provider || provider}
+              model={
+                state.model ||
+                featuresConfig.default_model[
+                  provider as keyof typeof featuresConfig.default_model
+                ]
+              }
+              inputTokens={state.breakdownInputTokens}
+              outputTokens={state.breakdownOutputTokens}
+            />
+          )}
+      </div>
     </div>
   );
 }

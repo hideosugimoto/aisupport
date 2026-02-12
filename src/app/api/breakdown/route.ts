@@ -4,9 +4,9 @@ import { TaskBreakdownEngine } from "@/lib/decision/task-breakdown-engine";
 import { createLLMClient } from "@/lib/llm/client-factory";
 import { PrismaUsageLogRepository } from "@/lib/db/prisma-usage-log-repository";
 import { prisma } from "@/lib/db/prisma";
-import { LLMError } from "@/lib/llm/errors";
+import { formatError } from "@/lib/api/format-error";
+import { getDefaultModel } from "@/lib/config/types";
 import type { LLMProvider } from "@/lib/llm/types";
-import featuresConfig from "../../../../config/features.json";
 
 const repository = new PrismaUsageLogRepository(prisma);
 
@@ -26,11 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const provider = body.provider as LLMProvider;
-    const model =
-      body.model ??
-      featuresConfig.default_model[
-        provider as keyof typeof featuresConfig.default_model
-      ];
+    const model = body.model ?? getDefaultModel(provider);
 
     const client = createLLMClient(provider);
     const engine = new TaskBreakdownEngine(client, repository, provider, model);
@@ -81,36 +77,4 @@ export async function POST(request: NextRequest) {
     const errorData = formatError(error);
     return Response.json(errorData, { status: errorData.status });
   }
-}
-
-function formatError(error: unknown): {
-  error: string;
-  code?: string;
-  status: number;
-} {
-  if (error instanceof LLMError) {
-    const statusMap: Record<string, number> = {
-      RATE_LIMITED: 429,
-      AUTH_FAILED: 401,
-      TIMEOUT: 504,
-      SERVER_ERROR: 502,
-      NETWORK_ERROR: 503,
-    };
-    const userMessageMap: Record<string, string> = {
-      RATE_LIMITED: "リクエスト制限に達しました。しばらく待ってから再試行してください",
-      AUTH_FAILED: "AIエンジンの認証に失敗しました",
-      TIMEOUT: "リクエストがタイムアウトしました",
-      SERVER_ERROR: "AIエンジンでエラーが発生しました",
-      NETWORK_ERROR: "ネットワークエラーが発生しました",
-    };
-    return {
-      error: userMessageMap[error.code] ?? "エラーが発生しました",
-      code: error.code,
-      status: statusMap[error.code] ?? 500,
-    };
-  }
-  return {
-    error: "内部エラーが発生しました",
-    status: 500,
-  };
 }

@@ -28,6 +28,16 @@ function replaceVariables(
   return result;
 }
 
+function sanitizePromptInput(text: string): string {
+  return text
+    .replace(/```/g, "")
+    .replace(/system\s*:/gi, "")
+    .replace(/\[INST\]/gi, "")
+    .replace(/<<SYS>>/gi, "")
+    .replace(/<\/?s>/gi, "")
+    .trim();
+}
+
 export interface TaskDecisionInput {
   tasks: string[];
   availableTime: number;
@@ -54,7 +64,7 @@ export function buildTaskDecisionMessages(
   }
 
   const tasksFormatted = input.tasks
-    .map((t, i) => `${i + 1}. ${t}`)
+    .map((t, i) => `${i + 1}. ${sanitizePromptInput(t)}`)
     .join("\n");
 
   const userPrompt = replaceVariables(userTemplate, {
@@ -92,7 +102,7 @@ export function buildTaskBreakdownMessages(
   }
 
   const userPrompt = replaceVariables(userTemplate, {
-    task: input.task,
+    task: sanitizePromptInput(input.task),
     available_time: String(input.availableTime),
     energy_level: String(input.energyLevel),
   });
@@ -101,4 +111,20 @@ export function buildTaskBreakdownMessages(
     { role: "system", content: systemPrompt },
     { role: "user", content: userPrompt },
   ];
+}
+
+const ALL_TEMPLATES = [
+  "shared/evaluation-axes.md",
+  "task-decision/system.md",
+  "task-decision/user-template.md",
+  "task-decision/anxiety-mode.md",
+  "task-breakdown/system.md",
+  "task-breakdown/user-template.md",
+  "task-breakdown/anxiety-mode.md",
+];
+
+export function preloadTemplates(): void {
+  for (const path of ALL_TEMPLATES) {
+    loadTemplate(path);
+  }
 }

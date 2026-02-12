@@ -91,3 +91,98 @@ describe("TaskBreakdownEngine", () => {
     );
   });
 });
+
+describe("TaskBreakdownEngine - breakdownStream", () => {
+  it("should stream breakdown chunks", async () => {
+    const client = createMockLLMClient("サブタスク1 サブタスク2");
+    // chatStream を proper mock にする
+    client.chatStream = async function* () {
+      yield { content: "サブタスク1", done: false };
+      yield {
+        content: " サブタスク2",
+        done: true,
+        usage: { inputTokens: 80, outputTokens: 40, totalTokens: 120 },
+      };
+    };
+    const repo = createMockRepository();
+    const engine = new TaskBreakdownEngine(client, repo, "openai");
+
+    const chunks: LLMStreamChunk[] = [];
+    for await (const chunk of engine.breakdownStream({
+      task: "タスクA",
+      availableTime: 60,
+      energyLevel: 3,
+    })) {
+      chunks.push(chunk);
+    }
+
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0].content).toBe("サブタスク1");
+    expect(chunks[1].done).toBe(true);
+  });
+
+  it("should save usage log after stream completes", async () => {
+    const client = createMockLLMClient();
+    client.chatStream = async function* () {
+      yield {
+        content: "done",
+        done: true,
+        usage: { inputTokens: 80, outputTokens: 40, totalTokens: 120 },
+      };
+    };
+    const repo = createMockRepository();
+    const engine = new TaskBreakdownEngine(client, repo, "openai");
+
+    for await (const _chunk of engine.breakdownStream({
+      task: "タスクA",
+      availableTime: 60,
+      energyLevel: 3,
+    })) {
+      // consume stream
+    }
+
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feature: "task_breakdown",
+        inputTokens: 80,
+        outputTokens: 40,
+      })
+    );
+  });
+
+  it("should save usage log even when stream errors", async () => {
+    const client = createMockLLMClient();
+    client.chatStream = async function* () {
+      yield {
+        content: "partial",
+        done: false,
+        usage: { inputTokens: 50, outputTokens: 20, totalTokens: 70 },
+      };
+      throw new Error("stream error");
+    };
+    const repo = createMockRepository();
+    const engine = new TaskBreakdownEngine(client, repo, "openai");
+
+    const chunks: LLMStreamChunk[] = [];
+    try {
+      for await (const chunk of engine.breakdownStream({
+        task: "タスクA",
+        availableTime: 60,
+        energyLevel: 3,
+      })) {
+        chunks.push(chunk);
+      }
+    } catch {
+      // expected error
+    }
+
+    expect(chunks).toHaveLength(1);
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feature: "task_breakdown",
+        inputTokens: 50,
+        outputTokens: 20,
+      })
+    );
+  });
+});

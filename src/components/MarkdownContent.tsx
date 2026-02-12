@@ -1,6 +1,11 @@
 "use client";
 
-export function MarkdownContent({ text }: { text: string }) {
+interface MarkdownContentProps {
+  text: string;
+  headingOffset?: number;
+}
+
+export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProps) {
   const lines = text.split("\n");
   const elements: React.JSX.Element[] = [];
 
@@ -8,10 +13,12 @@ export function MarkdownContent({ text }: { text: string }) {
     // h3 heading (### )
     if (line.startsWith("### ")) {
       const content = line.substring(4);
+      const level = Math.min(3 + headingOffset, 6);
+      const HeadingTag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
       elements.push(
-        <h3 key={index} className="text-lg font-semibold mt-4 mb-2">
+        <HeadingTag key={index} className="text-lg font-semibold mt-4 mb-2">
           {formatInlineMarkdown(content)}
-        </h3>
+        </HeadingTag>
       );
       return;
     }
@@ -19,10 +26,12 @@ export function MarkdownContent({ text }: { text: string }) {
     // h2 heading (## )
     if (line.startsWith("## ")) {
       const content = line.substring(3);
+      const level = Math.min(2 + headingOffset, 6);
+      const HeadingTag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
       elements.push(
-        <h2 key={index} className="text-xl font-bold mt-4 mb-2">
+        <HeadingTag key={index} className="text-xl font-bold mt-4 mb-2">
           {formatInlineMarkdown(content)}
-        </h2>
+        </HeadingTag>
       );
       return;
     }
