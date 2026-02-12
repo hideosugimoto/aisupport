@@ -1,205 +1,100 @@
 # Plans
 
 > Phase 1 完了タスク (1-24): [docs/plans/archive-phase1.md](docs/plans/archive-phase1.md)
-> Phase 2 完了タスク (25-48): 下記参照
+> Phase 2 完了タスク (25-48): [docs/plans/archive-phase2.md](docs/plans/archive-phase2.md)
+> Phase 3.1 完了タスク (49-53): 下記参照
 
-## Phase 2（要件定義書 セクション10）
+## Phase 3.1（E2E修正 + PWA化）✅ 完了
 
-> **Goal:** 全8機能 + E2E テスト基盤を実装
-> **Design:** `docs/plans/2026-02-12-phase2-design.md`
+> **Design:** `docs/plans/2026-02-12-phase3-1-design.md`
 
-### 1. Claude API (Sonnet) 追加
-
-- [x] 25. Anthropic SDK インストール + ClaudeClient テスト作成 `[feature:tdd]` `cc:done`
-  - `npm install @anthropic-ai/sdk` ✅
-  - `__tests__/lib/llm/claude-client.test.ts` 新規作成 (10テスト) ✅
-  - MockLLMClient パターンで chat/chatStream/extractUsage テスト ✅
-
-- [x] 26. ClaudeClient 実装 `cc:done`
-  - `src/lib/llm/claude-client.ts` 本実装 ✅
-  - chat(), chatStream(), extractUsage() メソッド ✅
-  - Anthropic SDK の messages.create / messages.stream 使用 ✅
-
-- [x] 27. client-factory + config 更新 `cc:done`
-  - `src/lib/llm/client-factory.ts` に `claude` ケース追加 ✅
-  - `config/features.json` に `"claude"` 追加, `default_model.claude` ✅
-  - `.env.local.example` に `ANTHROPIC_API_KEY` 追加 ✅
-
-- [x] 28. UI にエンジン選択「Claude」追加 `cc:done`
-  - TaskDecisionForm のプロバイダーボタンに Claude 追加 ✅
-  - ビルド確認 ✅
-
-### 2. 履歴保存・検索
-
-- [x] 29. TaskDecision テーブル追加 (Prisma migration) `cc:done`
-  - `prisma/schema.prisma` に TaskDecision モデル追加 ✅
-  - `npx prisma migrate dev` 実行 ✅
-  - Migration: 20260212054217_add_task_decisions
-
-- [x] 30. TaskDecisionRepository テスト＆実装 `[feature:tdd]` `cc:done`
-  - `src/lib/db/types.ts` に TaskDecisionRepository interface 追加 ✅
-  - `src/lib/db/prisma-task-decision-repository.ts` 新規作成 ✅
-  - save, findAll, findByDateRange, search メソッド ✅
-  - `__tests__/lib/db/task-decision-repository.test.ts` テスト (10/10 PASS) ✅
-
-- [x] 31. /api/history ルート実装 `[feature:security]` `cc:done`
-  - `POST /api/history` — 判定結果保存 ✅
-  - `GET /api/history` — 検索 + ページネーション ✅
-  - バリデーション + エラーハンドリング ✅
-
-- [x] 32. 履歴画面 UI 作成 `cc:done`
-  - `src/app/history/page.tsx` 新規作成 ✅
-  - `src/components/HistoryList.tsx` 一覧コンポーネント ✅
-  - キーワード検索、展開表示、ページネーション ✅
-
-- [x] 33. TaskDecisionForm に自動保存追加 `cc:done`
-  - completed 時にバックグラウンドで POST /api/history ✅
-  - ナビゲーションに履歴リンク追加 ✅
-
-### 3. 予算アラート
-
-- [x] 34. BudgetChecker テスト＆実装 `[feature:tdd]` `cc:done`
-  - `src/lib/budget/checker.ts` 新規作成 ✅
-  - checkBudget(year, month) → alertLevel 判定 ✅
-  - `__tests__/lib/budget/checker.test.ts` テスト (7テスト) ✅
-  - `config/features.json` に `monthly_budget_usd: 5.0` 追加 ✅
-
-- [x] 35. /api/cost 拡張 + CostDashboard 予算表示 `cc:done`
-  - GET /api/cost レスポンスに budget フィールド追加 ✅
-  - CostDashboard に予算プログレスバー + 警告バナー ✅
-  - alertLevel に応じた色分け (ok=green, warning=yellow, exceeded=red) ✅
-
-- [x] 36. タスク判定時の予算超過確認 `cc:done`
-  - TaskDecisionForm で exceeded 時に確認ダイアログ表示 ✅
-  - warning 時に注意バナー表示 ✅
-  - フォーム送信前に GET /api/cost で予算状態確認 ✅
-
-### 4. エンジン間自動フォールバック
-
-- [x] 37. FallbackLLMClient テスト＆実装 `[feature:tdd]` `cc:done`
-  - `src/lib/llm/fallback-client.ts` 新規作成 ✅
-  - FallbackLLMClient implements LLMClient ✅
-  - RATE_LIMITED / SERVER_ERROR でフォールバック ✅
-  - `__tests__/lib/llm/fallback-client.test.ts` テスト (11テスト) ✅
-
-- [x] 38. client-factory フォールバック統合 + UI トグル `cc:done`
-  - auto_fallback: true 時に FallbackLLMClient でラップ ✅
-  - `config/features.json` に `auto_fallback: false` 追加 ✅
-  - TaskDecisionForm にフォールバック ON/OFF トグル ✅
-  - API routes (/api/decide, /api/breakdown) に fallback パラメータ追加 ✅
-
-### 5. 並列AI比較
-
-- [x] 39. ParallelDecisionEngine テスト＆実装 `[feature:tdd]` `cc:done`
-  - `src/lib/compare/parallel-engine.ts` 新規作成 ✅
-  - Promise.allSettled() で全有効エンジン同時呼び出し ✅
-  - `__tests__/lib/compare/parallel-engine.test.ts` テスト (7テスト PASS) ✅
-
-- [x] 40. /api/compare ルート + 比較画面 UI `cc:done`
-  - `POST /api/compare` — JSON レスポンス（シンプル実装） ✅
-  - `src/app/compare/page.tsx` + `src/components/CompareResult.tsx` ✅
-  - カード横並び、所要時間・コスト表示 ✅
-  - ナビゲーションに「比較」リンク追加 ✅
-
-### 6. 週次戦略レビュー
-
-- [x] 41. 週次レビュープロンプト + WeeklyReviewEngine `[feature:tdd]` `cc:done`
-  - `prompts/weekly-review/system.md`, `user-template.md` 新規作成 ✅
-  - `src/lib/strategy/weekly-review.ts` 新規作成 ✅
-  - 直近7日の判定履歴を集約 → LLM で振り返り生成 ✅
-  - `__tests__/lib/strategy/weekly-review.test.ts` テスト (8/8 PASS) ✅
-
-- [x] 42. /api/weekly-review + CostDashboard レビューセクション `cc:done`
-  - `POST /api/weekly-review` — JSON レスポンス ✅
-  - `/cost` ページに「今週のレビュー」展開セクション追加 ✅
-  - アコーディオン UI + レビュー生成ボタン + 結果表示 ✅
-
-### 7. プロンプト A/B テスト
-
-- [x] 43. prompt-builder バージョン対応 `[feature:tdd]` `cc:done`
-  - loadTemplate(type, name, version?) にオプショナル version パラメータ追加 ✅
-  - `prompts/task-decision/v2/` サンプルプロンプト作成（構造化された評価マトリクス形式） ✅
-  - `config/features.json` に `prompt_ab_test` 設定追加 ✅
-  - TaskDecisionEngine の metadata に prompt_version 記録 ✅
-  - A/B テスト用プロンプトバージョン選択ロジック実装 ✅
-  - `__tests__/lib/llm/prompt-builder-ab.test.ts` テスト (10/10 PASS) ✅
-
-- [x] 44. CostDashboard バージョン別フィルタ `cc:done`
-  - CostCalculator に getPromptVersionStats() メソッド追加 ✅
-  - /api/cost レスポンスに versionStats 追加 ✅
-  - CostDashboard にバージョン別統計テーブル追加 ✅
-  - バージョン名、使用回数、平均トークン数、コスト表示 ✅
-
-### 8. E2E テスト (Playwright)
-
-- [x] 45. Playwright セットアップ `cc:done`
-  - `npm install -D @playwright/test` ✅
-  - `npx playwright install chromium` ✅
-  - `playwright.config.ts` 作成（Next.js dev server 自動起動） ✅
-  - `E2E_MOCK=true` 環境変数対応を client-factory に追加 ✅
-  - `src/lib/llm/e2e-mock-client.ts` 新規作成（スマートモック） ✅
-  - `package.json` に `test:e2e` スクリプト追加 ✅
-
-- [x] 46. E2E: タスク判定フロー `cc:done`
-  - `e2e/task-flow.spec.ts` 新規作成 ✅
-  - タスク入力 → エンジン選択 → 送信 → 結果表示 → 分解ボタン (5テスト) ✅
-  - Playwright テスト 20/22 PASS（2テストは環境変数伝播の課題） ✅
-
-- [x] 47. E2E: コスト + 履歴 + 比較 `cc:done`
-  - `e2e/cost.spec.ts` — ダッシュボード表示 + 予算情報 (5テスト) ✅
-  - `e2e/history.spec.ts` — 一覧・検索・展開 (5テスト) ✅
-  - `e2e/compare.spec.ts` — 並列比較フロー (7テスト) ✅
-
-### 9. 全体検証
-
-- [x] 48. 全体テスト＆ビルド確認 `cc:done`
-  - `npx vitest run` 全テスト 124/124 PASS ✅
-  - `npx tsc --noEmit` 型エラー 0 ✅
-  - `npx next build` ビルド成功 ✅
-  - `npx playwright test` E2E 20/22 PASS ✅
+- [x] 49. E2E 環境変数伝播修正 → 22/22 PASS `cc:done`
+- [x] 50. PWA マニフェスト + アイコン `cc:done`
+- [x] 51. Service Worker 導入 `cc:done`
+- [x] 52. レスポンシブ微調整 `cc:done`
+- [x] 53. 全体テスト＆ビルド＆PWA確認 `cc:done`
 
 ---
 
-## Phase 3.1（E2E修正 + PWA化）
+## Phase 3.2（モデル自由選択）
 
-> **Goal:** E2E全件グリーン + PWA対応でスマホ・PCから即起動
-> **Design:** `docs/plans/2026-02-12-phase3-1-design.md`
+> **Goal:** UIドロップダウンでプロバイダー×モデルを自由に切替
+> **Design:** `docs/plans/2026-02-12-phase3-2-4-design.md`
 
-### 1. E2E テスト修正
+- [ ] 54. features.json に available_models 追加 + pricing.json 更新
+  - `available_models` マップ追加（各プロバイダーの利用可能モデル一覧）
+  - Claude Opus の料金を pricing.json に追加
+  - `getAvailableModels()` ヘルパー関数
 
-- [x] 49. E2E 環境変数伝播修正 → 22/22 PASS `cc:done`
-  - `playwright.config.ts` webServer を `npm run dev:e2e` に変更 ✅
-  - `package.json` に `dev:e2e` スクリプト追加 ✅
-  - `src/middleware.ts` E2Eモック時レート制限スキップ ✅
-  - `src/lib/llm/e2e-mock-client.ts` breakdown判定ロジック修正 ✅
-  - `e2e/task-flow.spec.ts` ロケーター修正 ✅
-  - `npx playwright test` 22/22 PASS ✅
+- [ ] 55. TaskDecisionForm にモデルセレクター UI 追加
+  - エンジン選択後にモデルドロップダウン表示
+  - デフォルトは `default_model` の値
+  - モデル名の横にコスト目安表示
 
-### 2. PWA 対応
+- [ ] 56. API routes で model パラメータを活用
+  - `/api/decide`, `/api/breakdown` で明示的 model 伝達
+  - LLMClient に model パラメータ追加
 
-- [x] 50. PWA マニフェスト + アイコン `cc:done`
-  - `public/manifest.json` 作成 ✅
-  - アイコン生成 (SVG 192x192, 512x512) ✅
-  - `src/app/layout.tsx` にメタタグ追加 ✅
-  - `scripts/generate-icons.js` でアイコン自動生成 ✅
-  - ビルド確認 ✅
+- [ ] 57. 比較ページのモデル選択対応
+  - 比較時に各プロバイダーの選択モデルを使用
+  - 検証: ビルド + テスト PASS
 
-- [x] 51. Service Worker 導入 `cc:done`
-  - `public/sw.js` 手書き SW（NetworkFirst + 静的アセットキャッシュ） ✅
-  - `src/app/sw-register.tsx` Client Component で登録 ✅
-  - API リクエストはキャッシュなし（network only） ✅
-  - ビルド確認 ✅
+---
 
-- [x] 52. レスポンシブ微調整 `cc:done`
-  - 全ページ: ナビリンクにタッチターゲット（px-3 py-2 + hover bg） ✅
-  - 全ページ: モバイル上部パディング py-6→sm:py-12 ✅
-  - 全ページ: 見出しサイズ text-xl→sm:text-2xl ✅
-  - エネルギーボタン: w-10→w-11, h-10→h-11 (44px) ✅
-  - エンジンボタン: py-2→py-2.5 ✅
+## Phase 3.3（RAG連携）
 
-### 3. 全体検証
+> **Goal:** Markdown/PDF をベクトル検索し判定精度を向上
+> **Design:** `docs/plans/2026-02-12-phase3-2-4-design.md`
 
-- [x] 53. 全体テスト＆ビルド＆PWA確認 `cc:done`
-  - `npx vitest run` 124/124 PASS ✅
-  - `npx playwright test` 22/22 PASS ✅
-  - `npx next build` ビルド成功 ✅
+- [ ] 58. sqlite-vec セットアップ + VectorStore 実装
+  - sqlite-vec 拡張インストール
+  - VectorStore interface + Prisma/SQLite 実装
+  - テスト作成
+
+- [ ] 59. Chunker（MD/PDF パーサー + 分割）実装
+  - Markdown 分割（見出し区切り + サイズ制限）
+  - PDF パーサー（pdf-parse）
+  - チャンクサイズ: 500トークン、100オーバーラップ
+
+- [ ] 60. Embedder（OpenAI Embeddings）実装
+  - text-embedding-3-small API 呼び出し
+  - バッチ処理対応
+  - テスト作成
+
+- [ ] 61. Retriever + プロンプト注入 実装
+  - コサイン類似度で top-k=3 検索
+  - 検索結果をプロンプトのコンテキストセクションに注入
+
+- [ ] 62. /api/documents アップロード API + UI
+  - ファイルアップロード → チャンク分割 → エンベディング → 保存
+  - ドキュメント管理 UI（一覧・削除）
+
+- [ ] 63. TaskDecisionEngine への RAG 統合
+  - 判定時に関連コンテキストを自動検索・注入
+  - 検証: ビルド + テスト PASS
+
+---
+
+## Phase 3.4（Web Push通知）
+
+> **Goal:** PWA Push通知でリマインダーと予算アラートを送信
+> **Design:** `docs/plans/2026-02-12-phase3-2-4-design.md`
+
+- [ ] 64. VAPID キー生成 + web-push セットアップ
+  - `npm install web-push` + VAPID キーペア生成
+  - 環境変数に VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY
+
+- [ ] 65. Push サブスクリプション管理（API + DB）
+  - Prisma に PushSubscription モデル追加
+  - `/api/push/subscribe`, `/api/push/unsubscribe` エンドポイント
+
+- [ ] 66. SW push イベントハンドラ追加
+  - `public/sw.js` に push / notificationclick ハンドラ
+  - 通知タップでアプリ画面に遷移
+
+- [ ] 67. 通知設定 UI + リマインダースケジュール
+  - 通知ON/OFF トグル + 時刻設定
+  - 予算アラート通知（80%超過時）
+
+- [ ] 68. 全体検証
+  - ビルド + テスト PASS + Push通知動作確認
