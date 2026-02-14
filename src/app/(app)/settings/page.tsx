@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import plansConfig from "../../../../config/plans.json";
 
 interface NotificationSettings {
   reminderEnabled: boolean;
@@ -359,7 +360,7 @@ export default function SettingsPage() {
                     aria-busy={upgrading}
                     className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
                   >
-                    {upgrading ? "処理中..." : "Proプランにアップグレード (月額980円)"}
+                    {upgrading ? "処理中..." : `Proプランにアップグレード (月額${plansConfig.plans.pro.price_jpy}円)`}
                   </button>
                 ) : (
                   <button

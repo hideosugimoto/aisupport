@@ -12,6 +12,6 @@ export async function register() {
     // 鍵が設定されている場合は形式を検証（不正な鍵での起動を防止）
     const { validateEncryptionKey } = await import("@/lib/crypto/encryption");
     validateEncryptionKey();
-    console.log("[instrumentation] Encryption key validation passed");
+    console.info("[instrumentation] Encryption key validation passed");
   }
 }

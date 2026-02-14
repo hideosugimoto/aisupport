@@ -4,6 +4,7 @@ import { useReducer, useState, useEffect } from "react";
 import { DecisionResult } from "./DecisionResult";
 import { BreakdownResult } from "./BreakdownResult";
 import featuresConfig from "../../config/features.json";
+import { calculateCostUsd } from "@/lib/cost/pricing";
 
 type UIState = "idle" | "loading" | "streaming" | "completed" | "error";
 
@@ -292,7 +293,7 @@ export function TaskDecisionForm() {
               availableTime,
               promptTokens: state.inputTokens,
               completionTokens: state.outputTokens,
-              costUsd: 0, // TODO: Calculate actual cost
+              costUsd: calculateCostUsd(state.provider, state.model, state.inputTokens, state.outputTokens),
             }),
           });
           // Silent success: history save is non-critical

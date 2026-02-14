@@ -175,3 +175,12 @@
     - Compass 検索のタイムアウト/エラー時も正常に動作
   - 🐛 Bug fix: task-decision-engine.ts の decide() メソッドで Compass エラーハンドリングを追加（decideStream() と統一）
   - 完了: 2026-02-14 21:11 — 262テスト全PASS + ビルド成功
+
+- [x] 86. コード品質修正（レビュー指摘 + 分析結果） `cc:done`
+  - costUsd TODO解消: TaskDecisionForm で calculateCostUsd() を使って実コスト計算
+  - console.log → console.info: instrumentation.ts の起動ログ修正
+  - VAPID_EMAIL を .env.local.example に追記
+  - 価格ハードコード解消: settings ページで plans.json から price_jpy を参照
+  - apple-touch-icon: SVG→PNG変換、manifest.json も PNG参照に更新
+  - APIキー長128制限、リトライ遅延5秒上限、Top-Kソート最適化（Round 2修正含む）
+  - 完了: 2026-02-14 — 262テスト全PASS + ビルド成功
