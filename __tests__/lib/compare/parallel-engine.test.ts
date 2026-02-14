@@ -73,7 +73,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       expect(results).toHaveLength(3);
 
@@ -109,7 +109,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       results.forEach((result) => {
         expect(result.durationMs).toBeGreaterThanOrEqual(0);
@@ -126,7 +126,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       expect(results[0].costUsd).toBeGreaterThan(0);
       expect(typeof results[0].costUsd).toBe("number");
@@ -150,7 +150,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       expect(results).toHaveLength(2);
 
@@ -187,7 +187,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       expect(results).toHaveLength(3);
       const successCount = results.filter((r) => !r.error).length;
@@ -215,7 +215,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll(input);
+      const results = await engine.compareAll("test-user", input);
 
       expect(results).toHaveLength(2);
       results.forEach((result) => {
@@ -248,7 +248,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      await engine.compareAll(input);
+      await engine.compareAll("test-user", input);
 
       const endTime = Date.now();
       const totalTime = endTime - startTime;

@@ -40,7 +40,7 @@ describe("TaskDecisionEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(client, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: ["タスクA", "タスクB"],
       availableTime: 60,
       energyLevel: 3,
@@ -58,7 +58,7 @@ describe("TaskDecisionEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(client, repo, "openai");
 
-    await engine.decide({
+    await engine.decide("test-user", {
       tasks: ["タスクA"],
       availableTime: 30,
       energyLevel: 4,
@@ -81,7 +81,7 @@ describe("TaskDecisionEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(client, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: ["タスクA"],
       availableTime: 15,
       energyLevel: 1,
@@ -100,7 +100,7 @@ describe("TaskDecisionEngine", () => {
       "gpt-4o"
     );
 
-    await engine.decide({
+    await engine.decide("test-user", {
       tasks: ["タスクA"],
       availableTime: 60,
       energyLevel: 3,

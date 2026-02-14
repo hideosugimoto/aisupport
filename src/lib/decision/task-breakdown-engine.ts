@@ -5,7 +5,6 @@ import {
   type TaskBreakdownInput,
 } from "../llm/prompt-builder";
 import { getDefaultModel } from "../config/types";
-import featuresConfig from "../../../config/features.json";
 
 export interface BreakdownResult {
   content: string;
@@ -24,13 +23,14 @@ export class TaskBreakdownEngine {
     private model?: string
   ) {}
 
-  async breakdown(input: TaskBreakdownInput): Promise<BreakdownResult> {
+  async breakdown(userId: string, input: TaskBreakdownInput): Promise<BreakdownResult> {
     const messages = buildTaskBreakdownMessages(input);
     const model = this.model ?? getDefaultModel(this.provider);
 
     const response = await this.client.chat({ model, messages });
 
     await this.repository.save({
+      userId,
       provider: this.provider,
       model,
       inputTokens: response.usage.inputTokens,
@@ -51,6 +51,7 @@ export class TaskBreakdownEngine {
   }
 
   async *breakdownStream(
+    userId: string,
     input: TaskBreakdownInput
   ): AsyncIterable<LLMStreamChunk> {
     const messages = buildTaskBreakdownMessages(input);
@@ -70,6 +71,7 @@ export class TaskBreakdownEngine {
     } finally {
       if (hasUsage) {
         await this.repository.save({
+          userId,
           provider: this.provider,
           model,
           inputTokens: lastUsage.inputTokens,

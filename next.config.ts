@@ -8,22 +8,22 @@ const nextConfig: NextConfig = {
     // - 本番環境: unsafe-eval を完全削除、セキュリティを強化
     const isDevelopment = process.env.NODE_ENV !== "production";
 
+    // Note: Next.js/Clerk がインラインスクリプト・スタイルを使用するため
+    // unsafe-inline は現時点で必要。将来 nonce 方式に移行予定。
     const csp = [
       "default-src 'self'",
-      // script-src: 本番では 'self' のみ、開発では HMR 用に unsafe-eval 許可
       isDevelopment
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-        : "script-src 'self'",
-      // style-src: Next.js がインラインスタイルを使用するため unsafe-inline は残す
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev"
+        : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data:",
+      "img-src 'self' data: https://img.clerk.com",
       "font-src 'self'",
-      "connect-src 'self'",
+      "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com",
       "worker-src 'self'",
-      // 追加のセキュリティディレクティブ
-      "frame-ancestors 'none'", // iframe 埋め込みを禁止（X-Frame-Options と同等）
-      "base-uri 'self'", // base タグの悪用防止
-      "form-action 'self'", // フォーム送信先を同一オリジンに制限
+      "frame-src 'self' https://*.clerk.accounts.dev",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
     ].join("; ");
 
     return [
@@ -33,6 +33,14 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
           {
             key: "Content-Security-Policy",
             value: csp,

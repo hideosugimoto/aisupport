@@ -34,10 +34,11 @@ export class CostCalculator {
   constructor(private repository: UsageLogRepository) {}
 
   async getMonthlySummary(
+    userId: string,
     year: number,
     month: number
   ): Promise<MonthlyCostSummary> {
-    const summaries = await this.repository.aggregateByProvider(year, month);
+    const summaries = await this.repository.aggregateByProvider(userId, year, month);
     const breakdowns = summaries.map((s) => this.toBreakdown(s));
 
     const totalCostUsd = breakdowns.reduce((sum, b) => sum + b.costUsd, 0);
@@ -52,10 +53,11 @@ export class CostCalculator {
   }
 
   async getDailyCosts(
+    userId: string,
     from: Date,
     to: Date
   ): Promise<{ date: string; costUsd: number; costJpy: number }[]> {
-    const logs = await this.repository.findByDateRange(from, to);
+    const logs = await this.repository.findByDateRange(userId, from, to);
 
     const dailyMap = new Map<string, number>();
     for (const log of logs) {
@@ -81,12 +83,12 @@ export class CostCalculator {
   }
 
   async getPromptVersionStats(
+    userId: string,
     year: number,
     month: number
   ): Promise<PromptVersionStats[]> {
-    const logs = await this.repository.findByMonth(year, month);
+    const logs = await this.repository.findByMonth(userId, year, month);
 
-    // metadata から prompt_version を抽出してグループ化
     const versionMap = new Map<
       string,
       {
@@ -121,12 +123,10 @@ export class CostCalculator {
           model: log.model,
         });
       } catch {
-        // JSON parse エラーは無視
         continue;
       }
     }
 
-    // 統計情報を生成
     return Array.from(versionMap.entries())
       .map(([version, data]) => {
         const costUsd = calculateCostUsd(
@@ -147,7 +147,7 @@ export class CostCalculator {
           costJpy: usdToJpy(costUsd),
         };
       })
-      .sort((a, b) => b.requestCount - a.requestCount); // リクエスト数降順
+      .sort((a, b) => b.requestCount - a.requestCount);
   }
 
   private toBreakdown(summary: ProviderCostSummary): CostBreakdown {

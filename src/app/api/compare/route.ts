@@ -5,9 +5,22 @@ import { createLLMClient } from "@/lib/llm/client-factory";
 import { formatError } from "@/lib/api/format-error";
 import type { LLMProvider } from "@/lib/llm/types";
 import featuresConfig from "../../../../config/features.json";
+import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
+import { checkRequestLimit } from "@/lib/billing/plan-gate";
+import { resolveApiKey } from "@/lib/billing/key-resolver";
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireAuth();
+
+    const limitCheck = await checkRequestLimit(userId);
+    if (!limitCheck.allowed) {
+      return Response.json(
+        { error: "今月のリクエスト上限に達しました。Proプランにアップグレードしてください。", remaining: limitCheck.remaining },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
 
     const validation = validateTaskInput({
@@ -21,15 +34,19 @@ export async function POST(request: NextRequest) {
       return Response.json({ errors: validation.errors }, { status: 400 });
     }
 
-    // 有効な全プロバイダーのクライアントを作成
+    const providers = featuresConfig.enabled_providers as LLMProvider[];
+    const resolvedKeys = await Promise.all(
+      providers.map((p) => resolveApiKey(userId, p))
+    );
     const clients: Partial<Record<LLMProvider, ReturnType<typeof createLLMClient>>> = {};
-    for (const provider of featuresConfig.enabled_providers as LLMProvider[]) {
-      clients[provider] = createLLMClient(provider);
-    }
+    providers.forEach((provider, i) => {
+      clients[provider] = createLLMClient(provider, undefined, false, resolvedKeys[i].apiKey);
+    });
 
     const engine = new DefaultParallelDecisionEngine(clients);
 
     const results = await engine.compareAll(
+      userId,
       {
         tasks: body.tasks,
         availableTime: body.availableTime,
@@ -40,7 +57,11 @@ export async function POST(request: NextRequest) {
 
     return Response.json({ results });
   } catch (error) {
-    const errorData = formatError(error);
-    return Response.json(errorData, { status: errorData.status });
+    try {
+      return handleAuthError(error);
+    } catch {
+      const errorData = formatError(error);
+      return Response.json(errorData, { status: errorData.status });
+    }
   }
 }

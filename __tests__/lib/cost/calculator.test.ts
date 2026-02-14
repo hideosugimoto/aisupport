@@ -72,7 +72,7 @@ describe("CostCalculator", () => {
     });
 
     const calculator = new CostCalculator(repo);
-    const result = await calculator.getMonthlySummary(2026, 2);
+    const result = await calculator.getMonthlySummary("test-user", 2026, 2);
 
     expect(result.year).toBe(2026);
     expect(result.month).toBe(2);
@@ -119,7 +119,7 @@ describe("CostCalculator", () => {
     const calculator = new CostCalculator(repo);
     const from = new Date("2026-02-10");
     const to = new Date("2026-02-12");
-    const result = await calculator.getDailyCosts(from, to);
+    const result = await calculator.getDailyCosts("test-user", from, to);
 
     expect(result).toHaveLength(2);
     expect(result[0].date).toBe("2026-02-10");

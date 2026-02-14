@@ -8,7 +8,7 @@ export interface RetrievalResult {
 }
 
 export interface Retriever {
-  retrieve(query: string, topK?: number): Promise<RetrievalResult>;
+  retrieve(userId: string, query: string, topK?: number): Promise<RetrievalResult>;
   buildContextSection(results: VectorSearchResult[]): string;
 }
 
@@ -19,11 +19,12 @@ export class DefaultRetriever implements Retriever {
   ) {}
 
   async retrieve(
+    userId: string,
     query: string,
     topK: number = ragConfig.top_k
   ): Promise<RetrievalResult> {
     const queryEmbedding = await this.embedder.embedSingle(query);
-    const results = await this.vectorStore.search(queryEmbedding, topK);
+    const results = await this.vectorStore.search(userId, queryEmbedding, topK);
     const contextText = this.buildContextSection(results);
     return { results, contextText };
   }

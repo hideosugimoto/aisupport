@@ -1,5 +1,6 @@
 export interface UsageLogEntry {
   id?: number;
+  userId?: string;
   provider: string;
   model: string;
   inputTokens: number;
@@ -22,15 +23,17 @@ export interface ProviderCostSummary {
 
 export interface UsageLogRepository {
   save(log: UsageLogEntry): Promise<void>;
-  findByMonth(year: number, month: number): Promise<UsageLogEntry[]>;
-  findByDateRange(from: Date, to: Date): Promise<UsageLogEntry[]>;
+  findByMonth(userId: string, year: number, month: number): Promise<UsageLogEntry[]>;
+  findByDateRange(userId: string, from: Date, to: Date): Promise<UsageLogEntry[]>;
   aggregateByProvider(
+    userId: string,
     year: number,
     month: number
   ): Promise<ProviderCostSummary[]>;
 }
 
 export interface TaskDecisionEntry {
+  userId?: string;
   tasksInput: string; // JSON string of task array
   energyLevel: number;
   availableTime: number;
@@ -46,13 +49,14 @@ export interface TaskDecisionRecord extends TaskDecisionEntry {
 
 export interface TaskDecisionRepository {
   save(entry: TaskDecisionEntry): Promise<void>;
-  findAll(limit: number, offset: number): Promise<TaskDecisionRecord[]>;
-  findByDateRange(from: Date, to: Date): Promise<TaskDecisionRecord[]>;
+  findAll(userId: string, limit: number, offset: number): Promise<TaskDecisionRecord[]>;
+  findByDateRange(userId: string, from: Date, to: Date): Promise<TaskDecisionRecord[]>;
   search(
+    userId: string,
     keyword: string,
     limit: number,
     offset: number
   ): Promise<TaskDecisionRecord[]>;
-  count(): Promise<number>;
-  countBySearch(keyword: string): Promise<number>;
+  count(userId: string): Promise<number>;
+  countBySearch(userId: string, keyword: string): Promise<number>;
 }

@@ -25,21 +25,21 @@ class MockLLMClient implements LLMClient {
 class MockRepository implements TaskDecisionRepository {
   constructor(private mockDecisions: TaskDecisionRecord[]) {}
 
-  async findByDateRange(from: Date, to: Date): Promise<TaskDecisionRecord[]> {
+  async findByDateRange(userId: string, from: Date, to: Date): Promise<TaskDecisionRecord[]> {
     return this.mockDecisions;
   }
 
   async save(): Promise<void> {}
-  async findAll(): Promise<TaskDecisionRecord[]> {
+  async findAll(userId: string): Promise<TaskDecisionRecord[]> {
     return [];
   }
-  async search(): Promise<TaskDecisionRecord[]> {
+  async search(userId: string): Promise<TaskDecisionRecord[]> {
     return [];
   }
-  async count(): Promise<number> {
+  async count(userId: string): Promise<number> {
     return 0;
   }
-  async countBySearch(): Promise<number> {
+  async countBySearch(userId: string): Promise<number> {
     return 0;
   }
 }
@@ -89,7 +89,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository(mockDecisions);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    const result = await engine.generateReview("openai");
+    const result = await engine.generateReview("test-user", "openai");
 
     expect(result.review).toBe("## 判定傾向\n高エネルギー時に長めのタスクを選択");
     expect(result.decisionsCount).toBe(2);
@@ -110,7 +110,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository([]);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    const result = await engine.generateReview("gemini");
+    const result = await engine.generateReview("test-user", "gemini");
 
     expect(result.decisionsCount).toBe(0);
     expect(result.review).toContain("履歴がありません");
@@ -165,13 +165,13 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository([]);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    await engine.generateReview("claude");
+    await engine.generateReview("test-user", "claude");
     expect(client.lastRequest.model).toBe("claude-sonnet-4-20250514");
 
-    await engine.generateReview("gemini");
+    await engine.generateReview("test-user", "gemini");
     expect(client.lastRequest.model).toBe("gemini-2.0-flash");
 
-    await engine.generateReview("openai");
+    await engine.generateReview("test-user", "openai");
     expect(client.lastRequest.model).toBe("gpt-4o-mini");
   });
 
@@ -185,7 +185,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository([]);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    const result = await engine.generateReview("openai");
+    const result = await engine.generateReview("test-user", "openai");
     // OpenAI: input $0.15/M, output $0.6/M
     // (1000/1M * 0.15) + (500/1M * 0.6) = 0.00015 + 0.0003 = 0.00045
     expect(result.costUsd).toBeCloseTo(0.00045, 5);
@@ -201,7 +201,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository([]);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    const result = await engine.generateReview("gemini");
+    const result = await engine.generateReview("test-user", "gemini");
     // Gemini (gemini-2.0-flash): input $0.10/M, output $0.40/M
     // (1000/1M * 0.10) + (500/1M * 0.40) = 0.0001 + 0.0002 = 0.0003
     expect(result.costUsd).toBeCloseTo(0.0003, 5);
@@ -217,7 +217,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository(mockDecisions);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    await engine.generateReview();
+    await engine.generateReview("test-user");
 
     const userPrompt = client.lastRequest.messages[1].content;
     expect(userPrompt).toContain("タスクA");

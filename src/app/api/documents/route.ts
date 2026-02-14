@@ -3,6 +3,8 @@ import { PrismaVectorStore } from "@/lib/rag/vector-store";
 import { OpenAIEmbedder } from "@/lib/rag/embedder";
 import { chunkDocument } from "@/lib/rag/chunker";
 import ragConfig from "../../../../config/rag.json";
+import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
+import { getUserPlan } from "@/lib/billing/plan-gate";
 
 function sanitizeFilename(filename: string): string {
   const basename = filename.replace(/^.*[\\\/]/, "");
@@ -13,19 +15,34 @@ const vectorStore = new PrismaVectorStore();
 
 export async function GET() {
   try {
-    const documents = await vectorStore.listDocuments();
+    const userId = await requireAuth();
+    const documents = await vectorStore.listDocuments(userId);
     return Response.json({ documents });
   } catch (error) {
-    console.error("[documents/GET]", error);
-    return Response.json(
-      { error: "ドキュメント一覧の取得に失敗しました" },
-      { status: 500 }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      console.error("[documents/GET]", error);
+      return Response.json(
+        { error: "ドキュメント一覧の取得に失敗しました" },
+        { status: 500 }
+      );
+    }
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireAuth();
+
+    const plan = await getUserPlan(userId);
+    if (!plan.ragEnabled) {
+      return Response.json(
+        { error: "ドキュメントアップロードはProプランで利用できます" },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -33,7 +50,6 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "ファイルが必要です" }, { status: 400 });
     }
 
-    // Validate file size
     const maxBytes = ragConfig.max_document_size_mb * 1024 * 1024;
     if (file.size > maxBytes) {
       return Response.json(
@@ -42,7 +58,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
     const allowedTypes = [
       "text/markdown",
       "text/x-markdown",
@@ -62,7 +77,6 @@ export async function POST(request: NextRequest) {
     let textContent: string;
 
     if (mimeType === "application/pdf" || ext === "pdf") {
-      // PDF parsing
       const { PDFParse } = await import("pdf-parse");
       const buffer = Buffer.from(await file.arrayBuffer());
       const parser = new PDFParse({ data: new Uint8Array(buffer) });
@@ -80,7 +94,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Chunk the document
     const chunks = chunkDocument(textContent, mimeType);
 
     if (chunks.length === 0) {
@@ -90,13 +103,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate embeddings
     const embedder = new OpenAIEmbedder();
     const embeddings = await embedder.embed(chunks.map((c) => c.content));
 
-    // Store in vector store
     const safeName = sanitizeFilename(file.name);
     const documentId = await vectorStore.addDocument(
+      userId,
       safeName,
       mimeType,
       file.size,
@@ -112,16 +124,21 @@ export async function POST(request: NextRequest) {
       chunkCount: chunks.length,
     });
   } catch (error) {
-    console.error("[documents/POST]", error);
-    return Response.json(
-      { error: "アップロード処理中にエラーが発生しました" },
-      { status: 500 }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      console.error("[documents/POST]", error);
+      return Response.json(
+        { error: "アップロード処理中にエラーが発生しました" },
+        { status: 500 }
+      );
+    }
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
+    const userId = await requireAuth();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -129,13 +146,17 @@ export async function DELETE(request: NextRequest) {
       return Response.json({ error: "IDが必要です" }, { status: 400 });
     }
 
-    await vectorStore.deleteDocument(Number(id));
+    await vectorStore.deleteDocument(userId, Number(id));
     return Response.json({ success: true });
   } catch (error) {
-    console.error("[documents/DELETE]", error);
-    return Response.json(
-      { error: "削除処理中にエラーが発生しました" },
-      { status: 500 }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      console.error("[documents/DELETE]", error);
+      return Response.json(
+        { error: "削除処理中にエラーが発生しました" },
+        { status: 500 }
+      );
+    }
   }
 }

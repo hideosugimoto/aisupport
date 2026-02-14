@@ -15,7 +15,7 @@ export interface CompareResult {
 }
 
 export interface ParallelDecisionEngine {
-  compareAll(input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]>;
+  compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]>;
 }
 
 export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
@@ -23,7 +23,7 @@ export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
     private clients: Partial<Record<LLMProvider, LLMClient>>
   ) {}
 
-  async compareAll(input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]> {
+  async compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]> {
     const messages = buildTaskDecisionMessages(input);
 
     // 各エンジンの実行タスクを準備

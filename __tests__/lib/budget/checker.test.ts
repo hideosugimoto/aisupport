@@ -28,7 +28,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(3.5);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.budgetUsd).toBe(5.0);
     expect(result.spentUsd).toBe(3.5);
@@ -42,7 +42,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(4.5);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.budgetUsd).toBe(5.0);
     expect(result.spentUsd).toBe(4.5);
@@ -56,7 +56,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(4.0);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.percentUsed).toBe(80);
     expect(result.alertLevel).toBe("warning");
@@ -67,7 +67,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(5.0);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.budgetUsd).toBe(5.0);
     expect(result.spentUsd).toBe(5.0);
@@ -81,7 +81,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(6.0);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.budgetUsd).toBe(5.0);
     expect(result.spentUsd).toBe(6.0);
@@ -95,7 +95,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(10.0);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.remainingUsd).toBe(0);
     expect(result.remainingUsd).toBeGreaterThanOrEqual(0);
@@ -105,7 +105,7 @@ describe("BudgetChecker", () => {
     const calculator = createMockCalculator(0);
     const checker = new BudgetChecker(calculator, BUDGET_USD);
 
-    const result = await checker.checkBudget(2026, 2);
+    const result = await checker.checkBudget("test-user", 2026, 2);
 
     expect(result.spentUsd).toBe(0);
     expect(result.remainingUsd).toBe(5.0);

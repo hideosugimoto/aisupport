@@ -40,7 +40,7 @@ describe("TaskBreakdownEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskBreakdownEngine(client, repo, "openai");
 
-    const result = await engine.breakdown({
+    const result = await engine.breakdown("test-user", {
       task: "確定申告の準備",
       availableTime: 60,
       energyLevel: 3,
@@ -57,7 +57,7 @@ describe("TaskBreakdownEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskBreakdownEngine(client, repo, "openai");
 
-    await engine.breakdown({
+    await engine.breakdown("test-user", {
       task: "タスクA",
       availableTime: 30,
       energyLevel: 4,
@@ -80,7 +80,7 @@ describe("TaskBreakdownEngine", () => {
     const repo = createMockRepository();
     const engine = new TaskBreakdownEngine(client, repo, "openai", "gpt-4o");
 
-    await engine.breakdown({
+    await engine.breakdown("test-user", {
       task: "タスクA",
       availableTime: 60,
       energyLevel: 3,
@@ -108,7 +108,7 @@ describe("TaskBreakdownEngine - breakdownStream", () => {
     const engine = new TaskBreakdownEngine(client, repo, "openai");
 
     const chunks: LLMStreamChunk[] = [];
-    for await (const chunk of engine.breakdownStream({
+    for await (const chunk of engine.breakdownStream("test-user", {
       task: "タスクA",
       availableTime: 60,
       energyLevel: 3,
@@ -133,7 +133,7 @@ describe("TaskBreakdownEngine - breakdownStream", () => {
     const repo = createMockRepository();
     const engine = new TaskBreakdownEngine(client, repo, "openai");
 
-    for await (const _chunk of engine.breakdownStream({
+    for await (const _chunk of engine.breakdownStream("test-user", {
       task: "タスクA",
       availableTime: 60,
       energyLevel: 3,
@@ -165,7 +165,7 @@ describe("TaskBreakdownEngine - breakdownStream", () => {
 
     const chunks: LLMStreamChunk[] = [];
     try {
-      for await (const chunk of engine.breakdownStream({
+      for await (const chunk of engine.breakdownStream("test-user", {
         task: "タスクA",
         availableTime: 60,
         energyLevel: 3,

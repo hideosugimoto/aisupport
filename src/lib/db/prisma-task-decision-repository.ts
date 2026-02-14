@@ -11,6 +11,7 @@ export class PrismaTaskDecisionRepository implements TaskDecisionRepository {
   async save(entry: TaskDecisionEntry): Promise<void> {
     await this.prisma.taskDecision.create({
       data: {
+        userId: entry.userId ?? "legacy",
         tasksInput: entry.tasksInput,
         energyLevel: entry.energyLevel,
         availableTime: entry.availableTime,
@@ -21,17 +22,19 @@ export class PrismaTaskDecisionRepository implements TaskDecisionRepository {
     });
   }
 
-  async findAll(limit: number, offset: number): Promise<TaskDecisionRecord[]> {
+  async findAll(userId: string, limit: number, offset: number): Promise<TaskDecisionRecord[]> {
     return await this.prisma.taskDecision.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
     });
   }
 
-  async findByDateRange(from: Date, to: Date): Promise<TaskDecisionRecord[]> {
+  async findByDateRange(userId: string, from: Date, to: Date): Promise<TaskDecisionRecord[]> {
     return await this.prisma.taskDecision.findMany({
       where: {
+        userId,
         createdAt: { gte: from, lt: to },
       },
       orderBy: { createdAt: "desc" },
@@ -40,12 +43,14 @@ export class PrismaTaskDecisionRepository implements TaskDecisionRepository {
   }
 
   async search(
+    userId: string,
     keyword: string,
     limit: number,
     offset: number
   ): Promise<TaskDecisionRecord[]> {
     return await this.prisma.taskDecision.findMany({
       where: {
+        userId,
         result: { contains: keyword },
       },
       orderBy: { createdAt: "desc" },
@@ -54,13 +59,16 @@ export class PrismaTaskDecisionRepository implements TaskDecisionRepository {
     });
   }
 
-  async count(): Promise<number> {
-    return await this.prisma.taskDecision.count();
+  async count(userId: string): Promise<number> {
+    return await this.prisma.taskDecision.count({
+      where: { userId },
+    });
   }
 
-  async countBySearch(keyword: string): Promise<number> {
+  async countBySearch(userId: string, keyword: string): Promise<number> {
     return await this.prisma.taskDecision.count({
       where: {
+        userId,
         result: { contains: keyword },
       },
     });

@@ -11,17 +11,18 @@ export interface VectorSearchResult {
 
 export interface VectorStore {
   addDocument(
+    userId: string,
     filename: string,
     mimeType: string,
     sizeBytes: number,
     chunks: { content: string; embedding: number[] }[]
   ): Promise<number>;
 
-  search(queryEmbedding: number[], topK?: number): Promise<VectorSearchResult[]>;
+  search(userId: string, queryEmbedding: number[], topK?: number): Promise<VectorSearchResult[]>;
 
-  deleteDocument(documentId: number): Promise<void>;
+  deleteDocument(userId: string, documentId: number): Promise<void>;
 
-  listDocuments(): Promise<
+  listDocuments(userId: string): Promise<
     { id: number; filename: string; mimeType: string; chunkCount: number; createdAt: Date }[]
   >;
 }
@@ -54,6 +55,7 @@ function bufferToFloat32(buffer: Buffer): Float32Array {
 
 export class PrismaVectorStore implements VectorStore {
   async addDocument(
+    userId: string,
     filename: string,
     mimeType: string,
     sizeBytes: number,
@@ -61,6 +63,7 @@ export class PrismaVectorStore implements VectorStore {
   ): Promise<number> {
     const doc = await prisma.document.create({
       data: {
+        userId,
         filename,
         mimeType,
         sizeBytes,
@@ -77,34 +80,58 @@ export class PrismaVectorStore implements VectorStore {
   }
 
   async search(
+    userId: string,
     queryEmbedding: number[],
     topK: number = ragConfig.top_k
   ): Promise<VectorSearchResult[]> {
-    const allChunks = await prisma.documentChunk.findMany({
-      take: 1000,
-      include: { document: { select: { filename: true } } },
-    });
+    // バッチ処理でメモリ使用量を制限（1バッチ200件）
+    const BATCH_SIZE = 200;
+    const results: VectorSearchResult[] = [];
+    let cursor: number | undefined;
 
-    const scored = allChunks.map((chunk) => ({
-      chunkId: chunk.id,
-      documentId: chunk.documentId,
-      content: chunk.content,
-      filename: chunk.document.filename,
-      similarity: cosineSimilarity(queryEmbedding, bufferToFloat32(Buffer.from(chunk.embedding))),
-    }));
+    for (;;) {
+      const chunks = await prisma.documentChunk.findMany({
+        where: { document: { userId } },
+        take: BATCH_SIZE,
+        ...(cursor != null ? { skip: 1, cursor: { id: cursor } } : {}),
+        orderBy: { id: "asc" },
+        include: { document: { select: { filename: true } } },
+      });
 
-    return scored
-      .filter((r) => r.similarity >= ragConfig.similarity_threshold)
+      if (chunks.length === 0) break;
+
+      for (const chunk of chunks) {
+        const similarity = cosineSimilarity(
+          queryEmbedding,
+          bufferToFloat32(Buffer.from(chunk.embedding))
+        );
+        if (similarity >= ragConfig.similarity_threshold) {
+          results.push({
+            chunkId: chunk.id,
+            documentId: chunk.documentId,
+            content: chunk.content,
+            filename: chunk.document.filename,
+            similarity,
+          });
+        }
+      }
+
+      cursor = chunks[chunks.length - 1].id;
+      if (chunks.length < BATCH_SIZE) break;
+    }
+
+    return results
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, topK);
   }
 
-  async deleteDocument(documentId: number): Promise<void> {
-    await prisma.document.delete({ where: { id: documentId } });
+  async deleteDocument(userId: string, documentId: number): Promise<void> {
+    await prisma.document.delete({ where: { id: documentId, userId } });
   }
 
-  async listDocuments() {
+  async listDocuments(userId: string) {
     const docs = await prisma.document.findMany({
+      where: { userId },
       include: { _count: { select: { chunks: true } } },
       orderBy: { createdAt: "desc" },
     });

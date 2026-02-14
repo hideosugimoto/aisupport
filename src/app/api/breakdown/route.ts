@@ -7,11 +7,24 @@ import { prisma } from "@/lib/db/prisma";
 import { formatError } from "@/lib/api/format-error";
 import { getDefaultModel } from "@/lib/config/types";
 import type { LLMProvider } from "@/lib/llm/types";
+import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
+import { checkRequestLimit } from "@/lib/billing/plan-gate";
+import { resolveApiKey } from "@/lib/billing/key-resolver";
 
 const repository = new PrismaUsageLogRepository(prisma);
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireAuth();
+
+    const limitCheck = await checkRequestLimit(userId);
+    if (!limitCheck.allowed) {
+      return Response.json(
+        { error: "今月のリクエスト上限に達しました。Proプランにアップグレードしてください。", remaining: limitCheck.remaining },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
 
     const validation = validateBreakdownInput({
@@ -29,7 +42,8 @@ export async function POST(request: NextRequest) {
     const model = body.model ?? getDefaultModel(provider);
     const enableFallback = body.fallback ?? false;
 
-    const client = createLLMClient(provider, undefined, enableFallback);
+    const { apiKey } = await resolveApiKey(userId, provider);
+    const client = createLLMClient(provider, undefined, enableFallback, apiKey);
     const engine = new TaskBreakdownEngine(client, repository, provider, model);
 
     if (body.stream) {
@@ -37,7 +51,7 @@ export async function POST(request: NextRequest) {
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of engine.breakdownStream({
+            for await (const chunk of engine.breakdownStream(userId, {
               task: body.task,
               availableTime: body.availableTime,
               energyLevel: body.energyLevel,
@@ -67,7 +81,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const result = await engine.breakdown({
+    const result = await engine.breakdown(userId, {
       task: body.task,
       availableTime: body.availableTime,
       energyLevel: body.energyLevel,
@@ -75,7 +89,11 @@ export async function POST(request: NextRequest) {
 
     return Response.json(result);
   } catch (error) {
-    const errorData = formatError(error);
-    return Response.json(errorData, { status: errorData.status });
+    try {
+      return handleAuthError(error);
+    } catch {
+      const errorData = formatError(error);
+      return Response.json(errorData, { status: errorData.status });
+    }
   }
 }

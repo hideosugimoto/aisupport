@@ -16,8 +16,8 @@ export class BudgetChecker {
     private budgetUsd: number
   ) {}
 
-  async checkBudget(year: number, month: number): Promise<BudgetStatus> {
-    const summary = await this.calculator.getMonthlySummary(year, month);
+  async checkBudget(userId: string, year: number, month: number): Promise<BudgetStatus> {
+    const summary = await this.calculator.getMonthlySummary(userId, year, month);
     const spentUsd = summary.totalCostUsd;
     const percentUsed = (spentUsd / this.budgetUsd) * 100;
 

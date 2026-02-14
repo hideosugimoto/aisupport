@@ -1,0 +1,19 @@
+{
+  "plans": {
+    "free": {
+      "name": "Free",
+      "monthly_request_limit": 30,
+      "rag_enabled": false,
+      "weekly_review_enabled": false,
+      "price_jpy": 0
+    },
+    "pro": {
+      "name": "Pro",
+      "monthly_request_limit": -1,
+      "rag_enabled": true,
+      "weekly_review_enabled": true,
+      "price_jpy": 980
+    }
+  },
+  "default_plan": "free"
+}

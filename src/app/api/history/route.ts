@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { PrismaTaskDecisionRepository } from "@/lib/db/prisma-task-decision-repository";
 import type { TaskDecisionEntry } from "@/lib/db/types";
+import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 
 const repository = new PrismaTaskDecisionRepository(prisma);
 
 // POST /api/history - Save decision result
 export async function POST(req: NextRequest) {
   try {
+    const userId = await requireAuth();
     const body = await req.json();
 
     const MAX_STRING_LENGTH = 10000;
@@ -54,7 +56,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    // Build TaskDecisionEntry
     const tasks = [
       {
         title: body.taskTitle,
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
     ];
 
     const entry: TaskDecisionEntry = {
+      userId,
       tasksInput: JSON.stringify(tasks),
       energyLevel: body.urgency,
       availableTime: body.availableTime || 60,
@@ -77,23 +79,27 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error("Error saving decision:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      console.error("[history/POST]", error);
+      return NextResponse.json(
+        { error: "履歴の保存に失敗しました" },
+        { status: 500 }
+      );
+    }
   }
 }
 
 // GET /api/history - Search + Pagination
 export async function GET(req: NextRequest) {
   try {
+    const userId = await requireAuth();
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-    // Validation
     if (page < 1) {
       return NextResponse.json(
         { error: "page must be >= 1" },
@@ -113,11 +119,15 @@ export async function GET(req: NextRequest) {
     let total;
 
     if (q.trim().length > 0) {
-      items = await repository.search(q, limit, offset);
-      total = await repository.countBySearch(q);
+      [items, total] = await Promise.all([
+        repository.search(userId, q, limit, offset),
+        repository.countBySearch(userId, q),
+      ]);
     } else {
-      items = await repository.findAll(limit, offset);
-      total = await repository.count();
+      [items, total] = await Promise.all([
+        repository.findAll(userId, limit, offset),
+        repository.count(userId),
+      ]);
     }
 
     return NextResponse.json({
@@ -127,10 +137,14 @@ export async function GET(req: NextRequest) {
       limit,
     });
   } catch (error) {
-    console.error("Error fetching history:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      console.error("[history/GET]", error);
+      return NextResponse.json(
+        { error: "履歴の取得に失敗しました" },
+        { status: 500 }
+      );
+    }
   }
 }

@@ -33,11 +33,11 @@ export class TaskDecisionEngine {
     this.retriever = retriever;
   }
 
-  private async fetchRagContext(input: TaskDecisionInput): Promise<string | undefined> {
+  private async fetchRagContext(userId: string, input: TaskDecisionInput): Promise<string | undefined> {
     if (!this.retriever) return undefined;
     try {
       const query = input.tasks.join(" ");
-      const result = await this.retriever.retrieve(query);
+      const result = await this.retriever.retrieve(userId, query);
       return result.contextText || undefined;
     } catch (error) {
       console.warn("[RAG] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
@@ -45,10 +45,10 @@ export class TaskDecisionEngine {
     }
   }
 
-  async decide(input: TaskDecisionInput): Promise<DecisionResult> {
+  async decide(userId: string, input: TaskDecisionInput): Promise<DecisionResult> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const ragContext = await this.fetchRagContext(input);
+    const ragContext = await this.fetchRagContext(userId, input);
     const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
@@ -64,6 +64,7 @@ export class TaskDecisionEngine {
     });
 
     await this.repository.save({
+      userId,
       provider: this.provider,
       model,
       inputTokens: response.usage.inputTokens,
@@ -113,11 +114,12 @@ export class TaskDecisionEngine {
   }
 
   async *decideStream(
+    userId: string,
     input: TaskDecisionInput
   ): AsyncIterable<LLMStreamChunk> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const ragContext = await this.fetchRagContext(input);
+    const ragContext = await this.fetchRagContext(userId, input);
     const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
@@ -144,6 +146,7 @@ export class TaskDecisionEngine {
         });
 
         await this.repository.save({
+          userId,
           provider: this.provider,
           model,
           inputTokens: lastUsage.inputTokens,

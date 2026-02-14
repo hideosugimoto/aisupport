@@ -39,7 +39,7 @@ describe("Decision Flow Integration", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(mockClient, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: input.tasks,
       availableTime: input.availableTime,
       energyLevel: input.energyLevel,
@@ -77,7 +77,7 @@ describe("Decision Flow Integration", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(mockClient, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: input.tasks,
       availableTime: input.availableTime,
       energyLevel: input.energyLevel,
@@ -97,7 +97,7 @@ describe("Decision Flow Integration", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(mockClient, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: ["タスク"],
       availableTime: 15,
       energyLevel: 2,
@@ -116,7 +116,7 @@ describe("Decision Flow Integration", () => {
     const repo = createMockRepository();
     const engine = new TaskDecisionEngine(mockClient, repo, "openai");
 
-    const result = await engine.decide({
+    const result = await engine.decide("test-user", {
       tasks: ["タスク"],
       availableTime: 60,
       energyLevel: 3,
@@ -138,7 +138,7 @@ describe("Decision Flow Integration", () => {
     const engine = new TaskDecisionEngine(mockClient, repo, "openai");
 
     await expect(
-      engine.decide({
+      engine.decide("test-user", {
         tasks: ["タスク"],
         availableTime: 60,
         energyLevel: 3,
@@ -146,7 +146,7 @@ describe("Decision Flow Integration", () => {
     ).rejects.toThrow(LLMError);
 
     await expect(
-      engine.decide({
+      engine.decide("test-user", {
         tasks: ["タスク"],
         availableTime: 60,
         energyLevel: 3,

@@ -40,7 +40,7 @@ export interface WeeklyReviewResult {
 }
 
 export interface WeeklyReviewEngine {
-  generateReview(provider?: string): Promise<WeeklyReviewResult>;
+  generateReview(userId: string, provider?: string): Promise<WeeklyReviewResult>;
 }
 
 export class DefaultWeeklyReviewEngine implements WeeklyReviewEngine {
@@ -49,12 +49,13 @@ export class DefaultWeeklyReviewEngine implements WeeklyReviewEngine {
     private repository: TaskDecisionRepository
   ) {}
 
-  async generateReview(provider = "openai"): Promise<WeeklyReviewResult> {
+  async generateReview(userId: string, provider = "openai"): Promise<WeeklyReviewResult> {
     const periodEnd = new Date();
     const periodStart = new Date();
     periodStart.setDate(periodStart.getDate() - 7);
 
     const decisions = await this.repository.findByDateRange(
+      userId,
       periodStart,
       periodEnd
     );

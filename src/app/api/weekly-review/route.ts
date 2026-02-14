@@ -6,11 +6,23 @@ import { PrismaTaskDecisionRepository } from "@/lib/db/prisma-task-decision-repo
 import { formatError } from "@/lib/api/format-error";
 import featuresConfig from "../../../../config/features.json";
 import type { LLMProvider } from "@/lib/llm/types";
+import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
+import { getUserPlan } from "@/lib/billing/plan-gate";
 
 const VALID_PROVIDERS = new Set(featuresConfig.enabled_providers);
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireAuth();
+
+    const plan = await getUserPlan(userId);
+    if (!plan.weeklyReviewEnabled) {
+      return NextResponse.json(
+        { error: "週次レビューはProプランで利用できます" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const provider = body.provider || featuresConfig.default_provider;
 
@@ -25,14 +37,18 @@ export async function POST(request: NextRequest) {
     const repository = new PrismaTaskDecisionRepository(prisma);
     const engine = new DefaultWeeklyReviewEngine(llmClient, repository);
 
-    const result = await engine.generateReview(provider);
+    const result = await engine.generateReview(userId, provider);
 
     return NextResponse.json(result);
   } catch (error) {
-    const errorData = formatError(error);
-    return NextResponse.json(
-      { error: errorData.error },
-      { status: errorData.status }
-    );
+    try {
+      return handleAuthError(error);
+    } catch {
+      const errorData = formatError(error);
+      return NextResponse.json(
+        { error: errorData.error },
+        { status: errorData.status }
+      );
+    }
   }
 }

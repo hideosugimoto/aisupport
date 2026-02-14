@@ -4,11 +4,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model LlmUsageLog {
   id           Int      @id @default(autoincrement())
+  userId       String   @default("legacy") @map("user_id")
   provider     String
   model        String
   inputTokens  Int      @map("input_tokens")
@@ -19,12 +20,15 @@ model LlmUsageLog {
   metadata     String?
   createdAt    DateTime @default(now()) @map("created_at")
 
+  @@index([userId])
   @@index([createdAt])
+  @@index([userId, createdAt])
   @@map("llm_usage_logs")
 }
 
 model TaskDecision {
   id            Int      @id @default(autoincrement())
+  userId        String   @default("legacy") @map("user_id")
   tasksInput    String   @map("tasks_input")
   energyLevel   Int      @map("energy_level")
   availableTime Int      @map("available_time")
@@ -33,18 +37,23 @@ model TaskDecision {
   result        String
   createdAt     DateTime @default(now()) @map("created_at")
 
+  @@index([userId])
   @@index([createdAt])
+  @@index([userId, createdAt])
   @@map("task_decisions")
 }
 
 model Document {
   id        Int             @id @default(autoincrement())
+  userId    String          @default("legacy") @map("user_id")
   filename  String
   mimeType  String          @map("mime_type")
   sizeBytes Int             @map("size_bytes")
   createdAt DateTime        @default(now()) @map("created_at")
   chunks    DocumentChunk[]
 
+  @@index([userId])
+  @@index([userId, createdAt])
   @@map("documents")
 }
 
@@ -63,21 +72,53 @@ model DocumentChunk {
 
 model PushSubscription {
   id        Int      @id @default(autoincrement())
+  userId    String   @default("legacy") @map("user_id")
   endpoint  String   @unique
   p256dh    String
   auth      String
   createdAt DateTime @default(now()) @map("created_at")
 
+  @@index([userId])
   @@map("push_subscriptions")
 }
 
 model NotificationSetting {
   id               Int      @id @default(autoincrement())
+  userId           String   @default("legacy") @map("user_id")
   reminderEnabled  Boolean  @default(false) @map("reminder_enabled")
   reminderTime     String   @default("09:00") @map("reminder_time")
   budgetAlert      Boolean  @default(true) @map("budget_alert")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  @@unique([userId])
   @@map("notification_settings")
+}
+
+model UserApiKey {
+  id           Int      @id @default(autoincrement())
+  userId       String   @map("user_id")
+  provider     String
+  encryptedKey String   @map("encrypted_key")
+  keyHint      String   @map("key_hint")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_api_keys")
+}
+
+model Subscription {
+  id                 Int      @id @default(autoincrement())
+  userId             String   @unique @map("user_id")
+  stripeCustomerId   String?  @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+  plan               String   @default("free")
+  status             String   @default("active")
+  currentPeriodEnd   DateTime? @map("current_period_end")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
 }

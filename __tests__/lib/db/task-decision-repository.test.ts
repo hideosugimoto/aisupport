@@ -58,6 +58,7 @@ describe("PrismaTaskDecisionRepository", () => {
 
       expect(mockPrisma.taskDecision.create).toHaveBeenCalledWith({
         data: {
+          userId: "legacy",
           tasksInput: entry.tasksInput,
           energyLevel: entry.energyLevel,
           availableTime: entry.availableTime,
@@ -96,9 +97,10 @@ describe("PrismaTaskDecisionRepository", () => {
 
       mockPrisma.taskDecision.findMany.mockResolvedValue(mockRecords);
 
-      const result = await repository.findAll(10, 0);
+      const result = await repository.findAll("test-user", 10, 0);
 
       expect(mockPrisma.taskDecision.findMany).toHaveBeenCalledWith({
+        where: { userId: "test-user" },
         orderBy: { createdAt: "desc" },
         take: 10,
         skip: 0,
@@ -109,9 +111,10 @@ describe("PrismaTaskDecisionRepository", () => {
     it("should apply offset and limit correctly", async () => {
       mockPrisma.taskDecision.findMany.mockResolvedValue([]);
 
-      await repository.findAll(5, 10);
+      await repository.findAll("test-user", 5, 10);
 
       expect(mockPrisma.taskDecision.findMany).toHaveBeenCalledWith({
+        where: { userId: "test-user" },
         orderBy: { createdAt: "desc" },
         take: 5,
         skip: 10,
@@ -138,10 +141,11 @@ describe("PrismaTaskDecisionRepository", () => {
 
       mockPrisma.taskDecision.findMany.mockResolvedValue(mockRecords);
 
-      const result = await repository.findByDateRange(from, to);
+      const result = await repository.findByDateRange("test-user", from, to);
 
       expect(mockPrisma.taskDecision.findMany).toHaveBeenCalledWith({
         where: {
+          userId: "test-user",
           createdAt: { gte: from, lt: to },
         },
         orderBy: { createdAt: "desc" },
@@ -172,10 +176,11 @@ describe("PrismaTaskDecisionRepository", () => {
 
       mockPrisma.taskDecision.findMany.mockResolvedValue(mockRecords);
 
-      const result = await repository.search(keyword, 10, 0);
+      const result = await repository.search("test-user", keyword, 10, 0);
 
       expect(mockPrisma.taskDecision.findMany).toHaveBeenCalledWith({
         where: {
+          userId: "test-user",
           result: { contains: keyword },
         },
         orderBy: { createdAt: "desc" },
@@ -188,10 +193,11 @@ describe("PrismaTaskDecisionRepository", () => {
     it("should apply pagination in search", async () => {
       mockPrisma.taskDecision.findMany.mockResolvedValue([]);
 
-      await repository.search("test", 20, 10);
+      await repository.search("test-user", "test", 20, 10);
 
       expect(mockPrisma.taskDecision.findMany).toHaveBeenCalledWith({
         where: {
+          userId: "test-user",
           result: { contains: "test" },
         },
         orderBy: { createdAt: "desc" },
@@ -205,16 +211,18 @@ describe("PrismaTaskDecisionRepository", () => {
     it("should return total count of records", async () => {
       mockPrisma.taskDecision.count.mockResolvedValue(42);
 
-      const result = await repository.count();
+      const result = await repository.count("test-user");
 
-      expect(mockPrisma.taskDecision.count).toHaveBeenCalledWith();
+      expect(mockPrisma.taskDecision.count).toHaveBeenCalledWith({
+        where: { userId: "test-user" },
+      });
       expect(result).toBe(42);
     });
 
     it("should return 0 when no records exist", async () => {
       mockPrisma.taskDecision.count.mockResolvedValue(0);
 
-      const result = await repository.count();
+      const result = await repository.count("test-user");
 
       expect(result).toBe(0);
     });
@@ -225,10 +233,11 @@ describe("PrismaTaskDecisionRepository", () => {
       const keyword = "important";
       mockPrisma.taskDecision.count.mockResolvedValue(15);
 
-      const result = await repository.countBySearch(keyword);
+      const result = await repository.countBySearch("test-user", keyword);
 
       expect(mockPrisma.taskDecision.count).toHaveBeenCalledWith({
         where: {
+          userId: "test-user",
           result: { contains: keyword },
         },
       });
@@ -238,7 +247,7 @@ describe("PrismaTaskDecisionRepository", () => {
     it("should return 0 when no matches found", async () => {
       mockPrisma.taskDecision.count.mockResolvedValue(0);
 
-      const result = await repository.countBySearch("nonexistent");
+      const result = await repository.countBySearch("test-user", "nonexistent");
 
       expect(result).toBe(0);
     });

@@ -15,7 +15,8 @@ const defaultRetryConfig: RetryConfig = {
 export function createLLMClient(
   provider: LLMProvider,
   retryConfig?: RetryConfig,
-  enableFallback = false
+  enableFallback = false,
+  apiKey?: string
 ): LLMClient {
   // E2E_MOCK mode: return mock client for testing (disabled in production)
   if (process.env.E2E_MOCK === "true" && process.env.NODE_ENV !== "production") {
@@ -27,13 +28,13 @@ export function createLLMClient(
 
   switch (provider) {
     case "openai":
-      client = new OpenAIClient();
+      client = new OpenAIClient(apiKey);
       break;
     case "gemini":
-      client = new GeminiClient();
+      client = new GeminiClient(apiKey);
       break;
     case "claude":
-      client = new ClaudeClient();
+      client = new ClaudeClient(apiKey);
       break;
     default:
       throw new Error(`Unknown provider: ${provider}`);

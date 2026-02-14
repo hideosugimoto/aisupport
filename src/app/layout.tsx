@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 
@@ -24,12 +25,15 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const isClerkEnabled = clerkKey && clerkKey.startsWith("pk_");
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+  const body = (
     <html lang="ja">
       <head>
         <link rel="manifest" href="/manifest.json" />
@@ -46,4 +50,10 @@ export default function RootLayout({
       </body>
     </html>
   );
+
+  if (isClerkEnabled) {
+    return <ClerkProvider>{body}</ClerkProvider>;
+  }
+
+  return body;
 }
