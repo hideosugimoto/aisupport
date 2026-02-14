@@ -5,6 +5,7 @@ import { PrismaTaskDecisionRepository } from "@/lib/db/prisma-task-decision-repo
 import { HistoryList } from "@/components/HistoryList";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import featuresConfig from "../../../../config/features.json";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export default async function HistoryPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const limit = 20;
+  const limit = featuresConfig.history_page_limit;
   const page = 1;
   const offset = 0;
 

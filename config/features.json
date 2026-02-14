@@ -16,6 +16,7 @@
   },
   "monthly_budget_usd": 5.0,
   "auto_fallback": false,
+  "history_page_limit": 20,
   "prompt_ab_test": {
     "enabled": false,
     "variant_a": "default",
