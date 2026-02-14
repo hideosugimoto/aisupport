@@ -91,7 +91,9 @@ export class PrismaVectorStore implements VectorStore {
           // Top-K bounded insert: 常にtopK件のみ保持
           if (topKResults.length < topK) {
             topKResults.push(result);
-            topKResults.sort((a, b) => b.similarity - a.similarity);
+            if (topKResults.length === topK) {
+              topKResults.sort((a, b) => b.similarity - a.similarity);
+            }
           } else if (similarity > topKResults[topKResults.length - 1].similarity) {
             topKResults[topKResults.length - 1] = result;
             topKResults.sort((a, b) => b.similarity - a.similarity);
@@ -103,6 +105,7 @@ export class PrismaVectorStore implements VectorStore {
       if (chunks.length < BATCH_SIZE) break;
     }
 
+    topKResults.sort((a, b) => b.similarity - a.similarity);
     return topKResults;
   }
 

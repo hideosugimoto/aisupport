@@ -43,7 +43,7 @@ export class LLMClientWrapper implements LLMClient {
             throw error;
           }
           // Exponential backoff with jitter to avoid thundering herd
-          const baseDelay = Math.pow(2, attempt) * 1000;
+          const baseDelay = Math.min(Math.pow(2, attempt) * 1000, 5000);
           const jitter = Math.random() * baseDelay * 0.5;
           const delay = baseDelay + jitter;
           await this.sleep(delay);

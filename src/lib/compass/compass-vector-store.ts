@@ -41,7 +41,9 @@ export class PrismaCompassVectorStore {
           };
           if (topKResults.length < topK) {
             topKResults.push(result);
-            topKResults.sort((a, b) => b.similarity - a.similarity);
+            if (topKResults.length === topK) {
+              topKResults.sort((a, b) => b.similarity - a.similarity);
+            }
           } else if (similarity > topKResults[topKResults.length - 1].similarity) {
             topKResults[topKResults.length - 1] = result;
             topKResults.sort((a, b) => b.similarity - a.similarity);
@@ -53,6 +55,7 @@ export class PrismaCompassVectorStore {
       if (chunks.length < BATCH_SIZE) break;
     }
 
+    topKResults.sort((a, b) => b.similarity - a.similarity);
     return topKResults;
   }
 }
