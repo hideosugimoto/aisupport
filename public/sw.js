@@ -72,7 +72,8 @@ self.addEventListener("notificationclick", (event) => {
   try {
     const parsed = new URL(event.notification.data?.url || "/", self.location.origin);
     url = parsed.origin === self.location.origin ? parsed.pathname : "/";
-  } catch {
+  } catch (e) {
+    console.warn("[SW] Invalid notification URL:", event.notification.data?.url, e);
     url = "/";
   }
 

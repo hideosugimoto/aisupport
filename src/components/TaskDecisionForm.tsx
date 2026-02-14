@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState, useEffect } from "react";
+import { useReducer, useState, useEffect, useRef } from "react";
 import { DecisionResult } from "./DecisionResult";
 import { BreakdownResult } from "./BreakdownResult";
 import featuresConfig from "../../config/features.json";
@@ -143,6 +143,7 @@ export function TaskDecisionForm() {
   const [tasks, setTasks] = useState<string[]>([""]);
   const [availableTime, setAvailableTime] = useState(60);
   const [energyLevel, setEnergyLevel] = useState(3);
+  const energyRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [provider, setProvider] = useState(featuresConfig.default_provider);
   const [model, setModel] = useState(
     featuresConfig.default_model[
@@ -490,10 +491,14 @@ export function TaskDecisionForm() {
             aria-labelledby="energy-label"
             onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-                setEnergyLevel((prev) => Math.min(5, prev + 1));
+                const next = Math.min(5, energyLevel + 1);
+                setEnergyLevel(next);
+                energyRefs.current[next - 1]?.focus();
                 e.preventDefault();
               } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-                setEnergyLevel((prev) => Math.max(1, prev - 1));
+                const prev = Math.max(1, energyLevel - 1);
+                setEnergyLevel(prev);
+                energyRefs.current[prev - 1]?.focus();
                 e.preventDefault();
               }
             }}
@@ -501,6 +506,7 @@ export function TaskDecisionForm() {
             {[1, 2, 3, 4, 5].map((level) => (
               <button
                 key={level}
+                ref={(el) => { energyRefs.current[level - 1] = el; }}
                 type="button"
                 role="radio"
                 aria-checked={energyLevel === level}
