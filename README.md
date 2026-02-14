@@ -304,21 +304,22 @@ npm run test:e2e     # Playwright E2E テスト
 ## ディレクトリ構成
 
 ```
-src/
-├── app/                  # Next.js App Router (ページ・API)
-│   ├── (app)/            # 認証必須ページ (判定・比較・履歴・コスト・羅針盤・設定)
-│   └── api/              # API Routes (decide, compare, compass, stripe, push...)
-├── components/           # React コンポーネント
-├── lib/                  # ビジネスロジック (Next.js 非依存)
-│   ├── llm/              # LLMClient インターフェース + 各プロバイダ実装
-│   ├── decision/         # タスク判定エンジン
-│   ├── rag/              # RAG パイプライン (chunker, embedder, vector-store, retriever)
-│   ├── compass/          # 羅針盤 (URL/画像処理, vector-store, retriever)
-│   ├── billing/          # プラン判定・APIキー解決
-│   ├── auth/             # 認証ヘルパー
-│   ├── crypto/           # BYOK暗号化
-│   └── stripe/           # Stripe クライアント
-├── prompts/              # プロンプトテンプレート (外部ファイル管理)
-├── config/               # 設定ファイル (features.json, plans.json, compass.json)
-└── prisma/               # Prisma スキーマ・マイグレーション
+aisupport/
+├── src/
+│   ├── app/                  # Next.js App Router (ページ・API)
+│   │   ├── (app)/            # 認証必須ページ (ダッシュボード・比較・履歴・コスト・羅針盤・ドキュメント・設定)
+│   │   └── api/              # API Routes (decide, compare, compass, stripe, push...)
+│   ├── components/           # React コンポーネント
+│   └── lib/                  # ビジネスロジック (Next.js 非依存)
+│       ├── llm/              # LLMClient インターフェース + 各プロバイダ実装
+│       ├── decision/         # タスク判定エンジン
+│       ├── rag/              # RAG パイプライン (chunker, embedder, vector-store, retriever)
+│       ├── compass/          # 羅針盤 (URL/画像処理, vector-store, retriever)
+│       ├── billing/          # プラン判定・APIキー解決
+│       ├── auth/             # 認証ヘルパー
+│       ├── crypto/           # BYOK暗号化
+│       └── stripe/           # Stripe クライアント
+├── prompts/                  # プロンプトテンプレート (外部ファイル管理)
+├── config/                   # 設定ファイル (features.json, plans.json, compass.json)
+└── prisma/                   # Prisma スキーマ・マイグレーション
 ```
