@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     let imageBase64: string | undefined;
     let imageMimeType: string | undefined;
 
-    if (contentType.includes("multipart/form-data")) {
+    if (contentType.startsWith("multipart/form-data")) {
       // Image upload
       const formData = await request.formData();
       type = "image";

@@ -484,7 +484,20 @@ export function TaskDecisionForm() {
           <label id="energy-label" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             エネルギー状態
           </label>
-          <div className="flex gap-2" role="radiogroup" aria-labelledby="energy-label">
+          <div
+            className="flex gap-2"
+            role="radiogroup"
+            aria-labelledby="energy-label"
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                setEnergyLevel((prev) => Math.min(5, prev + 1));
+                e.preventDefault();
+              } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                setEnergyLevel((prev) => Math.max(1, prev - 1));
+                e.preventDefault();
+              }
+            }}
+          >
             {[1, 2, 3, 4, 5].map((level) => (
               <button
                 key={level}
@@ -492,6 +505,7 @@ export function TaskDecisionForm() {
                 role="radio"
                 aria-checked={energyLevel === level}
                 aria-label={`エネルギーレベル ${level}`}
+                tabIndex={energyLevel === level ? 0 : -1}
                 onClick={() => setEnergyLevel(level)}
                 className={`w-11 h-11 rounded-lg text-sm font-medium border transition-colors ${
                   energyLevel === level

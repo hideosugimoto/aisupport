@@ -67,11 +67,14 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const rawUrl = event.notification.data?.url || "/";
   // Validate URL to prevent open redirect via malicious push payload
-  const url = (rawUrl.startsWith("/") || rawUrl.startsWith(self.location.origin))
-    ? rawUrl
-    : "/";
+  let url = "/";
+  try {
+    const parsed = new URL(event.notification.data?.url || "/", self.location.origin);
+    url = parsed.origin === self.location.origin ? parsed.pathname : "/";
+  } catch {
+    url = "/";
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

@@ -15,7 +15,7 @@ export async function DELETE(
     }
 
     // 整数境界チェック（セキュリティ対策）
-    if (compassItemId < 1 || compassItemId > Number.MAX_SAFE_INTEGER) {
+    if (compassItemId < 1 || compassItemId > 2147483647) { // PostgreSQL INT max
       return Response.json({ error: "無効なIDです" }, { status: 400 });
     }
 
