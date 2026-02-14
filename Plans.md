@@ -134,3 +134,44 @@
   - A11y: タブ role="tablist"/role="tab"、削除確認 role="alert"、Loading aria-live、画像alt改善、emoji aria-hidden
   - Quality: console.log除去、AbortError区別
   - 完了: 2026-02-14 — 233テスト全PASS + ビルド成功
+
+---
+
+## Phase 5（品質強化 + デプロイ準備）
+
+> **Goal:** テストカバレッジ補強 + .gitignore整備 + デプロイ準備
+
+- [x] 83. .gitignore 整備 + 不要ファイルクリーンアップ `cc:done`
+  - .gitignore に .claude/, test-results/, playwright-report/, scripts/ を追加
+  - src/app/.claude/, src/app/.next/ の誤配置ディレクトリを削除
+  - 完了: 2026-02-14 — git status で未追跡ファイル正常化確認
+
+- [x] 84. Compass CRUD API テスト作成 `cc:done`
+  - __tests__/api/compass-api.test.ts 作成（13テスト）
+  - GET /api/compass: 2テスト（一覧取得、空配列）
+  - POST /api/compass (テキスト): 3テスト（作成成功、空content 400、プラン制限 403）
+  - POST /api/compass (URL): 2テスト（URL作成成功、Freeプラン 403）
+  - DELETE /api/compass/[id]: 6テスト（削除成功、他人のアイテム 404、存在しないID 404、NaN 400、0以下 400、負の数 400）
+  - 完了: 2026-02-14 21:09 — 253テスト全PASS（13テスト追加）
+
+- [x] 85. Compass VectorStore + Engine 統合テスト `cc:done`
+  - __tests__/compass/compass-vector-store.test.ts 作成（7テスト）
+    - チャンクを検索して類似度順にソート
+    - topK 件だけ返す
+    - チャンクがない場合は空配列
+    - similarity threshold 以下のチャンクを除外
+    - バッチ処理: 200件超のチャンクを複数バッチで処理
+    - userId でフィルタリング
+    - 結果にドキュメント情報を含む
+  - __tests__/lib/decision/task-decision-engine-compass.test.ts 作成（9テスト）
+    - compassRetriever が設定されている場合、decide() で compassRelevance を返す
+    - compassRetriever が未設定の場合、compassRelevance は undefined
+    - RAG と Compass が並列で取得される（Promise.all）
+    - Compass 検索が失敗しても decide は成功する（graceful degradation）
+    - decideStream() でも compassContext がプロンプトに注入される
+    - setCompassRetriever() でリトリーバーを設定できる
+    - RAG と Compass の両方がある場合、両方のコンテキストがプロンプトに含まれる
+    - 空の Compass 結果でも compassRelevance は返される
+    - Compass 検索のタイムアウト/エラー時も正常に動作
+  - 🐛 Bug fix: task-decision-engine.ts の decide() メソッドで Compass エラーハンドリングを追加（decideStream() と統一）
+  - 完了: 2026-02-14 21:11 — 262テスト全PASS + ビルド成功

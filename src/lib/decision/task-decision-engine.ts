@@ -70,11 +70,14 @@ export class TaskDecisionEngine {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
 
-    // RAG と Compass を並列取得
+    // RAG と Compass を並列取得（エラーハンドリング付き）
     const [ragContext, compassResult] = await Promise.all([
       this.fetchRagContext(userId, input),
       this.compassRetriever
-        ? this.compassRetriever.retrieve(userId, input.tasks.join(" "))
+        ? this.compassRetriever.retrieve(userId, input.tasks.join(" ")).catch(error => {
+            console.warn("[Compass] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
+            return undefined;
+          })
         : Promise.resolve(undefined),
     ]);
     const compassContext = compassResult?.contextText || undefined;

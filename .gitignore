@@ -45,3 +45,13 @@ next-env.d.ts
 
 # database
 *.db
+
+# Claude Code state
+.claude/
+
+# Test results / reports
+test-results/
+playwright-report/
+
+# Generated scripts
+scripts/
