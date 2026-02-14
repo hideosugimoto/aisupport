@@ -25,7 +25,9 @@ export function normalizeVector(v: number[]): number[] {
   for (let i = 0; i < v.length; i++) norm += v[i] * v[i];
   norm = Math.sqrt(norm);
   if (norm === 0) return v;
-  return v.map(x => x / norm);
+  const result = new Array<number>(v.length);
+  for (let i = 0; i < v.length; i++) result[i] = v[i] / norm;
+  return result;
 }
 
 /**

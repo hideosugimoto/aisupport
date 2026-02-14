@@ -20,24 +20,28 @@ function verifyMagicBytes(base64Data: string, mimeType: string): boolean {
   const signature = MAGIC_BYTES[mimeType];
   if (!signature) return false;
 
-  const binaryStr = atob(base64Data.slice(0, 24)); // Only need first few bytes
-  for (let i = 0; i < signature.length; i++) {
-    if (binaryStr.charCodeAt(i) !== signature[i]) return false;
-  }
+  try {
+    const binaryStr = atob(base64Data.slice(0, 24)); // 18 decoded bytes covers RIFF+WEBP
+    for (let i = 0; i < signature.length; i++) {
+      if (binaryStr.charCodeAt(i) !== signature[i]) return false;
+    }
 
-  // WebP: additionally check for "WEBP" at offset 8
-  if (mimeType === "image/webp") {
-    const webpMark = binaryStr.slice(8, 12);
-    if (webpMark !== "WEBP") return false;
-  }
+    // WebP: additionally check for "WEBP" at offset 8
+    if (mimeType === "image/webp") {
+      const webpMark = binaryStr.slice(8, 12);
+      if (webpMark !== "WEBP") return false;
+    }
 
-  return true;
+    return true;
+  } catch {
+    return false; // Invalid base64 data
+  }
 }
 
 export function validateImage(
   sizeBytes: number,
   mimeType: string,
-  base64Data?: string
+  base64Data: string
 ): { valid: boolean; error?: string } {
   const maxBytes = compassConfig.max_image_size_mb * 1024 * 1024;
   if (sizeBytes > maxBytes) {
