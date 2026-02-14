@@ -1,5 +1,6 @@
 import { prisma } from "../db/prisma";
 import ragConfig from "../../../config/rag.json";
+import { cosineSimilarity, embeddingToBuffer, bufferToFloat32 } from "./vector-utils";
 
 export interface VectorSearchResult {
   chunkId: number;
@@ -25,32 +26,6 @@ export interface VectorStore {
   listDocuments(userId: string): Promise<
     { id: number; filename: string; mimeType: string; chunkCount: number; createdAt: Date }[]
   >;
-}
-
-function cosineSimilarity(a: number[], b: Float32Array): number {
-  let dot = 0;
-  let normA = 0;
-  let normB = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-  const denom = Math.sqrt(normA) * Math.sqrt(normB);
-  return denom === 0 ? 0 : dot / denom;
-}
-
-function embeddingToBuffer(embedding: number[]): Buffer<ArrayBuffer> {
-  const float32 = new Float32Array(embedding);
-  return Buffer.from(float32.buffer) as Buffer<ArrayBuffer>;
-}
-
-function bufferToFloat32(buffer: Buffer): Float32Array {
-  const arrayBuffer = buffer.buffer.slice(
-    buffer.byteOffset,
-    buffer.byteOffset + buffer.byteLength
-  );
-  return new Float32Array(arrayBuffer);
 }
 
 export class PrismaVectorStore implements VectorStore {
@@ -84,9 +59,9 @@ export class PrismaVectorStore implements VectorStore {
     queryEmbedding: number[],
     topK: number = ragConfig.top_k
   ): Promise<VectorSearchResult[]> {
-    // バッチ処理でメモリ使用量を制限（1バッチ200件）
+    // バッチ処理 + Top-K bounded array でメモリ効率化
     const BATCH_SIZE = 200;
-    const results: VectorSearchResult[] = [];
+    const topKResults: VectorSearchResult[] = [];
     let cursor: number | undefined;
 
     for (;;) {
@@ -106,13 +81,21 @@ export class PrismaVectorStore implements VectorStore {
           bufferToFloat32(Buffer.from(chunk.embedding))
         );
         if (similarity >= ragConfig.similarity_threshold) {
-          results.push({
+          const result: VectorSearchResult = {
             chunkId: chunk.id,
             documentId: chunk.documentId,
             content: chunk.content,
             filename: chunk.document.filename,
             similarity,
-          });
+          };
+          // Top-K bounded insert: 常にtopK件のみ保持
+          if (topKResults.length < topK) {
+            topKResults.push(result);
+            topKResults.sort((a, b) => b.similarity - a.similarity);
+          } else if (similarity > topKResults[topKResults.length - 1].similarity) {
+            topKResults[topKResults.length - 1] = result;
+            topKResults.sort((a, b) => b.similarity - a.similarity);
+          }
         }
       }
 
@@ -120,9 +103,7 @@ export class PrismaVectorStore implements VectorStore {
       if (chunks.length < BATCH_SIZE) break;
     }
 
-    return results
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, topK);
+    return topKResults;
   }
 
   async deleteDocument(userId: string, documentId: number): Promise<void> {

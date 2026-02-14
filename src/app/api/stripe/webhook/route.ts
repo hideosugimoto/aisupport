@@ -3,6 +3,19 @@ import { stripe } from "@/lib/stripe/client";
 import { prisma } from "@/lib/db/prisma";
 import type Stripe from "stripe";
 
+// Webhook冪等性チェック用（メモリ内、TTL付き）
+const PROCESSED_EVENT_TTL_MS = 5 * 60 * 1000; // 5分
+const processedEvents = new Map<string, number>();
+
+function cleanupProcessedEvents() {
+  const now = Date.now();
+  for (const [id, timestamp] of processedEvents) {
+    if (now - timestamp > PROCESSED_EVENT_TTL_MS) {
+      processedEvents.delete(id);
+    }
+  }
+}
+
 function getPeriodEnd(sub: Stripe.Subscription): Date | null {
   const item = sub.items?.data?.[0];
   if (item?.current_period_end) {
@@ -33,12 +46,22 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "署名検証に失敗しました" }, { status: 400 });
   }
 
+  // Replay Attack対策: 処理済みイベントIDをチェック
+  cleanupProcessedEvents();
+  if (processedEvents.has(event.id)) {
+    return Response.json({ received: true });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
-        if (userId && session.subscription) {
+        if (!session.subscription) {
+          console.warn("[stripe/webhook] No subscription in checkout.session.completed");
+          break;
+        }
+        if (userId) {
           const subscriptionId =
             typeof session.subscription === "string"
               ? session.subscription
@@ -114,6 +137,9 @@ export async function POST(request: NextRequest) {
         break;
       }
     }
+
+    // 成功時のみ処理済みとして記録（失敗時はStripeにリトライさせる）
+    processedEvents.set(event.id, Date.now());
 
     return Response.json({ received: true });
   } catch (error) {

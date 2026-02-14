@@ -122,3 +122,32 @@ model Subscription {
 
   @@map("subscriptions")
 }
+
+model CompassItem {
+  id        Int            @id @default(autoincrement())
+  userId    String         @map("user_id")
+  type      String         // "text" | "url" | "image"
+  title     String
+  content   String
+  sourceUrl String?        @map("source_url")
+  imageKey  String?        @map("image_key")
+  createdAt DateTime       @default(now()) @map("created_at")
+  chunks    CompassChunk[]
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("compass_items")
+}
+
+model CompassChunk {
+  id            Int         @id @default(autoincrement())
+  compassItemId Int         @map("compass_item_id")
+  content       String
+  chunkIndex    Int         @map("chunk_index")
+  embedding     Bytes
+  createdAt     DateTime    @default(now()) @map("created_at")
+  compassItem   CompassItem @relation(fields: [compassItemId], references: [id], onDelete: Cascade)
+
+  @@index([compassItemId])
+  @@map("compass_chunks")
+}

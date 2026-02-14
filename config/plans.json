@@ -5,6 +5,10 @@
       "monthly_request_limit": 30,
       "rag_enabled": false,
       "weekly_review_enabled": false,
+      "compass_enabled": true,
+      "compass_max_items": 10,
+      "compass_image_enabled": false,
+      "compass_url_enabled": false,
       "price_jpy": 0
     },
     "pro": {
@@ -12,6 +16,10 @@
       "monthly_request_limit": -1,
       "rag_enabled": true,
       "weekly_review_enabled": true,
+      "compass_enabled": true,
+      "compass_max_items": -1,
+      "compass_image_enabled": true,
+      "compass_url_enabled": true,
       "price_jpy": 980
     }
   },

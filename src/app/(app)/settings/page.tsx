@@ -356,6 +356,7 @@ export default function SettingsPage() {
                   <button
                     onClick={handleUpgrade}
                     disabled={upgrading}
+                    aria-busy={upgrading}
                     className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
                   >
                     {upgrading ? "処理中..." : "Proプランにアップグレード (月額980円)"}
@@ -412,25 +413,38 @@ export default function SettingsPage() {
             )}
 
             <div className="space-y-3">
-              <select
-                value={newKeyProvider}
-                onChange={(e) => setNewKeyProvider(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              >
-                <option value="openai">OpenAI</option>
-                <option value="gemini">Google Gemini</option>
-                <option value="claude">Anthropic Claude</option>
-              </select>
-              <input
-                type="password"
-                value={newKeyValue}
-                onChange={(e) => setNewKeyValue(e.target.value)}
-                placeholder="APIキーを入力..."
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
+              <div>
+                <label htmlFor="api-key-provider" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                  プロバイダー
+                </label>
+                <select
+                  id="api-key-provider"
+                  value={newKeyProvider}
+                  onChange={(e) => setNewKeyProvider(e.target.value)}
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                >
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Google Gemini</option>
+                  <option value="claude">Anthropic Claude</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="api-key-input" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                  APIキー
+                </label>
+                <input
+                  id="api-key-input"
+                  type="password"
+                  value={newKeyValue}
+                  onChange={(e) => setNewKeyValue(e.target.value)}
+                  placeholder="APIキーを入力..."
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+              </div>
               <button
                 onClick={handleSaveApiKey}
                 disabled={savingKey || !newKeyValue.trim()}
+                aria-busy={savingKey}
                 className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
               >
                 {savingKey ? "保存中..." : "キーを保存"}
@@ -479,11 +493,12 @@ export default function SettingsPage() {
             </h2>
 
             <div className="space-y-4">
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              <div className="flex items-center justify-between">
+                <label htmlFor="reminder-enabled" className="text-sm text-zinc-700 dark:text-zinc-300">
                   毎日のリマインダー
-                </span>
+                </label>
                 <input
+                  id="reminder-enabled"
                   type="checkbox"
                   checked={settings.reminderEnabled}
                   onChange={(e) =>
@@ -491,14 +506,15 @@ export default function SettingsPage() {
                   }
                   className="rounded border-zinc-300 dark:border-zinc-600"
                 />
-              </label>
+              </div>
 
               {settings.reminderEnabled && (
                 <div>
-                  <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                  <label htmlFor="reminder-time" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                     通知時刻
                   </label>
                   <input
+                    id="reminder-time"
                     type="time"
                     value={settings.reminderTime}
                     onChange={(e) =>
@@ -509,16 +525,17 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              <label className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <label htmlFor="budget-alert" className="text-sm text-zinc-700 dark:text-zinc-300">
                     予算アラート
-                  </span>
+                  </label>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     月間予算の80%を超えたら通知
                   </p>
                 </div>
                 <input
+                  id="budget-alert"
                   type="checkbox"
                   checked={settings.budgetAlert}
                   onChange={(e) =>
@@ -526,13 +543,14 @@ export default function SettingsPage() {
                   }
                   className="rounded border-zinc-300 dark:border-zinc-600"
                 />
-              </label>
+              </div>
             </div>
           </div>
 
           <button
             onClick={saveSettings}
             disabled={saving}
+            aria-busy={saving}
             className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
           >
             {saving ? "保存中..." : "通知設定を保存"}
@@ -547,13 +565,14 @@ export default function SettingsPage() {
               アカウントを削除すると、全データが完全に消去されます。この操作は取り消せません。
             </p>
             {confirmDelete && (
-              <p className="mb-3 text-xs font-medium text-red-600 dark:text-red-400">
+              <p role="alert" aria-live="assertive" className="mb-3 text-xs font-medium text-red-600 dark:text-red-400">
                 本当に削除しますか？もう一度ボタンを押すと削除されます。
               </p>
             )}
             <button
               onClick={handleDeleteAccount}
               disabled={deleting}
+              aria-busy={deleting}
               className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
             >
               {deleting

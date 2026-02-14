@@ -17,10 +17,15 @@ export interface DecisionResult {
   totalTokens: number;
   isAnxietyMode: boolean;
   promptVersion?: string;
+  compassRelevance?: {
+    hasCompass: boolean;
+    topMatches: { title: string; similarity: number }[];
+  };
 }
 
 export class TaskDecisionEngine {
   private retriever?: Retriever;
+  private compassRetriever?: Retriever;
 
   constructor(
     private client: LLMClient,
@@ -31,6 +36,10 @@ export class TaskDecisionEngine {
 
   setRetriever(retriever: Retriever): void {
     this.retriever = retriever;
+  }
+
+  setCompassRetriever(retriever: Retriever): void {
+    this.compassRetriever = retriever;
   }
 
   private async fetchRagContext(userId: string, input: TaskDecisionInput): Promise<string | undefined> {
@@ -45,11 +54,32 @@ export class TaskDecisionEngine {
     }
   }
 
+  private async fetchCompassContext(userId: string, input: TaskDecisionInput): Promise<string | undefined> {
+    if (!this.compassRetriever) return undefined;
+    try {
+      const query = input.tasks.join(" ");
+      const result = await this.compassRetriever.retrieve(userId, query);
+      return result.contextText || undefined;
+    } catch (error) {
+      console.warn("[Compass] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
+      return undefined;
+    }
+  }
+
   async decide(userId: string, input: TaskDecisionInput): Promise<DecisionResult> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const ragContext = await this.fetchRagContext(userId, input);
-    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
+
+    // RAG と Compass を並列取得
+    const [ragContext, compassResult] = await Promise.all([
+      this.fetchRagContext(userId, input),
+      this.compassRetriever
+        ? this.compassRetriever.retrieve(userId, input.tasks.join(" "))
+        : Promise.resolve(undefined),
+    ]);
+    const compassContext = compassResult?.contextText || undefined;
+
+    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext, compassContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
     const response = await this.client.chat({ model, messages });
@@ -84,6 +114,10 @@ export class TaskDecisionEngine {
       totalTokens: response.usage.totalTokens,
       isAnxietyMode,
       promptVersion: promptVersion || "default",
+      compassRelevance: compassResult ? {
+        hasCompass: true,
+        topMatches: compassResult.results.map(r => ({ title: r.filename, similarity: r.similarity })),
+      } : undefined,
     };
   }
 
@@ -119,8 +153,13 @@ export class TaskDecisionEngine {
   ): AsyncIterable<LLMStreamChunk> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
-    const ragContext = await this.fetchRagContext(userId, input);
-    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext);
+
+    // RAG と Compass を並列取得
+    const [ragContext, compassContext] = await Promise.all([
+      this.fetchRagContext(userId, input),
+      this.fetchCompassContext(userId, input),
+    ]);
+    const messages = buildTaskDecisionMessages(input, promptVersion, ragContext, compassContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
     let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };

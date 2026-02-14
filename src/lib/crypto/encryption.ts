@@ -63,6 +63,19 @@ export function decrypt(ciphertext: string): string {
   ]).toString("utf8");
 }
 
+/** アプリ起動時に暗号化鍵の存在と形式を検証する */
+export function validateEncryptionKey(): void {
+  const hex = process.env.API_KEY_ENCRYPTION_KEY;
+  if (!hex || hex.length !== 64) {
+    throw new Error(
+      "API_KEY_ENCRYPTION_KEY must be a 64-character hex string (32 bytes)"
+    );
+  }
+  if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+    throw new Error("API_KEY_ENCRYPTION_KEY contains invalid hex characters");
+  }
+}
+
 export function createKeyHint(apiKey: string): string {
   if (apiKey.length <= 6) return "***";
   return `${apiKey.slice(0, 3)}...${apiKey.slice(-3)}`;

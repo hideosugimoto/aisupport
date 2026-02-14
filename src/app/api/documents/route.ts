@@ -7,8 +7,17 @@ import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { getUserPlan } from "@/lib/billing/plan-gate";
 
 function sanitizeFilename(filename: string): string {
+  // パストラバーサル除去
   const basename = filename.replace(/^.*[\\\/]/, "");
-  return basename.replace(/[^\p{L}\p{N}._-]/gu, "_").slice(0, 255);
+  // ヌルバイト除去
+  const noNull = basename.replace(/\0/g, "");
+  // 安全な文字のみ許可
+  const safe = noNull.replace(/[^\p{L}\p{N}._-]/gu, "_");
+  // 連続ピリオド禁止（パストラバーサル対策）
+  const noDots = safe.replace(/\.{2,}/g, "_");
+  // 先頭ピリオド禁止（隠しファイル防止）
+  const noLeadingDot = noDots.replace(/^\.+/, "");
+  return noLeadingDot.slice(0, 255) || "unnamed";
 }
 
 const vectorStore = new PrismaVectorStore();

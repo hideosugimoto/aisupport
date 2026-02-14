@@ -7,7 +7,7 @@ export async function DELETE() {
   try {
     const userId = await requireAuth();
 
-    // Stripeサブスクリプションをキャンセル
+    // 1. Stripe サブスクリプションをキャンセル（失敗しても続行）
     const subscription = await prisma.subscription.findUnique({
       where: { userId },
     });
@@ -16,12 +16,16 @@ export async function DELETE() {
       try {
         await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
       } catch (err) {
-        console.warn("[delete-account] Failed to cancel Stripe subscription:", err);
+        console.warn("[delete-account] Stripe cancel failed (non-critical):", err);
       }
     }
 
-    // 全ユーザーデータを削除（依存関係順）
+    // 2. 全ユーザーデータを削除（個人情報保護を最優先）
     await prisma.$transaction([
+      prisma.compassChunk.deleteMany({
+        where: { compassItem: { userId } },
+      }),
+      prisma.compassItem.deleteMany({ where: { userId } }),
       prisma.documentChunk.deleteMany({
         where: { document: { userId } },
       }),
@@ -34,12 +38,16 @@ export async function DELETE() {
       prisma.subscription.deleteMany({ where: { userId } }),
     ]);
 
-    // Clerkからユーザーを削除
+    // 3. Clerk からユーザーを削除（DB削除後に実行）
     try {
       const client = await clerkClient();
       await client.users.deleteUser(userId);
     } catch (err) {
-      console.warn("[delete-account] Failed to delete Clerk user:", err);
+      console.error("[delete-account] Clerk delete failed (user data already removed):", err);
+      return Response.json({
+        success: true,
+        warning: "データは削除されましたが、認証情報の削除に失敗しました。サポートにお問い合わせください",
+      });
     }
 
     return Response.json({ success: true });

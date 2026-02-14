@@ -98,6 +98,12 @@ export default function DocumentsPage() {
               >
                 タスク決定
               </Link>
+              <Link
+                href="/compass"
+                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                🧭 羅針盤
+              </Link>
             </nav>
           </div>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">

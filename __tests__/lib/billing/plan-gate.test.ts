@@ -29,6 +29,10 @@ describe("plan-gate", () => {
         monthlyRequestLimit: 30,
         ragEnabled: false,
         weeklyReviewEnabled: false,
+        compassEnabled: true,
+        compassMaxItems: 10,
+        compassImageEnabled: false,
+        compassUrlEnabled: false,
       });
 
       expect(prisma.subscription.findUnique).toHaveBeenCalledWith({
@@ -54,6 +58,10 @@ describe("plan-gate", () => {
         monthlyRequestLimit: -1,
         ragEnabled: true,
         weeklyReviewEnabled: true,
+        compassEnabled: true,
+        compassMaxItems: -1,
+        compassImageEnabled: true,
+        compassUrlEnabled: true,
       });
 
       expect(prisma.subscription.findUnique).toHaveBeenCalledWith({
@@ -79,6 +87,10 @@ describe("plan-gate", () => {
         monthlyRequestLimit: 30,
         ragEnabled: false,
         weeklyReviewEnabled: false,
+        compassEnabled: true,
+        compassMaxItems: 10,
+        compassImageEnabled: false,
+        compassUrlEnabled: false,
       });
     });
 
@@ -101,6 +113,10 @@ describe("plan-gate", () => {
         monthlyRequestLimit: 30, // but config is from free plan
         ragEnabled: false,
         weeklyReviewEnabled: false,
+        compassEnabled: true,
+        compassMaxItems: 10,
+        compassImageEnabled: false,
+        compassUrlEnabled: false,
       });
     });
   });
@@ -112,6 +128,10 @@ describe("plan-gate", () => {
       monthlyRequestLimit: 30,
       ragEnabled: false,
       weeklyReviewEnabled: false,
+      compassEnabled: true,
+      compassMaxItems: 10,
+      compassImageEnabled: false,
+      compassUrlEnabled: false,
     };
 
     const proPlan: PlanInfo = {
@@ -119,6 +139,10 @@ describe("plan-gate", () => {
       monthlyRequestLimit: -1,
       ragEnabled: true,
       weeklyReviewEnabled: true,
+      compassEnabled: true,
+      compassMaxItems: -1,
+      compassImageEnabled: true,
+      compassUrlEnabled: true,
     };
 
     it("should allow when under limit", async () => {

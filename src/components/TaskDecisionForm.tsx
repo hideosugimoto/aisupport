@@ -7,6 +7,11 @@ import featuresConfig from "../../config/features.json";
 
 type UIState = "idle" | "loading" | "streaming" | "completed" | "error";
 
+interface CompassRelevance {
+  hasCompass: boolean;
+  topMatches: { title: string; similarity: number }[];
+}
+
 interface State {
   status: UIState;
   content: string;
@@ -16,6 +21,7 @@ interface State {
   inputTokens: number;
   outputTokens: number;
   error: string | null;
+  compassRelevance?: CompassRelevance;
   breakdownStatus: "idle" | "loading" | "streaming" | "completed" | "error";
   breakdownContent: string;
   breakdownInputTokens: number;
@@ -42,6 +48,7 @@ type Action =
     }
   | { type: "ERROR"; error: string }
   | { type: "RESET" }
+  | { type: "SET_COMPASS"; compassRelevance: CompassRelevance }
   | { type: "START_BREAKDOWN" }
   | { type: "START_BREAKDOWN_STREAMING" }
   | { type: "APPEND_BREAKDOWN_CONTENT"; content: string }
@@ -94,6 +101,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, status: "error", error: action.error };
     case "RESET":
       return initialState;
+    case "SET_COMPASS":
+      return { ...state, compassRelevance: action.compassRelevance };
     case "START_BREAKDOWN":
       return {
         ...state,
@@ -286,14 +295,38 @@ export function TaskDecisionForm() {
               costUsd: 0, // TODO: Calculate actual cost
             }),
           });
-          console.log("Decision saved to history");
-        } catch (error) {
-          console.error("Failed to save to history:", error);
+          // Silent success: history save is non-critical
+        } catch {
+          // Silent failure: history save is non-critical
         }
       };
       saveToHistory();
     }
   }, [state.status, state.content, state.provider, state.model, state.inputTokens, state.outputTokens, tasks, energyLevel, availableTime]);
+
+  // Fetch compass relevance after decision completes
+  useEffect(() => {
+    if (state.status === "completed" && state.content && !state.compassRelevance) {
+      const fetchCompass = async () => {
+        try {
+          const res = await fetch("/api/compass");
+          if (res.ok) {
+            const data = await res.json();
+            dispatch({
+              type: "SET_COMPASS",
+              compassRelevance: {
+                hasCompass: data.items.length > 0,
+                topMatches: [],
+              },
+            });
+          }
+        } catch {
+          // Non-critical — skip compass display
+        }
+      };
+      fetchCompass();
+    }
+  }, [state.status, state.content, state.compassRelevance]);
 
   const handleBreakdown = async (task: string) => {
     dispatch({ type: "START_BREAKDOWN" });
@@ -573,6 +606,7 @@ export function TaskDecisionForm() {
               inputTokens={state.inputTokens}
               outputTokens={state.outputTokens}
               onBreakdown={state.status === "completed" ? handleBreakdown : undefined}
+              compassRelevance={state.compassRelevance}
             />
           )}
 

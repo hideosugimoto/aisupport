@@ -9,6 +9,7 @@ import { getDefaultModel } from "@/lib/config/types";
 import { DefaultRetriever } from "@/lib/rag/retriever";
 import { OpenAIEmbedder } from "@/lib/rag/embedder";
 import { PrismaVectorStore } from "@/lib/rag/vector-store";
+import { PrismaCompassVectorStore } from "@/lib/compass/compass-vector-store";
 import type { LLMProvider } from "@/lib/llm/types";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
@@ -50,13 +51,22 @@ export async function POST(request: NextRequest) {
     const engine = new TaskDecisionEngine(client, repository, provider, model);
 
     // RAG: ドキュメントがあれば retriever を設定
+    let embedder: OpenAIEmbedder | undefined;
     if (process.env.OPENAI_API_KEY) {
       const vectorStore = new PrismaVectorStore();
       const docs = await vectorStore.listDocuments(userId);
       if (docs.length > 0) {
-        const embedder = new OpenAIEmbedder();
+        embedder = new OpenAIEmbedder();
         engine.setRetriever(new DefaultRetriever(embedder, vectorStore));
       }
+    }
+
+    // Compass: 羅針盤データがあれば compassRetriever を設定
+    if (process.env.OPENAI_API_KEY) {
+      const compassStore = new PrismaCompassVectorStore();
+      const compassEmbedder = embedder ?? new OpenAIEmbedder();
+      const { CompassRetriever } = await import("@/lib/compass/compass-retriever");
+      engine.setCompassRetriever(new CompassRetriever(compassEmbedder, compassStore));
     }
 
     if (body.stream) {

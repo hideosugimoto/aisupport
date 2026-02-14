@@ -49,16 +49,24 @@ function sanitizePromptInput(text: string): string {
     .trim();
 }
 
+function truncateContext(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars) + "\n\n...（省略）";
+}
+
 export interface TaskDecisionInput {
   tasks: string[];
   availableTime: number;
   energyLevel: number;
 }
 
+const MAX_CONTEXT_CHARS = 4000; // 約1000トークン相当
+
 export function buildTaskDecisionMessages(
   input: TaskDecisionInput,
   version?: string,
-  ragContext?: string
+  ragContext?: string,
+  compassContext?: string
 ): Message[] {
   const evaluationAxes = loadTemplate("shared", "evaluation-axes.md");
   const systemTemplate = loadTemplate("task-decision", "system.md", version);
@@ -76,8 +84,12 @@ export function buildTaskDecisionMessages(
     systemPrompt += "\n\n" + anxietyTemplate;
   }
 
+  if (compassContext) {
+    systemPrompt += "\n\n" + truncateContext(compassContext, MAX_CONTEXT_CHARS);
+  }
+
   if (ragContext) {
-    systemPrompt += "\n\n" + ragContext;
+    systemPrompt += "\n\n" + truncateContext(ragContext, MAX_CONTEXT_CHARS);
   }
 
   const tasksFormatted = input.tasks

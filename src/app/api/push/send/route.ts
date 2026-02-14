@@ -14,6 +14,13 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+      return Response.json(
+        { error: "プッシュ通知が設定されていません" },
+        { status: 503 }
+      );
+    }
+
     const userId = await requireAuth();
     const body = await request.json();
     const { title, message, url } = body;

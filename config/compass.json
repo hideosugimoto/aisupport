@@ -1,0 +1,10 @@
+{
+  "max_image_size_mb": 5,
+  "allowed_image_types": ["image/jpeg", "image/png", "image/webp"],
+  "url_fetch_timeout_ms": 10000,
+  "max_url_content_length": 50000,
+  "vision_model": "gpt-4o-mini",
+  "vision_max_tokens": 500,
+  "compass_top_k": 3,
+  "compass_similarity_threshold": 0.25
+}
