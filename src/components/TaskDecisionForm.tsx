@@ -431,17 +431,20 @@ export function TaskDecisionForm() {
           {tasks.map((task, index) => (
             <div key={index} className="flex gap-2 mb-2">
               <input
+                id={`task-${index}`}
                 type="text"
                 value={task}
                 onChange={(e) => updateTask(index, e.target.value)}
                 maxLength={200}
                 placeholder={`タスク ${index + 1}`}
+                aria-label={`タスク ${index + 1}`}
                 className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
               />
               {tasks.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeTask(index)}
+                  aria-label={`タスク ${index + 1} を削除`}
                   className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-700"
                 >
                   -
@@ -462,10 +465,11 @@ export function TaskDecisionForm() {
 
         {/* 利用可能時間 */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label htmlFor="available-time" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             利用可能時間（分）
           </label>
           <input
+            id="available-time"
             type="number"
             min={1}
             max={1440}
@@ -477,14 +481,17 @@ export function TaskDecisionForm() {
 
         {/* エネルギー状態 */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+          <label id="energy-label" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             エネルギー状態
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="radiogroup" aria-labelledby="energy-label">
             {[1, 2, 3, 4, 5].map((level) => (
               <button
                 key={level}
                 type="button"
+                role="radio"
+                aria-checked={energyLevel === level}
+                aria-label={`エネルギーレベル ${level}`}
                 onClick={() => setEnergyLevel(level)}
                 className={`w-11 h-11 rounded-lg text-sm font-medium border transition-colors ${
                   energyLevel === level

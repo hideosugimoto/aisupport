@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!apiKey || typeof apiKey !== "string" || apiKey.trim().length < 10 || apiKey.trim().length > 128) {
+    if (!apiKey || typeof apiKey !== "string" || apiKey.trim().length < 10 || apiKey.trim().length > 256) {
       return Response.json(
-        { error: "有効なAPIキーを入力してください（10〜128文字）" },
+        { error: "有効なAPIキーを入力してください（10〜256文字）" },
         { status: 400 }
       );
     }

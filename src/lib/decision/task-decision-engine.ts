@@ -1,6 +1,6 @@
 import type { LLMClient, LLMStreamChunk } from "../llm/types";
 import type { UsageLogRepository } from "../db/types";
-import type { Retriever } from "../rag/retriever";
+import type { Retriever, RetrievalResult } from "../rag/retriever";
 import {
   buildTaskDecisionMessages,
   type TaskDecisionInput,
@@ -55,11 +55,15 @@ export class TaskDecisionEngine {
   }
 
   private async fetchCompassContext(userId: string, input: TaskDecisionInput): Promise<string | undefined> {
+    const result = await this.fetchCompassResult(userId, input);
+    return result?.contextText || undefined;
+  }
+
+  private async fetchCompassResult(userId: string, input: TaskDecisionInput): Promise<RetrievalResult | undefined> {
     if (!this.compassRetriever) return undefined;
     try {
       const query = input.tasks.join(" ");
-      const result = await this.compassRetriever.retrieve(userId, query);
-      return result.contextText || undefined;
+      return await this.compassRetriever.retrieve(userId, query);
     } catch (error) {
       console.warn("[Compass] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
       return undefined;
@@ -73,12 +77,7 @@ export class TaskDecisionEngine {
     // RAG と Compass を並列取得（エラーハンドリング付き）
     const [ragContext, compassResult] = await Promise.all([
       this.fetchRagContext(userId, input),
-      this.compassRetriever
-        ? this.compassRetriever.retrieve(userId, input.tasks.join(" ")).catch(error => {
-            console.warn("[Compass] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
-            return undefined;
-          })
-        : Promise.resolve(undefined),
+      this.fetchCompassResult(userId, input),
     ]);
     const compassContext = compassResult?.contextText || undefined;
 

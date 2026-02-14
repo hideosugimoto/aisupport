@@ -42,7 +42,7 @@ export class LLMClientWrapper implements LLMClient {
           if (!error.retryable || attempt === this.config.maxRetries) {
             throw error;
           }
-          // Exponential backoff with jitter to avoid thundering herd
+          // Exponential backoff with jitter (max 5s cap to prevent excessive wait)
           const baseDelay = Math.min(Math.pow(2, attempt) * 1000, 5000);
           const jitter = Math.random() * baseDelay * 0.5;
           const delay = baseDelay + jitter;
