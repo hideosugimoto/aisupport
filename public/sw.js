@@ -25,8 +25,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // API requests: network only (no caching)
-  if (request.url.includes("/api/")) {
+  // Skip non-same-origin and API requests (no caching)
+  if (!request.url.startsWith(self.location.origin) || request.url.includes("/api/")) {
     return;
   }
 

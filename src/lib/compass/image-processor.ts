@@ -21,7 +21,9 @@ function verifyMagicBytes(base64Data: string, mimeType: string): boolean {
   if (!signature) return false;
 
   try {
-    const binaryStr = atob(base64Data.slice(0, 24)); // 18 decoded bytes covers RIFF+WEBP
+    // 24 base64 chars → 18 decoded bytes, enough for longest signature (RIFF+WEBP = 12 bytes)
+    const HEADER_B64_LEN = 24;
+    const binaryStr = atob(base64Data.slice(0, HEADER_B64_LEN));
     for (let i = 0; i < signature.length; i++) {
       if (binaryStr.charCodeAt(i) !== signature[i]) return false;
     }
