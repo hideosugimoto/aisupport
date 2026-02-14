@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma";
-import { cosineSimilarity, bufferToFloat32 } from "../rag/vector-utils";
+import { cosineSimilarityPreNorm, normalizeVector, bufferToFloat32 } from "../rag/vector-utils";
 import type { VectorSearchResult } from "../rag/vector-store";
 import compassConfig from "../../../config/compass.json";
 
@@ -9,8 +9,8 @@ export class PrismaCompassVectorStore {
     queryEmbedding: number[],
     topK: number = compassConfig.compass_top_k
   ): Promise<VectorSearchResult[]> {
-    // Same batch + Top-K bounded pattern as PrismaVectorStore
-    // but queries compassChunk table instead of documentChunk
+    // Pre-normalize query vector to avoid redundant norm calculation per chunk
+    const normalizedQuery = normalizeVector(queryEmbedding);
     const BATCH_SIZE = 200;
     const topKResults: VectorSearchResult[] = [];
     let cursor: number | undefined;
@@ -27,8 +27,8 @@ export class PrismaCompassVectorStore {
       if (chunks.length === 0) break;
 
       for (const chunk of chunks) {
-        const similarity = cosineSimilarity(
-          queryEmbedding,
+        const similarity = cosineSimilarityPreNorm(
+          normalizedQuery,
           bufferToFloat32(Buffer.from(chunk.embedding))
         );
         if (similarity >= compassConfig.compass_similarity_threshold) {
@@ -39,6 +39,7 @@ export class PrismaCompassVectorStore {
             filename: chunk.compassItem.title,
             similarity,
           };
+          // Top-K bounded insert with bubble-up (O(K) vs O(K log K) sort)
           if (topKResults.length < topK) {
             topKResults.push(result);
             if (topKResults.length === topK) {
@@ -46,7 +47,11 @@ export class PrismaCompassVectorStore {
             }
           } else if (similarity > topKResults[topKResults.length - 1].similarity) {
             topKResults[topKResults.length - 1] = result;
-            topKResults.sort((a, b) => b.similarity - a.similarity);
+            for (let i = topKResults.length - 1; i > 0; i--) {
+              if (topKResults[i].similarity > topKResults[i - 1].similarity) {
+                [topKResults[i], topKResults[i - 1]] = [topKResults[i - 1], topKResults[i]];
+              } else break;
+            }
           }
         }
       }

@@ -80,12 +80,12 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      const validation = validateImage(file.size, file.type);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      imageBase64 = buffer.toString("base64");
+      const validation = validateImage(file.size, file.type, imageBase64);
       if (!validation.valid) {
         return Response.json({ error: validation.error }, { status: 400 });
       }
-      const buffer = Buffer.from(await file.arrayBuffer());
-      imageBase64 = buffer.toString("base64");
       imageMimeType = file.type;
       content = ""; // Will be set to AI description
     } else {

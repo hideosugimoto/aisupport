@@ -8,6 +8,15 @@ import {
 import { getDefaultModel } from "../config/types";
 import featuresConfig from "../../../config/features.json";
 
+const RETRIEVAL_TIMEOUT_MS = featuresConfig.default_timeout_ms;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 export interface DecisionResult {
   content: string;
   provider: string;
@@ -74,10 +83,10 @@ export class TaskDecisionEngine {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
 
-    // RAG と Compass を並列取得（エラーハンドリング付き）
+    // RAG と Compass を並列取得（タイムアウト + エラーハンドリング付き）
     const [ragContext, compassResult] = await Promise.all([
-      this.fetchRagContext(userId, input),
-      this.fetchCompassResult(userId, input),
+      withTimeout(this.fetchRagContext(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
+      withTimeout(this.fetchCompassResult(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
     ]);
     const compassContext = compassResult?.contextText || undefined;
 
@@ -156,10 +165,10 @@ export class TaskDecisionEngine {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
 
-    // RAG と Compass を並列取得
+    // RAG と Compass を並列取得（タイムアウト付き）
     const [ragContext, compassContext] = await Promise.all([
-      this.fetchRagContext(userId, input),
-      this.fetchCompassContext(userId, input),
+      withTimeout(this.fetchRagContext(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
+      withTimeout(this.fetchCompassContext(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
     ]);
     const messages = buildTaskDecisionMessages(input, promptVersion, ragContext, compassContext);
     const model = this.model ?? getDefaultModel(this.provider);

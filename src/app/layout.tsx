@@ -17,6 +17,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI意思決定アシスタント",
   description: "冷静ロジカル型 意思決定AIアシスタント",
+  openGraph: {
+    title: "AI意思決定アシスタント",
+    description: "冷静ロジカル型 意思決定AIアシスタント",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "AI意思決定アシスタント",
+    description: "冷静ロジカル型 意思決定AIアシスタント",
+  },
 };
 
 export const viewport: Viewport = {
@@ -40,7 +50,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#09090b" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="color-scheme" content="light dark" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
