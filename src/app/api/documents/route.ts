@@ -88,9 +88,29 @@ export async function POST(request: NextRequest) {
     if (mimeType === "application/pdf" || ext === "pdf") {
       const { getDocumentProxy, extractText } = await import("unpdf");
       const buffer = new Uint8Array(await file.arrayBuffer());
+
+      // Node.js の NodeCMapReaderFactory は fs.readFile を使うため
+      // HTTP URL での CMap 取得が失敗する。HTTP fetch 版を提供する。
+      const CMAP_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.296/cmaps/";
+      class HttpCMapReaderFactory {
+        baseUrl: string;
+        isCompressed: boolean;
+        constructor({ baseUrl, isCompressed }: { baseUrl: string; isCompressed: boolean }) {
+          this.baseUrl = baseUrl;
+          this.isCompressed = isCompressed;
+        }
+        async fetch({ name }: { name: string }) {
+          const url = `${this.baseUrl}${name}${this.isCompressed ? ".bcmap" : ""}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`CMap fetch failed: ${url}`);
+          return { cMapData: new Uint8Array(await res.arrayBuffer()), isCompressed: this.isCompressed };
+        }
+      }
+
       const pdf = await getDocumentProxy(buffer, {
-        cMapUrl: "https://unpkg.com/pdfjs-dist@4.10.38/cmaps/",
+        cMapUrl: CMAP_URL,
         cMapPacked: true,
+        CMapReaderFactory: HttpCMapReaderFactory,
       });
       const { text } = await extractText(pdf);
       textContent = Array.isArray(text) ? text.join("\n") : String(text);
