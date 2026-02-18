@@ -3,7 +3,7 @@ import type { Logger, LogLevel } from "./types";
 
 const VALID_LEVELS: ReadonlySet<string> = new Set(["debug", "info", "warn", "error"]);
 
-function parseLogLevel(raw: string | undefined): LogLevel {
+export function parseLogLevel(raw: string | undefined): LogLevel {
   if (raw !== undefined && VALID_LEVELS.has(raw)) return raw as LogLevel;
   if (raw !== undefined) {
     console.warn(`[logger] Invalid LOG_LEVEL="${raw}", falling back to "info"`);

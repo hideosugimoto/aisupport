@@ -23,6 +23,7 @@ export class TaskBreakdownEngine {
     private repository: UsageLogRepository,
     private provider: string,
     private model?: string,
+    // Logger DI scaffold — will be used when error/diagnostic logging is added
     private logger: Logger = nullLogger
   ) {}
 
