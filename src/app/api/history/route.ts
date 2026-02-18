@@ -56,14 +56,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const tasks = [
-      {
-        title: body.taskTitle,
-        description: body.taskDescription,
-        category: body.category,
-        urgency: body.urgency,
-      },
-    ];
+    const tasks = Array.isArray(body.tasks) && body.tasks.length > 0
+      ? body.tasks
+          .filter((t: unknown) => typeof t === "string" && (t as string).trim())
+          .map((t: string) => ({ title: t.trim() }))
+      : [
+          {
+            title: body.taskTitle,
+            description: body.taskDescription,
+            category: body.category,
+            urgency: body.urgency,
+          },
+        ];
 
     const entry: TaskDecisionEntry = {
       userId,

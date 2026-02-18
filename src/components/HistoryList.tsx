@@ -87,7 +87,17 @@ export function HistoryList({
 
   const handleContinue = (item: TaskDecisionRecord) => {
     const tasks = parseTasks(item.tasksInput);
-    const taskStrings = tasks.map((t: { title: string }) => t.title).filter(Boolean);
+    let taskStrings: string[];
+    if (tasks.length === 1 && tasks[0]?.description) {
+      // Old format: single object with comma-joined description
+      taskStrings = (tasks[0].description as string)
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+    } else {
+      // New format: multiple objects with title
+      taskStrings = tasks.map((t: { title: string }) => t.title).filter(Boolean);
+    }
     sessionStorage.setItem(
       "dashboard-restore",
       JSON.stringify({ tasks: taskStrings })

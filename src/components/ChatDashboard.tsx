@@ -458,6 +458,7 @@ export function ChatDashboard() {
           body: JSON.stringify({
             taskTitle: firstTask,
             taskDescription: currentTasks.join(", "),
+            tasks: currentTasks,
             category: "task-decision",
             urgency: currentEnergy,
             decision: apiState.content,
