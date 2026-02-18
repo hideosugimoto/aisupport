@@ -86,10 +86,9 @@ export async function POST(request: NextRequest) {
     let textContent: string;
 
     if (mimeType === "application/pdf" || ext === "pdf") {
-      const { PDFParse } = await import("pdf-parse");
+      const pdfParse = (await import("pdf-parse")).default;
       const buffer = Buffer.from(await file.arrayBuffer());
-      const parser = new PDFParse({ data: new Uint8Array(buffer) });
-      const result = await parser.getText();
+      const result = await pdfParse(buffer);
       textContent = result.text;
       mimeType = "application/pdf";
     } else {
