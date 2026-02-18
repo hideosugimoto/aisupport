@@ -26,8 +26,10 @@ export class DefaultNeglectDetector implements NeglectDetector {
     const results = await this.vectorStore.search(userId, queryEmbedding, 100);
 
     if (results.length === 0) {
+      console.log("[NeglectDetector] No compass embeddings found for user");
       return null;
     }
+    console.log("[NeglectDetector] Found", results.length, "compass chunks");
 
     // Step 3: Group by compassItemId, take MAX similarity per item
     const maxSimilarityByItem = new Map<

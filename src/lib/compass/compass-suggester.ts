@@ -45,8 +45,10 @@ export class CompassSuggester {
       // Step 2: Detect the most neglected compass item
       const neglected = await this.neglectDetector.detect(userId, query);
       if (neglected === null) {
+        console.log("[CompassSuggester] No neglected compass item found (no items or no embeddings)");
         return null;
       }
+      console.log("[CompassSuggester] Neglected item:", neglected.title, "similarity:", neglected.similarity);
 
       // Step 3: Load prompt template
       const template = loadTemplate("compass", "suggest-action.md");
@@ -75,6 +77,7 @@ export class CompassSuggester {
         raw.timeEstimate <= 0 ||
         raw.timeEstimate > 1440
       ) {
+        console.warn("[CompassSuggester] Invalid LLM response:", JSON.stringify(raw).slice(0, 300));
         return null;
       }
 
@@ -86,8 +89,9 @@ export class CompassSuggester {
         reason: String(raw.reason).slice(0, 1000),
         timeEstimate: raw.timeEstimate,
       };
-    } catch {
+    } catch (error) {
       // Step 8: Any error → return null to avoid blocking main flow
+      console.error("[CompassSuggester] Error:", error instanceof Error ? error.message : String(error));
       return null;
     }
   }
