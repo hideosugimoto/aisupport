@@ -87,8 +87,9 @@ export async function POST(request: NextRequest) {
 
     if (mimeType === "application/pdf" || ext === "pdf") {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "";
       const arrayBuffer = await file.arrayBuffer();
-      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer), disableWorker: true }).promise;
       const pages: string[] = [];
       for (let i = 1; i <= doc.numPages; i++) {
         const page = await doc.getPage(i);
