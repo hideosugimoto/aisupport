@@ -110,6 +110,12 @@ export default clerkMiddleware(async (auth, request) => {
   const rateLimitResponse = rateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
 
+  // 認証済みユーザーがランディングページにアクセスした場合、ダッシュボードへ転送
+  const { userId } = await auth();
+  if (userId && request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   // 公開ルート以外は認証を要求
   if (!isPublicRoute(request)) {
     await auth.protect();
