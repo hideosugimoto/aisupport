@@ -86,11 +86,16 @@ export async function POST(request: NextRequest) {
     let textContent: string;
 
     if (mimeType === "application/pdf" || ext === "pdf") {
-      // pdf-parse のメインエントリはテスト用PDFを読み込むため、lib を直接参照
-      const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const result = await pdfParse(buffer);
-      textContent = result.text;
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      const arrayBuffer = await file.arrayBuffer();
+      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+      const pages: string[] = [];
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i);
+        const content = await page.getTextContent();
+        pages.push(content.items.map((item: { str?: string }) => item.str ?? "").join(""));
+      }
+      textContent = pages.join("\n");
       mimeType = "application/pdf";
     } else {
       textContent = await file.text();

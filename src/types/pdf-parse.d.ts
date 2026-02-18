@@ -1,12 +1,25 @@
-declare module "pdf-parse/lib/pdf-parse.js" {
-  interface PDFParseResult {
-    numpages: number;
-    numrender: number;
-    info: Record<string, unknown>;
-    metadata: unknown;
-    text: string;
-    version: string;
+declare module "pdfjs-dist/legacy/build/pdf.mjs" {
+  export function getDocument(params: {
+    data: Uint8Array;
+  }): {
+    promise: Promise<PDFDocumentProxy>;
+  };
+
+  interface PDFDocumentProxy {
+    numPages: number;
+    getPage(pageNumber: number): Promise<PDFPageProxy>;
   }
-  function pdfParse(buffer: Buffer): Promise<PDFParseResult>;
-  export default pdfParse;
+
+  interface PDFPageProxy {
+    getTextContent(): Promise<TextContent>;
+  }
+
+  interface TextContent {
+    items: TextItem[];
+  }
+
+  interface TextItem {
+    str?: string;
+    [key: string]: unknown;
+  }
 }
