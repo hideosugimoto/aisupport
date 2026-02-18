@@ -9,6 +9,7 @@ import { EnergySelector } from "./EnergySelector";
 import { AdvancedSettings } from "./AdvancedSettings";
 import { DecisionResult } from "./DecisionResult";
 import { BreakdownResult } from "./BreakdownResult";
+import { CompassSuggestionCard } from "./CompassSuggestionCard";
 import featuresConfig from "../../config/features.json";
 import { calculateCostUsd } from "@/lib/cost/pricing";
 
@@ -31,6 +32,14 @@ interface CompassItem {
 interface CompassRelevance {
   hasCompass: boolean;
   topMatches: { title: string; similarity: number }[];
+}
+
+interface CompassSuggestion {
+  compassItemId: number;
+  compassTitle: string;
+  suggestedTask: string;
+  reason: string;
+  timeEstimate: number;
 }
 
 // --- Reducer (ported from TaskDecisionForm) ---
@@ -180,6 +189,10 @@ export function ChatDashboard() {
   const [compassInput, setCompassInput] = useState("");
   const [compassDrafts, setCompassDrafts] = useState<string[]>([]);
   const [compassSaving, setCompassSaving] = useState(false);
+
+  // Compass suggestion state
+  const [compassSuggestion, setCompassSuggestion] = useState<CompassSuggestion | null>(null);
+  const [compassSuggestionLoading, setCompassSuggestionLoading] = useState(false);
 
   // AbortController for streaming cleanup (C1 fix)
   const abortRef = useRef<AbortController | null>(null);
@@ -332,6 +345,27 @@ export function ChatDashboard() {
     }
 
     dispatch({ type: "START_LOADING" });
+
+    // Reset compass suggestion for new decision
+    setCompassSuggestion(null);
+    setCompassSuggestionLoading(true);
+
+    // Fetch compass suggestion in parallel (fire-and-forget, never blocks main flow)
+    fetch("/api/compass/suggest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tasks: tasks.filter((t) => t.trim().length > 0),
+        timeMinutes: availableTime ?? 60,
+        energyLevel: energyLevel ?? 3,
+        provider,
+        model,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => setCompassSuggestion(data.suggestion ?? null))
+      .catch(() => setCompassSuggestion(null))
+      .finally(() => setCompassSuggestionLoading(false));
 
     // Cancel previous streaming request
     abortRef.current?.abort();
@@ -638,6 +672,8 @@ export function ChatDashboard() {
     setAvailableTime(null);
     setEnergyLevel(null);
     setBudgetWarning(null);
+    setCompassSuggestion(null);
+    setCompassSuggestionLoading(false);
   };
 
   // Continue session — show task completion selection
@@ -669,7 +705,29 @@ export function ChatDashboard() {
     setBudgetWarning(null);
     setIsSelectingCompleted(false);
     setCompletedIndices(new Set());
+    setCompassSuggestion(null);
+    setCompassSuggestionLoading(false);
   };
+
+  // Handle adding compass suggestion task and auto re-deciding
+  const pendingResubmitRef = useRef(false);
+
+  const handleAddCompassTask = (suggestedTask: string) => {
+    setTasks((prev) => [...prev, suggestedTask]);
+    setCompassSuggestion(null);
+    setCompassSuggestionLoading(false);
+    dispatch({ type: "RESET" });
+    pendingResubmitRef.current = true;
+  };
+
+  // Auto-submit when tasks are updated after compass suggestion addition
+  useEffect(() => {
+    if (pendingResubmitRef.current && apiState.status === "idle" && tasks.length > 0) {
+      pendingResubmitRef.current = false;
+      handleSubmit();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, apiState.status]);
 
   const isSubmitting =
     apiState.status === "loading" || apiState.status === "streaming";
@@ -1023,6 +1081,17 @@ export function ChatDashboard() {
                 />
               </div>
             )}
+
+          {/* Compass suggestion card */}
+          {apiState.status === "completed" && apiState.content && (
+            <div className="ml-11">
+              <CompassSuggestionCard
+                suggestion={compassSuggestion}
+                loading={compassSuggestionLoading}
+                onAddTask={handleAddCompassTask}
+              />
+            </div>
+          )}
 
           {/* Session actions */}
           {apiState.status === "completed" && !isSelectingCompleted && (
