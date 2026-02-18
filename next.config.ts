@@ -13,14 +13,14 @@ const nextConfig: NextConfig = {
     const csp = [
       "default-src 'self'",
       isDevelopment
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev"
-        : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://challenges.cloudflare.com"
+        : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https://img.clerk.com",
       "font-src 'self'",
       "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com",
       "worker-src 'self'",
-      "frame-src 'self' https://*.clerk.accounts.dev",
+      "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
