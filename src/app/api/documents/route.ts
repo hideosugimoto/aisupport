@@ -88,7 +88,10 @@ export async function POST(request: NextRequest) {
     if (mimeType === "application/pdf" || ext === "pdf") {
       const { extractText } = await import("unpdf");
       const buffer = new Uint8Array(await file.arrayBuffer());
-      const { text } = await extractText(buffer);
+      const { text } = await extractText(buffer, {
+        cMapUrl: "https://unpkg.com/pdfjs-dist@4.10.38/cmaps/",
+        cMapPacked: true,
+      });
       textContent = Array.isArray(text) ? text.join("\n") : String(text);
       mimeType = "application/pdf";
     } else {
