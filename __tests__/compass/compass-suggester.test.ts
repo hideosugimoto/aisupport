@@ -8,6 +8,7 @@ vi.mock("@/lib/llm/prompt-builder", () => ({
   loadTemplate: vi.fn().mockReturnValue(
     "あなたはアシスタントです。{{compass_title}} {{compass_content}} {{available_time}} {{energy_level}}"
   ),
+  sanitizePromptInput: vi.fn().mockImplementation((text: string) => text),
 }));
 
 const mockNeglectDetector: NeglectDetector = {

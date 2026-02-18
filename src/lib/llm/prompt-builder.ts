@@ -39,7 +39,7 @@ function replaceVariables(
   return result;
 }
 
-function sanitizePromptInput(text: string): string {
+export function sanitizePromptInput(text: string): string {
   return text
     .replace(/```/g, "")
     .replace(/system\s*:/gi, "")

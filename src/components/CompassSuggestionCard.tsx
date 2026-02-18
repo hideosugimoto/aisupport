@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-interface CompassSuggestion {
-  compassItemId: number;
-  compassTitle: string;
-  suggestedTask: string;
-  reason: string;
-  timeEstimate: number;
-}
+import type { CompassSuggestion } from "@/lib/compass/compass-suggester";
 
 interface CompassSuggestionCardProps {
   suggestion: CompassSuggestion | null;
@@ -55,6 +48,10 @@ export function CompassSuggestionCard({
     );
   }
 
+  if (!suggestion) {
+    return null;
+  }
+
   return (
     <div
       className={`rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950 motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-out ${
@@ -73,29 +70,29 @@ export function CompassSuggestionCard({
 
       {/* Neglected dream notice */}
       <p className="mb-3 text-sm text-teal-700 dark:text-teal-300">
-        「{suggestion!.compassTitle}」に最近取り組めていません
+        「{suggestion.compassTitle}」に最近取り組めていません
       </p>
 
       {/* Suggested task */}
       <p className="mb-2 text-sm font-semibold text-teal-900 dark:text-teal-100">
         <span aria-hidden="true">💡</span>{" "}
-        {suggestion!.suggestedTask}
+        {suggestion.suggestedTask}
         <span className="ml-1 font-normal text-teal-600 dark:text-teal-400">
-          （約{suggestion!.timeEstimate}分）
+          （約{suggestion.timeEstimate}分）
         </span>
       </p>
 
       {/* Reason */}
       <p className="mb-4 text-sm text-teal-700 dark:text-teal-300">
-        {suggestion!.reason}
+        {suggestion.reason}
       </p>
 
       {/* CTA button */}
       <div className="flex justify-center">
         <button
           type="button"
-          onClick={() => onAddTask(suggestion!.suggestedTask)}
-          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-500 dark:bg-teal-500 dark:hover:bg-teal-400"
+          onClick={() => onAddTask(suggestion.suggestedTask)}
+          className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 dark:bg-teal-500 dark:hover:bg-teal-400 dark:focus-visible:ring-offset-zinc-900"
         >
           このタスクを追加して再判断
         </button>

@@ -10,6 +10,7 @@ import { AdvancedSettings } from "./AdvancedSettings";
 import { DecisionResult } from "./DecisionResult";
 import { BreakdownResult } from "./BreakdownResult";
 import { CompassSuggestionCard } from "./CompassSuggestionCard";
+import type { CompassSuggestion } from "@/lib/compass/compass-suggester";
 import featuresConfig from "../../config/features.json";
 import { calculateCostUsd } from "@/lib/cost/pricing";
 
@@ -32,14 +33,6 @@ interface CompassItem {
 interface CompassRelevance {
   hasCompass: boolean;
   topMatches: { title: string; similarity: number }[];
-}
-
-interface CompassSuggestion {
-  compassItemId: number;
-  compassTitle: string;
-  suggestedTask: string;
-  reason: string;
-  timeEstimate: number;
 }
 
 // --- Reducer (ported from TaskDecisionForm) ---
@@ -711,6 +704,8 @@ export function ChatDashboard() {
 
   // Handle adding compass suggestion task and auto re-deciding
   const pendingResubmitRef = useRef(false);
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
 
   const handleAddCompassTask = (suggestedTask: string) => {
     setTasks((prev) => [...prev, suggestedTask]);
@@ -724,9 +719,8 @@ export function ChatDashboard() {
   useEffect(() => {
     if (pendingResubmitRef.current && apiState.status === "idle" && tasks.length > 0) {
       pendingResubmitRef.current = false;
-      handleSubmit();
+      handleSubmitRef.current();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, apiState.status]);
 
   const isSubmitting =
@@ -1084,7 +1078,7 @@ export function ChatDashboard() {
 
           {/* Compass suggestion card */}
           {apiState.status === "completed" && apiState.content && (
-            <div className="ml-11">
+            <div className="ml-11" aria-live="polite">
               <CompassSuggestionCard
                 suggestion={compassSuggestion}
                 loading={compassSuggestionLoading}

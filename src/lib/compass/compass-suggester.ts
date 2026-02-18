@@ -1,6 +1,6 @@
 import type { NeglectDetector } from "./neglect-detector";
 import type { LLMClient } from "../llm/types";
-import { loadTemplate } from "../llm/prompt-builder";
+import { loadTemplate, sanitizePromptInput } from "../llm/prompt-builder";
 
 export interface CompassSuggestion {
   compassItemId: number;
@@ -39,8 +39,8 @@ export class CompassSuggester {
     input: CompassSuggesterInput
   ): Promise<CompassSuggestion | null> {
     try {
-      // Step 1: Join tasks to create query string
-      const query = input.tasks.join(" ");
+      // Step 1: Join tasks to create query string (W4: sanitize for vector search)
+      const query = input.tasks.map((t) => sanitizePromptInput(t)).join(" ");
 
       // Step 2: Detect the most neglected compass item
       const neglected = await this.neglectDetector.detect(userId, query);
@@ -51,10 +51,10 @@ export class CompassSuggester {
       // Step 3: Load prompt template
       const template = loadTemplate("compass", "suggest-action.md");
 
-      // Step 4: Replace variables in the template
+      // Step 4: Replace variables in the template (sanitize user-controlled data)
       const filledPrompt = replaceVariables(template, {
-        compass_title: neglected.title,
-        compass_content: neglected.content,
+        compass_title: sanitizePromptInput(neglected.title).slice(0, 200),
+        compass_content: sanitizePromptInput(neglected.content).slice(0, 4000),
         available_time: String(input.timeMinutes),
         energy_level: String(input.energyLevel),
       });
@@ -65,20 +65,26 @@ export class CompassSuggester {
         messages: [{ role: "user", content: filledPrompt }],
       });
 
-      // Step 6: Parse JSON response
-      const parsed = JSON.parse(response.content) as {
-        suggestedTask: string;
-        reason: string;
-        timeEstimate: number;
-      };
+      // Step 6: Parse and validate JSON response (W2: strict number check, W5: length limits)
+      const raw = JSON.parse(response.content);
+      if (
+        typeof raw?.suggestedTask !== "string" ||
+        typeof raw?.reason !== "string" ||
+        typeof raw?.timeEstimate !== "number" ||
+        !Number.isFinite(raw.timeEstimate) ||
+        raw.timeEstimate <= 0 ||
+        raw.timeEstimate > 1440
+      ) {
+        return null;
+      }
 
-      // Step 7: Return CompassSuggestion
+      // Step 7: Return CompassSuggestion (truncate LLM output to safe limits)
       return {
         compassItemId: neglected.compassItemId,
         compassTitle: neglected.title,
-        suggestedTask: parsed.suggestedTask,
-        reason: parsed.reason,
-        timeEstimate: parsed.timeEstimate,
+        suggestedTask: String(raw.suggestedTask).slice(0, 500),
+        reason: String(raw.reason).slice(0, 1000),
+        timeEstimate: raw.timeEstimate,
       };
     } catch {
       // Step 8: Any error → return null to avoid blocking main flow
