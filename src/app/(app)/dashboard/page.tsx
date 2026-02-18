@@ -1,4 +1,4 @@
-import { TaskDecisionForm } from "@/components/TaskDecisionForm";
+import { ChatDashboard } from "@/components/ChatDashboard";
 import Link from "next/link";
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
             <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               AI意思決定アシスタント
             </h1>
-            <nav className="flex gap-1">
+            <nav className="flex gap-1 flex-wrap">
               <Link
                 href="/compare"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
@@ -27,19 +27,19 @@ export default function Home() {
                 href="/cost"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                コスト確認
+                コスト
               </Link>
               <Link
                 href="/documents"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                RAG
+                資料
               </Link>
               <Link
                 href="/compass"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                🧭 羅針盤
+                羅針盤
               </Link>
               <Link
                 href="/settings"
@@ -53,7 +53,7 @@ export default function Home() {
             構造と論理で判断。選択肢を削り、完璧より前進。
           </p>
         </header>
-        <TaskDecisionForm />
+        <ChatDashboard />
       </div>
     </div>
   );
