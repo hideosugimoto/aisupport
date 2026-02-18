@@ -79,6 +79,31 @@ describe("CompassSuggester", () => {
     expect(result!.timeEstimate).toBe(25);
   });
 
+  it("should handle LLM response wrapped in markdown code fences", async () => {
+    const neglectedCompass: NeglectedCompass = {
+      compassItemId: 42,
+      title: "英語を流暢に話す",
+      content: "ネイティブと自然に会話できるようになりたい",
+      similarity: 0.2,
+    };
+
+    vi.mocked(mockNeglectDetector.detect).mockResolvedValue(neglectedCompass);
+    vi.mocked(mockLLMClient.chat).mockResolvedValue({
+      content: '```json\n{\n  "suggestedTask": "英語ポッドキャストを15分聴く",\n  "reason": "リスニング力向上",\n  "timeEstimate": 15\n}\n```',
+      usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+    });
+
+    const result = await suggester.suggest("user-1", {
+      tasks: ["プログラミング"],
+      timeMinutes: 30,
+      energyLevel: 2,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.suggestedTask).toBe("英語ポッドキャストを15分聴く");
+    expect(result!.timeEstimate).toBe(15);
+  });
+
   it("should pass joined tasks as query to NeglectDetector", async () => {
     vi.mocked(mockNeglectDetector.detect).mockResolvedValue(null);
 

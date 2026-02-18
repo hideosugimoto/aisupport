@@ -69,8 +69,12 @@ export class CompassSuggester {
         messages: [{ role: "user", content: filledPrompt }],
       });
 
-      // Step 6: Parse and validate JSON response (W2: strict number check, W5: length limits)
-      const raw = JSON.parse(response.content);
+      // Step 6: Strip markdown code fences if present, then parse JSON
+      let jsonText = response.content.trim();
+      if (jsonText.startsWith("```")) {
+        jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+      }
+      const raw = JSON.parse(jsonText);
       if (
         typeof raw?.suggestedTask !== "string" ||
         typeof raw?.reason !== "string" ||
