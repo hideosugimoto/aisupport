@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { TaskDecisionRecord } from "@/lib/db/types";
 
 interface HistoryListProps {
@@ -16,6 +17,7 @@ export function HistoryList({
   initialPage,
   initialLimit,
 }: HistoryListProps) {
+  const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(initialPage);
@@ -81,6 +83,16 @@ export function HistoryList({
     } catch {
       return [];
     }
+  };
+
+  const handleContinue = (item: TaskDecisionRecord) => {
+    const tasks = parseTasks(item.tasksInput);
+    const taskStrings = tasks.map((t: { title: string }) => t.title).filter(Boolean);
+    sessionStorage.setItem(
+      "dashboard-restore",
+      JSON.stringify({ tasks: taskStrings })
+    );
+    router.push("/dashboard");
   };
 
   return (
@@ -193,6 +205,15 @@ export function HistoryList({
                       </pre>
                     </div>
                   </div>
+
+                  {/* Continue button */}
+                  <button
+                    type="button"
+                    onClick={() => handleContinue(item)}
+                    className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                  >
+                    このタスクで続ける
+                  </button>
                 </div>
               )}
             </div>

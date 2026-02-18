@@ -172,6 +172,10 @@ export function ChatDashboard() {
   );
   const [autoFallback, setAutoFallback] = useState(false);
 
+  // Session continuation state
+  const [isSelectingCompleted, setIsSelectingCompleted] = useState(false);
+  const [completedIndices, setCompletedIndices] = useState<Set<number>>(new Set());
+
   // Compass setup (initial user flow)
   const [compassInput, setCompassInput] = useState("");
   const [compassDrafts, setCompassDrafts] = useState<string[]>([]);
@@ -200,6 +204,22 @@ export function ChatDashboard() {
     if (!hasCompass && !isCompassLoading) return "compass-setup";
     return "tasks";
   })();
+
+  // Restore from sessionStorage (history page → dashboard)
+  useEffect(() => {
+    const raw = sessionStorage.getItem("dashboard-restore");
+    if (raw) {
+      sessionStorage.removeItem("dashboard-restore");
+      try {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.tasks) && data.tasks.length > 0) {
+          setTasks(data.tasks.filter((t: unknown) => typeof t === "string" && t.trim()));
+        }
+      } catch {
+        // ignore invalid data
+      }
+    }
+  }, []);
 
   // Fetch compass data on mount
   useEffect(() => {
@@ -619,6 +639,37 @@ export function ChatDashboard() {
     setBudgetWarning(null);
   };
 
+  // Continue session — show task completion selection
+  const handleStartContinue = () => {
+    setIsSelectingCompleted(true);
+    setCompletedIndices(new Set());
+  };
+
+  const toggleCompletedIndex = (index: number) => {
+    setCompletedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const handleProceedAfterComplete = () => {
+    const remaining = tasks.filter((_, i) => !completedIndices.has(i));
+    abortRef.current?.abort();
+    breakdownAbortRef.current?.abort();
+    dispatch({ type: "RESET" });
+    setTasks(remaining);
+    setAvailableTime(null);
+    setEnergyLevel(null);
+    setBudgetWarning(null);
+    setIsSelectingCompleted(false);
+    setCompletedIndices(new Set());
+  };
+
   const isSubmitting =
     apiState.status === "loading" || apiState.status === "streaming";
 
@@ -972,9 +1023,16 @@ export function ChatDashboard() {
               </div>
             )}
 
-          {/* New session button */}
-          {apiState.status === "completed" && (
-            <div className="ml-11 pt-4">
+          {/* Session actions */}
+          {apiState.status === "completed" && !isSelectingCompleted && (
+            <div className="ml-11 flex flex-wrap gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleStartContinue}
+                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              >
+                完了して次へ
+              </button>
               <button
                 type="button"
                 onClick={handleReset}
@@ -982,6 +1040,53 @@ export function ChatDashboard() {
               >
                 新しいタスク判定を始める
               </button>
+            </div>
+          )}
+
+          {/* Task completion selection */}
+          {apiState.status === "completed" && isSelectingCompleted && (
+            <div className="ml-11 space-y-4 pt-4">
+              <ChatMessage animate={false}>
+                <p>完了したタスクをタップしてください。</p>
+              </ChatMessage>
+              <div className="flex flex-wrap gap-2">
+                {tasks.map((task, i) => {
+                  const isDone = completedIndices.has(i);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => toggleCompletedIndex(i)}
+                      className={`rounded-full px-3 py-1.5 text-sm transition-all ${
+                        isDone
+                          ? "bg-green-100 text-green-700 line-through dark:bg-green-900 dark:text-green-300"
+                          : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      }`}
+                    >
+                      {isDone && <span className="mr-1">&#10003;</span>}
+                      {task}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleProceedAfterComplete}
+                  className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                >
+                  {completedIndices.size > 0
+                    ? `${completedIndices.size}件完了して次の判定へ`
+                    : "そのまま次の判定へ"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSelectingCompleted(false)}
+                  className="text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                >
+                  戻る
+                </button>
+              </div>
             </div>
           )}
         </div>
