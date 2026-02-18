@@ -1056,6 +1056,7 @@ export function ChatDashboard() {
                     <button
                       key={i}
                       type="button"
+                      aria-pressed={isDone}
                       onClick={() => toggleCompletedIndex(i)}
                       className={`rounded-full px-3 py-1.5 text-sm transition-all ${
                         isDone
@@ -1063,7 +1064,7 @@ export function ChatDashboard() {
                           : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                       }`}
                     >
-                      {isDone && <span className="mr-1">&#10003;</span>}
+                      {isDone && <span className="mr-1" aria-hidden="true">&#10003;</span>}
                       {task}
                     </button>
                   );
