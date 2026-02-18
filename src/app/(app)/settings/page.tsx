@@ -88,13 +88,24 @@ export default function SettingsPage() {
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("checkout") === "success") {
-      setMessage("Proプランへのアップグレードが完了しました！");
-      fetch("/api/billing/plan")
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.plan) setPlanInfo(data);
-        })
-        .catch(() => {});
+      setMessage("Proプランへのアップグレード処理中...");
+      // Webhook処理完了を待つためリトライ付きでプラン取得
+      const pollPlan = async (retries: number) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const r = await fetch("/api/billing/plan");
+            const data = await r.json();
+            if (data.plan === "pro") {
+              setPlanInfo(data);
+              setMessage("Proプランへのアップグレードが完了しました！");
+              return;
+            }
+          } catch { /* retry */ }
+          if (i < retries - 1) await new Promise((r) => setTimeout(r, 2000));
+        }
+        setMessage("Proプランへのアップグレードが完了しました！反映に数秒かかる場合があります。");
+      };
+      pollPlan(5);
     } else if (params.get("checkout") === "cancel") {
       setMessage("チェックアウトがキャンセルされました");
     }
@@ -160,6 +171,9 @@ export default function SettingsPage() {
       });
       if (res.ok) {
         setMessage("設定を保存しました");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setMessage(data.error ?? "設定の保存に失敗しました");
       }
     } catch {
       setMessage("設定の保存に失敗しました");
@@ -235,7 +249,9 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/user/delete-account", { method: "DELETE" });
       if (res.ok) {
-        window.location.href = "/";
+        // Clerk ユーザーは API 側で削除済み。sign-in に遷移してセッションをクリア
+        window.location.href = "/sign-in";
+        return;
       } else {
         const data = await res.json();
         setMessage(data.error ?? "アカウント削除に失敗しました");

@@ -297,9 +297,9 @@ export function TaskDecisionForm() {
               costUsd: calculateCostUsd(state.provider, state.model, state.inputTokens, state.outputTokens),
             }),
           });
-          // Silent success: history save is non-critical
-        } catch {
-          // Silent failure: history save is non-critical
+          // History save is non-critical
+        } catch (err) {
+          console.warn("[History] 保存失敗:", err instanceof Error ? err.message : String(err));
         }
       };
       saveToHistory();
@@ -322,8 +322,8 @@ export function TaskDecisionForm() {
               },
             });
           }
-        } catch {
-          // Non-critical — skip compass display
+        } catch (err) {
+          console.warn("[Compass] 取得失敗:", err instanceof Error ? err.message : String(err));
         }
       };
       fetchCompass();
