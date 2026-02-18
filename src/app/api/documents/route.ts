@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       const { extractText } = await import("unpdf");
       const buffer = new Uint8Array(await file.arrayBuffer());
       const { text } = await extractText(buffer);
-      textContent = text;
+      textContent = Array.isArray(text) ? text.join("\n") : String(text);
       mimeType = "application/pdf";
     } else {
       textContent = await file.text();
