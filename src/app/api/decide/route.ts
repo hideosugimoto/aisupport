@@ -14,12 +14,15 @@ import type { LLMProvider } from "@/lib/llm/types";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createLogger } from "@/lib/logger";
 
 const repository = new PrismaUsageLogRepository(prisma);
+const logger = createLogger("api:decide");
 
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
+    logger.info("リクエスト受信", { userId });
 
     const limitCheck = await checkRequestLimit(userId);
     if (!limitCheck.allowed) {
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const { apiKey } = await resolveApiKey(userId, provider);
     const client = createLLMClient(provider, undefined, enableFallback, apiKey);
-    const engine = new TaskDecisionEngine(client, repository, provider, model);
+    const engine = new TaskDecisionEngine(client, repository, provider, model, logger.child("engine"));
 
     // RAG: ドキュメントがあれば retriever を設定
     let embedder: OpenAIEmbedder | undefined;
@@ -110,6 +113,7 @@ export async function POST(request: NextRequest) {
       energyLevel: body.energyLevel,
     });
 
+    logger.info("レスポンス返却");
     return Response.json(result);
   } catch (error) {
     try {

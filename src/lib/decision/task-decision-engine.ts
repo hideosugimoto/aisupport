@@ -1,6 +1,8 @@
 import type { LLMClient, LLMStreamChunk } from "../llm/types";
 import type { UsageLogRepository } from "../db/types";
 import type { Retriever, RetrievalResult } from "../rag/retriever";
+import { nullLogger } from "../logger/null-logger";
+import type { Logger } from "../logger/types";
 import {
   buildTaskDecisionMessages,
   type TaskDecisionInput,
@@ -40,7 +42,8 @@ export class TaskDecisionEngine {
     private client: LLMClient,
     private repository: UsageLogRepository,
     private provider: string,
-    private model?: string
+    private model?: string,
+    private logger: Logger = nullLogger
   ) {}
 
   setRetriever(retriever: Retriever): void {
@@ -58,7 +61,7 @@ export class TaskDecisionEngine {
       const result = await this.retriever.retrieve(userId, query);
       return result.contextText || undefined;
     } catch (error) {
-      console.warn("[RAG] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
+      this.logger.warn("[RAG] 検索失敗（続行）", { error: error instanceof Error ? error.message : String(error) });
       return undefined;
     }
   }
@@ -74,7 +77,7 @@ export class TaskDecisionEngine {
       const query = input.tasks.join(" ");
       return await this.compassRetriever.retrieve(userId, query);
     } catch (error) {
-      console.warn("[Compass] 検索失敗（続行）:", error instanceof Error ? error.message : String(error));
+      this.logger.warn("[Compass] 検索失敗（続行）", { error: error instanceof Error ? error.message : String(error) });
       return undefined;
     }
   }

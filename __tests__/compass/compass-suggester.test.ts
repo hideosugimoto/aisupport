@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CompassSuggester } from "@/lib/compass/compass-suggester";
 import type { NeglectDetector, NeglectedCompass } from "@/lib/compass/neglect-detector";
 import type { LLMClient } from "@/lib/llm/types";
+import { createMockLogger } from "../helpers/mock-logger";
 
 // Mock prompt-builder to avoid file system access during tests
 vi.mock("@/lib/llm/prompt-builder", () => ({
@@ -23,12 +24,14 @@ const mockLLMClient: LLMClient = {
 
 const MODEL = "gpt-4o-mini";
 
+const mockLogger = createMockLogger();
+
 describe("CompassSuggester", () => {
   let suggester: CompassSuggester;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    suggester = new CompassSuggester(mockNeglectDetector, mockLLMClient, MODEL);
+    suggester = new CompassSuggester(mockNeglectDetector, mockLLMClient, MODEL, mockLogger);
   });
 
   it("should return null when NeglectDetector returns null", async () => {

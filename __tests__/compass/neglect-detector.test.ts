@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DefaultNeglectDetector } from "@/lib/compass/neglect-detector";
 import type { Embedder } from "@/lib/rag/embedder";
 import type { PrismaCompassVectorStore } from "@/lib/compass/compass-vector-store";
+import { createMockLogger } from "../helpers/mock-logger";
+
+const mockLogger = createMockLogger();
 
 describe("DefaultNeglectDetector", () => {
   const mockEmbedder: Embedder = {
@@ -17,7 +20,7 @@ describe("DefaultNeglectDetector", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    detector = new DefaultNeglectDetector(mockEmbedder, mockVectorStore);
+    detector = new DefaultNeglectDetector(mockEmbedder, mockVectorStore, mockLogger);
   });
 
   it("should return null when no compass items exist", async () => {

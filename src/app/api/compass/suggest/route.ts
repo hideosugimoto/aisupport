@@ -9,7 +9,10 @@ import { getDefaultModel } from "@/lib/config/types";
 import type { LLMProvider } from "@/lib/llm/types";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createLogger } from "@/lib/logger";
 import featuresConfig from "@/../config/features.json";
+
+const logger = createLogger("api:compass-suggest");
 
 const MAX_TASKS = 10;
 const MAX_TASK_LENGTH = 200;
@@ -17,6 +20,7 @@ const MAX_TASK_LENGTH = 200;
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
+    logger.info("リクエスト受信", { userId });
 
     const limitCheck = await checkRequestLimit(userId);
     if (!limitCheck.allowed) {
@@ -60,9 +64,11 @@ export async function POST(request: NextRequest) {
     const { apiKey } = await resolveApiKey(userId, provider);
     const embedder = new OpenAIEmbedder();
     const vectorStore = new PrismaCompassVectorStore();
-    const detector = new DefaultNeglectDetector(embedder, vectorStore);
+    const detectorLogger = logger.child("detector");
+    const detector = new DefaultNeglectDetector(embedder, vectorStore, detectorLogger);
     const llmClient = createLLMClient(provider, undefined, false, apiKey);
-    const suggester = new CompassSuggester(detector, llmClient, model);
+    const suggesterLogger = logger.child("suggester");
+    const suggester = new CompassSuggester(detector, llmClient, model, suggesterLogger);
 
     const suggestion = await suggester.suggest(userId, {
       tasks: tasks as string[],
@@ -70,6 +76,7 @@ export async function POST(request: NextRequest) {
       energyLevel,
     });
 
+    logger.info("レスポンス返却", { hasSuggestion: suggestion !== null });
     return Response.json({ suggestion });
   } catch (error) {
     try {

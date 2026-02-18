@@ -1,5 +1,7 @@
 import type { LLMClient, LLMStreamChunk } from "../llm/types";
 import type { UsageLogRepository } from "../db/types";
+import { nullLogger } from "../logger/null-logger";
+import type { Logger } from "../logger/types";
 import {
   buildTaskBreakdownMessages,
   type TaskBreakdownInput,
@@ -20,7 +22,8 @@ export class TaskBreakdownEngine {
     private client: LLMClient,
     private repository: UsageLogRepository,
     private provider: string,
-    private model?: string
+    private model?: string,
+    private logger: Logger = nullLogger
   ) {}
 
   async breakdown(userId: string, input: TaskBreakdownInput): Promise<BreakdownResult> {

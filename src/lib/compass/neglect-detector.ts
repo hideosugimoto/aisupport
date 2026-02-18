@@ -1,5 +1,6 @@
 import type { Embedder } from "../rag/embedder";
 import type { PrismaCompassVectorStore } from "./compass-vector-store";
+import type { Logger } from "../logger/types";
 
 export interface NeglectedCompass {
   compassItemId: number;
@@ -15,7 +16,8 @@ export interface NeglectDetector {
 export class DefaultNeglectDetector implements NeglectDetector {
   constructor(
     private readonly embedder: Embedder,
-    private readonly vectorStore: PrismaCompassVectorStore
+    private readonly vectorStore: PrismaCompassVectorStore,
+    private readonly logger: Logger
   ) {}
 
   async detect(userId: string, taskQuery: string): Promise<NeglectedCompass | null> {
@@ -26,10 +28,10 @@ export class DefaultNeglectDetector implements NeglectDetector {
     const results = await this.vectorStore.search(userId, queryEmbedding, 100);
 
     if (results.length === 0) {
-      console.log("[NeglectDetector] No compass embeddings found for user");
+      this.logger.info("No compass embeddings found for user");
       return null;
     }
-    console.log("[NeglectDetector] Found", results.length, "compass chunks");
+    this.logger.debug("Found compass chunks", { count: results.length });
 
     // Step 3: Group by compassItemId, take MAX similarity per item
     const maxSimilarityByItem = new Map<

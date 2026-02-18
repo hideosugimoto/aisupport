@@ -1,5 +1,6 @@
 import type { NeglectDetector } from "./neglect-detector";
 import type { LLMClient } from "../llm/types";
+import type { Logger } from "../logger/types";
 import { loadTemplate, sanitizePromptInput } from "../llm/prompt-builder";
 
 export interface CompassSuggestion {
@@ -31,7 +32,8 @@ export class CompassSuggester {
   constructor(
     private readonly neglectDetector: NeglectDetector,
     private readonly llmClient: LLMClient,
-    private readonly model: string
+    private readonly model: string,
+    private readonly logger: Logger
   ) {}
 
   async suggest(
@@ -45,10 +47,10 @@ export class CompassSuggester {
       // Step 2: Detect the most neglected compass item
       const neglected = await this.neglectDetector.detect(userId, query);
       if (neglected === null) {
-        console.log("[CompassSuggester] No neglected compass item found (no items or no embeddings)");
+        this.logger.info("No neglected compass item found (no items or no embeddings)");
         return null;
       }
-      console.log("[CompassSuggester] Neglected item:", neglected.title, "similarity:", neglected.similarity);
+      this.logger.info("Neglected item detected", { title: neglected.title, similarity: neglected.similarity });
 
       // Step 3: Load prompt template
       const template = loadTemplate("compass", "suggest-action.md");
@@ -77,7 +79,7 @@ export class CompassSuggester {
         raw.timeEstimate <= 0 ||
         raw.timeEstimate > 1440
       ) {
-        console.warn("[CompassSuggester] Invalid LLM response:", JSON.stringify(raw).slice(0, 300));
+        this.logger.warn("Invalid LLM response", { raw: JSON.stringify(raw).slice(0, 300) });
         return null;
       }
 
@@ -91,7 +93,7 @@ export class CompassSuggester {
       };
     } catch (error) {
       // Step 8: Any error → return null to avoid blocking main flow
-      console.error("[CompassSuggester] Error:", error instanceof Error ? error.message : String(error));
+      this.logger.error("Error in suggest", { message: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

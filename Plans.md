@@ -21,7 +21,7 @@
 
 ### タスク一覧
 
-- [ ] 107. Logger インターフェース・実装・ファクトリ作成
+- [x] 107. Logger インターフェース・実装・ファクトリ作成 `cc:done`
   - `Logger` インターフェース定義（debug/info/warn/error/child）
   - `ConsoleLogger` 実装（レベルフィルタ + タグ付き出力）
   - `createLogger(name)` ファクトリ（LOG_LEVEL 環境変数で制御）
@@ -31,7 +31,7 @@
     - child(): 名前が `parent:child` 形式になること
     - 各レベルのメソッドが正しい console メソッドを呼ぶこと
 
-- [ ] 108. CompassSuggester / NeglectDetector に Logger DI 適用
+- [x] 108. CompassSuggester / NeglectDetector に Logger DI 適用 `cc:done`
   - コンストラクタに `Logger` パラメータ追加
   - 既存の `console.log/warn/error` を `this.logger.info/warn/error` に置換
   - 各分岐点に適切なログ追加（null返却理由、検出結果、LLM応答状況）
@@ -39,18 +39,18 @@
   - テスト更新: `__tests__/compass/compass-suggester.test.ts`, `__tests__/compass/neglect-detector.test.ts`
     - Logger モックを注入、既存テストが引き続き PASS すること
 
-- [ ] 109. POST /api/compass/suggest に Logger 生成・注入
+- [x] 109. POST /api/compass/suggest に Logger 生成・注入 `cc:done`
   - `createLogger("api:compass-suggest")` で Logger 生成
   - `logger.child("suggester")` で CompassSuggester に渡す
   - リクエスト受信・レスポンス返却・エラー時のログ追加
   - ファイル: `src/app/api/compass/suggest/route.ts`
 
-- [ ] 110. ビルド + テスト検証
+- [x] 110. ビルド + テスト検証 `cc:done`
   - `npx vitest run` — 全テスト PASS
   - `npx next build` — ビルド成功
   - Vercel デプロイ後に LOG_LEVEL=debug で動作確認
 
-- [ ] 111. 主要 API への Logger 展開（Phase 2）
+- [x] 111. 主要 API への Logger 展開（Phase 2） `cc:done`
   - TaskDecisionEngine に Logger DI 追加
   - POST /api/decide, /api/breakdown に Logger 注入
   - key-resolver 等のユーティリティにも適用

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
 import type { LLMProvider } from "@/lib/llm/types";
+import { createMockLogger } from "../../helpers/mock-logger";
 
 // Mock modules
 vi.mock("@/lib/db/prisma", () => ({
@@ -166,10 +167,9 @@ describe("resolveApiKey", () => {
         throw new Error("Decryption failed");
       });
 
-      // Mock console.warn to verify the warning
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const mockLogger = createMockLogger();
 
-      const result = await resolveApiKey(userId, provider);
+      const result = await resolveApiKey(userId, provider, mockLogger);
 
       expect(result).toEqual({
         apiKey: undefined,
@@ -177,11 +177,10 @@ describe("resolveApiKey", () => {
       });
 
       expect(decrypt).toHaveBeenCalledWith(encryptedKey);
-      expect(warnSpy).toHaveBeenCalledWith(
-        `[key-resolver] Failed to decrypt key for ${provider}`
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        "Failed to decrypt key",
+        expect.objectContaining({ provider })
       );
-
-      warnSpy.mockRestore();
     });
 
     it("should suppress console.warn during decryption failure", async () => {
@@ -201,15 +200,12 @@ describe("resolveApiKey", () => {
         throw new Error("Decryption error");
       });
 
-      // Suppress warning for this test
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const mockLogger = createMockLogger();
 
-      const result = await resolveApiKey(userId, provider);
+      const result = await resolveApiKey(userId, provider, mockLogger);
 
       expect(result.source).toBe("platform");
-      expect(warnSpy).toHaveBeenCalled();
-
-      warnSpy.mockRestore();
+      expect(mockLogger.warn).toHaveBeenCalled();
     });
   });
 
@@ -244,7 +240,7 @@ describe("resolveApiKey", () => {
       );
     });
 
-    it("should handle decryption returning empty string", async () => {
+    it("should fall back to platform key when decryption returns empty string", async () => {
       const userId = "user-empty-key";
       const provider: LLMProvider = "gemini";
 
@@ -257,16 +253,21 @@ describe("resolveApiKey", () => {
         updatedAt: new Date(),
       });
 
-      // decrypt returns empty string (valid decryption, but empty result)
+      // decrypt returns empty string
       vi.mocked(decrypt).mockReturnValue("");
 
-      const result = await resolveApiKey(userId, provider);
+      const mockLogger = createMockLogger();
+      const result = await resolveApiKey(userId, provider, mockLogger);
 
-      // Empty string is still a valid user key
+      // Empty string should fall back to platform key
       expect(result).toEqual({
-        apiKey: "",
-        source: "user",
+        apiKey: undefined,
+        source: "platform",
       });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        "Decrypted key is empty, falling back to platform key",
+        { provider }
+      );
     });
   });
 });

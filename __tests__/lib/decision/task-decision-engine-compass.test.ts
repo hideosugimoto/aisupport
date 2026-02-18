@@ -9,6 +9,7 @@ import type {
 } from "@/lib/llm/types";
 import type { UsageLogRepository } from "@/lib/db/types";
 import type { Retriever, RetrievalResult } from "@/lib/rag/retriever";
+import { createMockLogger } from "../../helpers/mock-logger";
 
 function createMockLLMClient(content: string = "### 今日の最適タスク\nタスク1"): LLMClient {
   return {
@@ -57,11 +58,13 @@ describe("TaskDecisionEngine - Compass Integration", () => {
   let client: LLMClient;
   let repo: UsageLogRepository;
   let engine: TaskDecisionEngine;
+  let mockLogger: ReturnType<typeof createMockLogger>;
 
   beforeEach(() => {
     client = createMockLLMClient();
     repo = createMockRepository();
-    engine = new TaskDecisionEngine(client, repo, "openai");
+    mockLogger = createMockLogger();
+    engine = new TaskDecisionEngine(client, repo, "openai", undefined, mockLogger);
     vi.clearAllMocks();
   });
 
@@ -132,8 +135,6 @@ describe("TaskDecisionEngine - Compass Integration", () => {
   });
 
   it("Compass 検索が失敗しても decide は成功する（graceful degradation）", async () => {
-    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
     const mockCompassRetriever: Retriever = {
       retrieve: vi.fn().mockRejectedValue(new Error("Network error")),
       buildContextSection: vi.fn(),
@@ -150,12 +151,10 @@ describe("TaskDecisionEngine - Compass Integration", () => {
 
     expect(result.content).toContain("タスク1");
     expect(result.compassRelevance).toBeUndefined();
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[Compass] 検索失敗（続行）:"),
-      expect.any(String)
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("[Compass] 検索失敗（続行）"),
+      expect.objectContaining({ error: "Network error" })
     );
-
-    consoleWarnSpy.mockRestore();
   });
 
   it("decideStream() でも compassContext がプロンプトに注入される", async () => {
@@ -271,8 +270,6 @@ describe("TaskDecisionEngine - Compass Integration", () => {
   });
 
   it("Compass 検索のタイムアウト/エラー時も正常に動作", async () => {
-    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
     const mockCompassRetriever: Retriever = {
       retrieve: vi.fn().mockRejectedValue(new Error("Timeout")),
       buildContextSection: vi.fn(),
@@ -288,11 +285,9 @@ describe("TaskDecisionEngine - Compass Integration", () => {
 
     expect(result.content).toBeDefined();
     expect(result.compassRelevance).toBeUndefined();
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[Compass] 検索失敗（続行）:"),
-      expect.any(String)
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("[Compass] 検索失敗（続行）"),
+      expect.objectContaining({ error: "Timeout" })
     );
-
-    consoleWarnSpy.mockRestore();
   });
 });
