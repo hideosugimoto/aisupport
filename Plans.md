@@ -72,7 +72,7 @@
 
 ### タスク一覧
 
-- [ ] 112. DBスキーマ + Config + プラン制限追加
+- [x] 112. DBスキーマ + Config + プラン制限追加 `cc:done`
   - Prisma に `FeedKeyword`, `FeedArticle` モデル追加
   - `config/feed.json` 作成（キーワード上限、記事保持日数、1回の取得上限）
   - `config/plans.json` に `feed_enabled` フラグ追加（free: false, pro: true）
@@ -85,7 +85,7 @@
     - 修正: `src/lib/billing/plan-gate.ts`
   - テスト: 既存の plan-gate テストが PASS すること
 
-- [ ] 113. 型定義 + キーワードジェネレーター（TDD）
+- [x] 113. 型定義 + キーワードジェネレーター（TDD） `cc:done`
   - `src/lib/feed/types.ts` — FeedKeyword, FeedArticle, FeedConfig 型定義
   - `src/lib/feed/keyword-generator.ts` — 羅針盤テキスト → LLM → キーワード配列
   - `prompts/feed/generate-keywords.md` — キーワード生成プロンプト
@@ -102,7 +102,7 @@
     - 羅針盤アイテムが0件の場合に空配列を返すこと
     - キーワードが10個を超える場合に10個に切り詰めること
 
-- [ ] 114. ニュースフェッチャー（TDD）
+- [x] 114. ニュースフェッチャー（TDD） `cc:done`
   - `fast-xml-parser` パッケージ追加（`npm install fast-xml-parser`）
   - `src/lib/feed/news-fetcher.ts` — キーワード → Google News RSS fetch → パース → 記事配列
   - Google News RSS URL: `https://news.google.com/rss/search?q=${encodeURIComponent(keyword)}&hl=ja&gl=JP&ceid=JP:ja`
@@ -116,7 +116,7 @@
     - fetchエラー時に空配列を返すこと（例外を投げない）
     - タイムアウト設定が適用されること
 
-- [ ] 115. API Routes — キーワード管理 + フィード取得
+- [x] 115. API Routes — キーワード管理 + フィード取得 `cc:done`
   - `GET /api/feed` — 記事一覧取得（query: category, page）、Pro判定
   - `POST /api/feed/refresh` — 手動リフレッシュ（キーワード取得 → RSS fetch → DB保存）
   - `POST /api/feed/keywords/generate` — 羅針盤からキーワード再生成
@@ -131,7 +131,7 @@
     - 作成: `src/app/api/feed/keywords/generate/route.ts`
     - 作成: `src/app/api/feed/[id]/route.ts`
 
-- [ ] 116. フィードページ UI
+- [x] 116. フィードページ UI `cc:done`
   - `/feed` ページ（サーバーコンポーネント: プラン判定、初期データ取得）
   - タブ切替: 「ニュース」/「ブログ・コラム」（クライアントコンポーネント）
   - 記事カード: タイトル、ソース、日時、概要、キーワードタグ
@@ -145,12 +145,12 @@
     - 作成: `src/app/(app)/feed/page.tsx`
     - 修正: `src/app/(app)/dashboard/page.tsx` — nav に `/feed` リンク追加
 
-- [ ] 117. ビルド + テスト検証
+- [x] 117. ビルド + テスト検証 `cc:done`
   - `npx vitest run` — 全テスト PASS
   - `npx next build` — ビルド成功
   - 手動動作確認: キーワード生成 → 記事取得 → 表示
 
-- [ ] 118. Cron バッチ処理
+- [x] 118. Cron バッチ処理 `cc:done`
   - `POST /api/feed/cron` — CRON_SECRET 認証、全Proユーザーの記事を一括取得
   - 30日超の古い記事を自動削除
   - `vercel.json` に cron 設定追加（1日1回）
