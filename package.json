@@ -20,6 +20,7 @@
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@stripe/stripe-js": "^8.7.0",
+    "fast-xml-parser": "^5.3.6",
     "next": "16.1.6",
     "node-html-parser": "^7.0.2",
     "openai": "^6.21.0",
