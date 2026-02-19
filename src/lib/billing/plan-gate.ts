@@ -12,6 +12,7 @@ export interface PlanInfo {
   compassMaxItems: number;
   compassImageEnabled: boolean;
   compassUrlEnabled: boolean;
+  feedEnabled: boolean;
 }
 
 export async function getUserPlan(userId: string): Promise<PlanInfo> {
@@ -31,6 +32,7 @@ export async function getUserPlan(userId: string): Promise<PlanInfo> {
     compassMaxItems: planConfig.compass_max_items,
     compassImageEnabled: planConfig.compass_image_enabled,
     compassUrlEnabled: planConfig.compass_url_enabled,
+    feedEnabled: planConfig.feed_enabled,
   };
 }
 

@@ -1,0 +1,8 @@
+{
+  "max_keywords": 10,
+  "article_retention_days": 30,
+  "fetch_timeout_ms": 10000,
+  "max_articles_per_keyword": 20,
+  "page_size": 20,
+  "keyword_model": "gpt-4o-mini"
+}

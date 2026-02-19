@@ -33,6 +33,7 @@ describe("plan-gate", () => {
         compassMaxItems: 10,
         compassImageEnabled: false,
         compassUrlEnabled: false,
+        feedEnabled: false,
       });
 
       expect(prisma.subscription.findUnique).toHaveBeenCalledWith({
@@ -62,6 +63,7 @@ describe("plan-gate", () => {
         compassMaxItems: -1,
         compassImageEnabled: true,
         compassUrlEnabled: true,
+        feedEnabled: true,
       });
 
       expect(prisma.subscription.findUnique).toHaveBeenCalledWith({
@@ -91,6 +93,7 @@ describe("plan-gate", () => {
         compassMaxItems: 10,
         compassImageEnabled: false,
         compassUrlEnabled: false,
+        feedEnabled: false,
       });
     });
 
@@ -117,6 +120,7 @@ describe("plan-gate", () => {
         compassMaxItems: 10,
         compassImageEnabled: false,
         compassUrlEnabled: false,
+        feedEnabled: false,
       });
     });
   });
@@ -132,6 +136,7 @@ describe("plan-gate", () => {
       compassMaxItems: 10,
       compassImageEnabled: false,
       compassUrlEnabled: false,
+      feedEnabled: false,
     };
 
     const proPlan: PlanInfo = {
@@ -143,6 +148,7 @@ describe("plan-gate", () => {
       compassMaxItems: -1,
       compassImageEnabled: true,
       compassUrlEnabled: true,
+      feedEnabled: true,
     };
 
     it("should allow when under limit", async () => {

@@ -9,6 +9,7 @@
       "compass_max_items": 10,
       "compass_image_enabled": false,
       "compass_url_enabled": false,
+      "feed_enabled": false,
       "price_jpy": 0
     },
     "pro": {
@@ -20,6 +21,7 @@
       "compass_max_items": -1,
       "compass_image_enabled": true,
       "compass_url_enabled": true,
+      "feed_enabled": true,
       "price_jpy": 980
     }
   },
