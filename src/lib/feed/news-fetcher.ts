@@ -7,7 +7,11 @@ export class NewsFetcher {
   private readonly parser: XMLParser;
 
   constructor(private readonly logger: Logger) {
-    this.parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
+    this.parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: "@_",
+      processEntities: false,
+    });
   }
 
   async fetchByKeyword(keyword: string): Promise<FeedArticleData[]> {

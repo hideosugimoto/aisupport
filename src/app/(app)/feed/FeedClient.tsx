@@ -45,7 +45,6 @@ export function FeedClient() {
   const [keywords, setKeywords] = useState<FeedKeyword[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(false);
   const [keywordsLoading, setKeywordsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -93,7 +92,6 @@ export function FeedClient() {
           setArticles((prev) => [...prev, ...data.articles]);
         }
         setTotal(data.pagination.total);
-        setPageSize(data.pagination.pageSize);
       } catch {
         setError("ネットワークエラーが発生しました");
       } finally {
@@ -164,9 +162,24 @@ export function FeedClient() {
     <div>
       {/* タブ + リフレッシュボタン */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-0 border-b border-zinc-200 dark:border-zinc-800">
+        <div
+          role="tablist"
+          aria-label="フィードカテゴリ"
+          className="flex gap-0 border-b border-zinc-200 dark:border-zinc-800"
+        >
           <button
+            role="tab"
+            id="tab-news"
+            aria-selected={activeTab === "news"}
+            aria-controls="tabpanel-news"
+            tabIndex={activeTab === "news" ? 0 : -1}
             onClick={() => setActiveTab("news")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") {
+                setActiveTab("blog");
+                document.getElementById("tab-blog")?.focus();
+              }
+            }}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "news"
                 ? "border-b-2 border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100"
@@ -176,7 +189,18 @@ export function FeedClient() {
             ニュース
           </button>
           <button
+            role="tab"
+            id="tab-blog"
+            aria-selected={activeTab === "blog"}
+            aria-controls="tabpanel-blog"
+            tabIndex={activeTab === "blog" ? 0 : -1}
             onClick={() => setActiveTab("blog")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") {
+                setActiveTab("news");
+                document.getElementById("tab-news")?.focus();
+              }
+            }}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "blog"
                 ? "border-b-2 border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100"
@@ -215,14 +239,20 @@ export function FeedClient() {
 
       {/* キーワードエラー */}
       {keywordsError && (
-        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+        <div
+          role="alert"
+          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+        >
           {keywordsError}
         </div>
       )}
 
       {/* 記事エラー */}
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+        <div
+          role="alert"
+          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+        >
           {error}
         </div>
       )}
@@ -246,62 +276,75 @@ export function FeedClient() {
       )}
 
       {/* 記事一覧 */}
-      {loading && articles.length === 0 ? (
-        <div className="text-sm text-zinc-400 dark:text-zinc-500">
-          記事を読み込み中...
-        </div>
-      ) : articles.length > 0 ? (
-        <div className="flex flex-col gap-3">
-          {articles.map((article) => (
-            <a
-              key={article.id}
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+      <div
+        aria-live="polite"
+        aria-busy={loading}
+        role="tabpanel"
+        id={activeTab === "news" ? "tabpanel-news" : "tabpanel-blog"}
+        aria-labelledby={activeTab === "news" ? "tab-news" : "tab-blog"}
+      >
+        {loading && articles.length === 0 ? (
+          <div role="status" className="text-sm text-zinc-400 dark:text-zinc-500">
+            記事を読み込み中...
+          </div>
+        ) : articles.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {articles.map((article) => (
+              <article
+                key={article.id}
+                className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+              >
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1 leading-snug hover:text-blue-600 dark:hover:text-blue-400">
+                    {article.title}
+                    <span className="sr-only">（外部サイト、新しいタブで開きます）</span>
+                  </h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                    {article.source} — {formatDate(article.publishedAt)}
+                  </p>
+                  {article.snippet && (
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
+                      {article.snippet}
+                    </p>
+                  )}
+                  <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                    #{article.keyword}
+                  </span>
+                </a>
+              </article>
+            ))}
+          </div>
+        ) : !loading && keywords.length > 0 ? (
+          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 text-center">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              記事がありません。「最新を取得」ボタンで記事を取得してください。
+            </p>
+          </div>
+        ) : null}
+
+        {/* もっと読む */}
+        {hasMore && !loading && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleLoadMore}
+              className="rounded-lg px-4 py-2 text-sm border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1 leading-snug hover:text-blue-600 dark:hover:text-blue-400">
-                {article.title}
-              </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                {article.source} — {formatDate(article.publishedAt)}
-              </p>
-              {article.snippet && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
-                  {article.snippet}
-                </p>
-              )}
-              <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                #{article.keyword}
-              </span>
-            </a>
-          ))}
-        </div>
-      ) : !loading && keywords.length > 0 ? (
-        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 text-center">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            記事がありません。「最新を取得」ボタンで記事を取得してください。
-          </p>
-        </div>
-      ) : null}
+              もっと読み込む
+            </button>
+          </div>
+        )}
 
-      {/* もっと読む */}
-      {hasMore && !loading && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleLoadMore}
-            className="rounded-lg px-4 py-2 text-sm border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            もっと読み込む
-          </button>
-        </div>
-      )}
-
-      {loading && articles.length > 0 && (
-        <div className="mt-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
-          読み込み中...
-        </div>
-      )}
+        {loading && articles.length > 0 && (
+          <div role="status" className="mt-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
+            読み込み中...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -7,6 +7,8 @@ import feedConfig from "@/../config/feed.json";
 
 const logger = createLogger("api:feed");
 
+const VALID_CATEGORIES = ["news", "blog"] as const;
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await requireAuth();
@@ -20,8 +22,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category") ?? "news";
-    const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
+
+    // categoryバリデーション
+    const rawCategory = searchParams.get("category") ?? "news";
+    if (!(VALID_CATEGORIES as readonly string[]).includes(rawCategory)) {
+      return Response.json({ error: "Invalid category" }, { status: 400 });
+    }
+    const category = rawCategory;
+
+    // pageバリデーション
+    const rawPage = Number(searchParams.get("page") ?? "1");
+    const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
     const skip = (page - 1) * feedConfig.page_size;
 
     const [articles, total] = await Promise.all([
@@ -42,7 +53,7 @@ export async function GET(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      logger.error("Feed fetch error");
+      logger.error("Feed fetch error", { message: error instanceof Error ? error.message : String(error) });
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   }

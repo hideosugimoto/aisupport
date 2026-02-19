@@ -158,6 +158,10 @@
     - 作成: `src/app/api/feed/cron/route.ts`
     - 修正: `vercel.json`
 
+- [x] 120. Backend Security + Performance レビュー指摘修正 `cc:done`
+  - 依頼内容: cron認証タイミングセーフ比較・middleware公開ルート追加・refresh/cron並列化+バルク化・feed入力バリデーション強化・[id]プランチェック・keywords/generateレートリミット+トランザクション・news-fetcher processEntities追加
+  - 追加日時: 2026-02-19 00:00
+
 - [ ] 119. E2E動作確認 + デプロイ
   - Vercel デプロイ
   - Pro ユーザーでフィードページの動作確認

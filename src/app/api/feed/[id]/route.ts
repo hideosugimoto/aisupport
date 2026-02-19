@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
+import { getUserPlan } from "@/lib/billing/plan-gate";
 import { prisma } from "@/lib/db/prisma";
 
 export async function PATCH(
@@ -8,6 +9,12 @@ export async function PATCH(
 ) {
   try {
     const userId = await requireAuth();
+
+    const plan = await getUserPlan(userId);
+    if (!plan.feedEnabled) {
+      return Response.json({ error: "フィード機能はProプランで利用できます" }, { status: 403 });
+    }
+
     const { id } = await params;
     const articleId = Number(id);
 
@@ -23,10 +30,19 @@ export async function PATCH(
       return Response.json({ error: "記事が見つかりません" }, { status: 404 });
     }
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return Response.json({ error: "Invalid request body" }, { status: 400 });
+    }
+    if (typeof body !== "object" || body === null || !("isRead" in body)) {
+      return Response.json({ error: "isRead is required" }, { status: 400 });
+    }
+
     await prisma.feedArticle.update({
       where: { id: articleId },
-      data: { isRead: Boolean(body.isRead) },
+      data: { isRead: Boolean((body as Record<string, unknown>).isRead) },
     });
 
     return Response.json({ success: true });

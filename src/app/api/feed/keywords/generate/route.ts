@@ -21,6 +21,18 @@ export async function POST() {
       );
     }
 
+    // レートリミット（1時間に1回）
+    const lastKeyword = await prisma.feedKeyword.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    if (lastKeyword) {
+      const cooldownMs = 60 * 60 * 1000;
+      if (Date.now() - lastKeyword.createdAt.getTime() < cooldownMs) {
+        return Response.json({ error: "キーワード生成は1時間に1回まで" }, { status: 429 });
+      }
+    }
+
     const compassItems = await prisma.compassItem.findMany({
       where: { userId },
       select: { title: true, content: true },
@@ -49,10 +61,13 @@ export async function POST() {
       );
     }
 
-    await prisma.feedKeyword.deleteMany({ where: { userId } });
-    await prisma.feedKeyword.createMany({
-      data: keywords.map((keyword) => ({ userId, keyword })),
-    });
+    // $transactionでアトミック化
+    await prisma.$transaction([
+      prisma.feedKeyword.deleteMany({ where: { userId } }),
+      prisma.feedKeyword.createMany({
+        data: keywords.map((keyword) => ({ userId, keyword })),
+      }),
+    ]);
 
     logger.info("Keywords generated", { userId, count: keywords.length });
     return Response.json({ keywords });
@@ -60,7 +75,7 @@ export async function POST() {
     try {
       return handleAuthError(error);
     } catch {
-      logger.error("Keyword generation error");
+      logger.error("Keyword generation error", { message: error instanceof Error ? error.message : String(error) });
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   }

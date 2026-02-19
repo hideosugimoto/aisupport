@@ -3,6 +3,7 @@ import { getUserPlan } from "@/lib/billing/plan-gate";
 import { prisma } from "@/lib/db/prisma";
 import { NewsFetcher } from "@/lib/feed/news-fetcher";
 import { createLogger } from "@/lib/logger";
+import type { FeedArticleData } from "@/lib/feed/types";
 
 const logger = createLogger("api:feed-refresh");
 
@@ -12,47 +13,39 @@ export async function POST() {
     const plan = await getUserPlan(userId);
 
     if (!plan.feedEnabled) {
-      return Response.json(
-        { error: "フィード機能はProプランで利用できます" },
-        { status: 403 }
-      );
+      return Response.json({ error: "フィード機能はProプランで利用できます" }, { status: 403 });
     }
 
     const keywords = await prisma.feedKeyword.findMany({ where: { userId } });
     if (keywords.length === 0) {
-      return Response.json(
-        { error: "先にキーワードを生成してください" },
-        { status: 400 }
-      );
+      return Response.json({ error: "先にキーワードを生成してください" }, { status: 400 });
     }
 
     const fetcher = new NewsFetcher(logger.child("fetcher"));
-    let newCount = 0;
 
-    for (const { keyword } of keywords) {
-      const articles = await fetcher.fetchByKeyword(keyword);
-      for (const article of articles) {
-        try {
-          await prisma.feedArticle.upsert({
-            where: { userId_url: { userId, url: article.url } },
-            update: {},
-            create: {
-              userId,
-              title: article.title,
-              url: article.url,
-              source: article.source,
-              category: article.category,
-              snippet: article.snippet,
-              publishedAt: article.publishedAt,
-              keyword: article.keyword,
-            },
-          });
-          newCount++;
-        } catch {
-          // duplicate — skip
-        }
-      }
-    }
+    // 並列でRSS取得
+    const results = await Promise.allSettled(
+      keywords.map(({ keyword }) => fetcher.fetchByKeyword(keyword))
+    );
+
+    const allArticles: FeedArticleData[] = results
+      .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
+      .flatMap((r) => r.value);
+
+    // バルクインサート（重複スキップ）
+    const { count: newCount } = await prisma.feedArticle.createMany({
+      data: allArticles.map((article) => ({
+        userId,
+        title: article.title,
+        url: article.url,
+        source: article.source,
+        category: article.category,
+        snippet: article.snippet,
+        publishedAt: article.publishedAt,
+        keyword: article.keyword,
+      })),
+      skipDuplicates: true,
+    });
 
     logger.info("Feed refreshed", { userId, newCount });
     return Response.json({ newCount });
@@ -60,7 +53,7 @@ export async function POST() {
     try {
       return handleAuthError(error);
     } catch {
-      logger.error("Feed refresh error");
+      logger.error("Feed refresh error", { message: error instanceof Error ? error.message : String(error) });
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   }
