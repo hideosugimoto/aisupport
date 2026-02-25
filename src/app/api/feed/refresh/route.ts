@@ -22,6 +22,15 @@ export async function POST() {
     }
 
     const fetcher = new NewsFetcher(logger.child("fetcher"));
+    const currentKeywords = keywords.map((k) => k.keyword);
+
+    // 現在のキーワードに紐づかない古い記事を削除
+    const { count: deletedCount } = await prisma.feedArticle.deleteMany({
+      where: {
+        userId,
+        keyword: { notIn: currentKeywords },
+      },
+    });
 
     // 並列でRSS取得
     const results = await Promise.allSettled(
@@ -47,7 +56,7 @@ export async function POST() {
       skipDuplicates: true,
     });
 
-    logger.info("Feed refreshed", { userId, newCount });
+    logger.info("Feed refreshed", { userId, newCount, deletedCount });
     return Response.json({ newCount });
   } catch (error) {
     try {
