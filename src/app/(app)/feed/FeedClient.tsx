@@ -37,6 +37,11 @@ const KEYWORD_MODES: { value: KeywordMode; label: string }[] = [
   { value: "deep", label: "ディープ（深く狭く）" },
 ];
 
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent ?? "").replace(/\u00A0/g, " ");
+}
+
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString("ja-JP", {
@@ -60,6 +65,8 @@ export function FeedClient() {
   const [keywordsError, setKeywordsError] = useState<string | null>(null);
   const [showModeMenu, setShowModeMenu] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement>(null);
+  const modeButtonRef = useRef<HTMLButtonElement>(null);
+  const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const fetchKeywords = useCallback(async () => {
     setKeywordsLoading(true);
@@ -162,16 +169,28 @@ export function FeedClient() {
     }
   };
 
-  // ドロップダウン外クリックで閉じる
+  // ドロップダウン外クリックで閉じる + Escapeキー
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (modeMenuRef.current && !modeMenuRef.current.contains(e.target as Node)) {
         setShowModeMenu(false);
       }
     }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setShowModeMenu(false);
+        modeButtonRef.current?.focus();
+      }
+    }
     if (showModeMenu) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+      // メニュー展開時に最初の項目にフォーカス
+      requestAnimationFrame(() => menuItemRefs.current[0]?.focus());
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
+      };
     }
   }, [showModeMenu]);
 
@@ -261,22 +280,39 @@ export function FeedClient() {
           ))}
           <div ref={modeMenuRef} className="relative inline-block">
             <button
+              ref={modeButtonRef}
               onClick={() => setShowModeMenu((prev) => !prev)}
               disabled={generating}
               aria-label="キーワードを再生成"
-              aria-haspopup="true"
+              aria-haspopup="menu"
               aria-expanded={showModeMenu}
               className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? "生成中..." : "再生成 ▾"}
             </button>
             {showModeMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg z-10">
-                {KEYWORD_MODES.map((m) => (
+              <div
+                role="menu"
+                aria-label="キーワード生成モード"
+                className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg z-10"
+              >
+                {KEYWORD_MODES.map((m, i) => (
                   <button
                     key={m.value}
+                    ref={(el) => { menuItemRefs.current[i] = el; }}
+                    role="menuitem"
+                    tabIndex={-1}
                     onClick={() => handleGenerateKeywords(m.value)}
-                    className="block w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        menuItemRefs.current[(i + 1) % KEYWORD_MODES.length]?.focus();
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        menuItemRefs.current[(i - 1 + KEYWORD_MODES.length) % KEYWORD_MODES.length]?.focus();
+                      }
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:outline-none first:rounded-t-lg last:rounded-b-lg transition-colors"
                   >
                     {m.label}
                   </button>
@@ -359,7 +395,7 @@ export function FeedClient() {
                   </p>
                   {article.snippet && (
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
-                      {article.snippet}
+                      {stripHtml(article.snippet)}
                     </p>
                   )}
                   <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
