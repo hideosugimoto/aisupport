@@ -7,13 +7,14 @@
   "page_size": 20,
   "keyword_model": "gpt-4o-mini",
   "compass_content_max_chars": 2000,
+  "cron_user_concurrency": 3,
   "sources": {
-    "bing_news_jp": { "enabled": true, "lang": "ja", "label": "Bing News JP", "max_articles": 5 },
-    "google_news": { "enabled": true, "lang": "ja", "label": "Google News", "max_articles": 5 },
-    "yahoo_news_jp": { "enabled": true, "lang": "ja", "label": "Yahoo! ニュース", "max_articles": 5 },
-    "bing_news_en": { "enabled": true, "lang": "en", "label": "Bing News EN", "max_articles": 5 },
-    "bbc_news": { "enabled": true, "lang": "en", "label": "BBC News", "max_articles": 5 },
-    "techcrunch": { "enabled": true, "lang": "en", "label": "TechCrunch", "max_articles": 5 },
-    "hacker_news": { "enabled": true, "lang": "en", "label": "Hacker News", "max_articles": 5 }
+    "bing_news_jp": { "enabled": true, "lang": "ja", "label": "Bing News JP", "max_articles": 5, "host": "www.bing.com" },
+    "google_news": { "enabled": true, "lang": "ja", "label": "Google News", "max_articles": 5, "host": "news.google.com" },
+    "yahoo_news_jp": { "enabled": true, "lang": "ja", "label": "Yahoo! ニュース", "max_articles": 5, "host": "news.yahoo.co.jp" },
+    "bing_news_en": { "enabled": true, "lang": "en", "label": "Bing News EN", "max_articles": 5, "host": "www.bing.com" },
+    "bbc_news": { "enabled": true, "lang": "en", "label": "BBC News", "max_articles": 5, "host": "feeds.bbci.co.uk" },
+    "techcrunch": { "enabled": true, "lang": "en", "label": "TechCrunch", "max_articles": 5, "host": "techcrunch.com" },
+    "hacker_news": { "enabled": true, "lang": "en", "label": "Hacker News", "max_articles": 5, "host": "hnrss.org" }
   }
 }

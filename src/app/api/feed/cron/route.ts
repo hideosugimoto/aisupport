@@ -47,13 +47,26 @@ export async function POST(request: NextRequest) {
     // カテゴリフィードは全ユーザー共通なのでループ外で1回だけ取得
     const categoryArticles = await service.fetchCategoryFeeds();
 
-    for (const [userId, keywords] of keywordsByUser) {
-      const { newCount } = await service.refreshForUserWithCategory(
-        userId,
-        keywords,
-        categoryArticles
+    // ユーザーを並列処理（同時実行数制限付き）
+    const userEntries = Array.from(keywordsByUser.entries());
+    const concurrency = feedConfig.cron_user_concurrency ?? 3;
+    for (let i = 0; i < userEntries.length; i += concurrency) {
+      const batch = userEntries.slice(i, i + concurrency);
+      const results = await Promise.allSettled(
+        batch.map(([userId, keywords]) =>
+          service.refreshForUserWithCategory(userId, keywords, categoryArticles)
+        )
       );
-      totalNew += newCount;
+      for (const [idx, r] of results.entries()) {
+        if (r.status === "fulfilled") {
+          totalNew += r.value.newCount;
+        } else {
+          logger.warn("User refresh failed", {
+            userId: batch[idx][0],
+            message: r.reason instanceof Error ? r.reason.message : String(r.reason),
+          });
+        }
+      }
     }
 
     // 古い記事の削除

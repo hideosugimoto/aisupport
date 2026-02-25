@@ -25,14 +25,11 @@ export class FeedRefreshService {
    * 単一ユーザーのフィードを更新（refresh route用）
    */
   async refreshForUser(userId: string, keywords: string[]): Promise<RefreshResult> {
-    const { articles, translationMap } = await this.fetchAllArticles(
-      userId,
-      keywords
-    );
+    const { jpArticles, translationMap, categoryArticles } =
+      await this.fetchPhase1(userId, keywords, true);
 
-    // Phase 2: 英語キーワードでの再検索
     const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
-    const allArticles = [...articles, ...enArticles];
+    const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
 
     const newCount = await this.saveArticles(userId, allArticles);
     return { newCount };
@@ -46,10 +43,8 @@ export class FeedRefreshService {
     keywords: string[],
     categoryArticles: FeedArticleData[]
   ): Promise<RefreshResult> {
-    const { articles: jpArticles, translationMap } = await this.fetchKeywordArticles(
-      userId,
-      keywords
-    );
+    const { jpArticles, translationMap } =
+      await this.fetchPhase1(userId, keywords, false);
 
     const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
     const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
@@ -70,41 +65,36 @@ export class FeedRefreshService {
   // ─── 内部メソッド ────────────────────────
 
   /**
-   * Phase 1: 日本語ソース + カテゴリフィード + キーワード翻訳を並列実行
+   * Phase 1: 日本語キーワード検索 + 翻訳を並列実行（カテゴリフィードはオプション）
    */
-  private async fetchAllArticles(
+  private async fetchPhase1(
     userId: string,
-    keywords: string[]
-  ): Promise<{ articles: FeedArticleData[]; translationMap: Map<string, string> }> {
-    let translationMap = new Map<string, string>();
-    const [jpResults, categoryArticles] = await Promise.all([
+    keywords: string[],
+    includeCategory: boolean
+  ): Promise<{
+    jpArticles: FeedArticleData[];
+    translationMap: Map<string, string>;
+    categoryArticles: FeedArticleData[];
+  }> {
+    const tasks: [
+      Promise<PromiseSettledResult<FeedArticleData[]>[]>,
+      Promise<FeedArticleData[]>,
+      Promise<Map<string, string>>,
+    ] = [
       Promise.allSettled(
         keywords.map((kw) => this.fetcher.fetchByKeyword(kw))
       ),
-      this.fetcher.fetchCategoryFeeds(),
-      this.translateKeywords(userId, keywords).then((m) => { translationMap = m; }),
-    ]);
+      includeCategory ? this.fetcher.fetchCategoryFeeds() : Promise.resolve([]),
+      this.translateKeywords(userId, keywords),
+    ];
 
-    const jpArticles = this.flattenResults(jpResults);
-    return { articles: [...jpArticles, ...categoryArticles], translationMap };
-  }
+    const [jpResults, categoryArticles, translationMap] = await Promise.all(tasks);
 
-  /**
-   * Phase 1 (cron向け): キーワード検索 + 翻訳のみ（カテゴリなし）
-   */
-  private async fetchKeywordArticles(
-    userId: string,
-    keywords: string[]
-  ): Promise<{ articles: FeedArticleData[]; translationMap: Map<string, string> }> {
-    let translationMap = new Map<string, string>();
-    const [jpResults] = await Promise.all([
-      Promise.allSettled(
-        keywords.map((kw) => this.fetcher.fetchByKeyword(kw))
-      ),
-      this.translateKeywords(userId, keywords).then((m) => { translationMap = m; }),
-    ]);
-
-    return { articles: this.flattenResults(jpResults), translationMap };
+    return {
+      jpArticles: this.flattenResults(jpResults),
+      translationMap,
+      categoryArticles,
+    };
   }
 
   /**

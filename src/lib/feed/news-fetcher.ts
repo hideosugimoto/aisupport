@@ -1,23 +1,19 @@
 import { XMLParser } from "fast-xml-parser";
 import type { Logger } from "../logger/types";
 import type { FeedArticleData, FeedSource } from "./types";
+import { isPublicUrl } from "./url-utils";
 import feedConfig from "../../../config/feed.json";
 
-type SourceConfig = { enabled: boolean; lang: string; label: string; max_articles: number };
+type SourceConfig = { enabled: boolean; lang: string; label: string; max_articles: number; host: string };
 const sources = feedConfig.sources as Record<string, SourceConfig>;
 
 /** RSSフェッチの同時リクエスト上限 */
 const RSS_CONCURRENCY = 5;
 
-/** RSSフェッチ先として許可するホスト */
-const ALLOWED_RSS_HOSTS = new Set([
-  "news.google.com",
-  "www.bing.com",
-  "news.yahoo.co.jp",
-  "feeds.bbci.co.uk",
-  "techcrunch.com",
-  "hnrss.org",
-]);
+/** RSSフェッチ先として許可するホスト（feed.jsonから自動構築） */
+const ALLOWED_RSS_HOSTS = new Set(
+  Object.values(sources).map((s) => s.host)
+);
 
 export class NewsFetcher {
   private readonly parser: XMLParser;
@@ -253,26 +249,24 @@ export class NewsFetcher {
       return null;
     }
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(
-        () => controller.abort(),
-        feedConfig.fetch_timeout_ms
-      );
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      feedConfig.fetch_timeout_ms
+    );
 
+    try {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: { "User-Agent": "AiSupport-Feed/1.0" },
       });
 
       if (!response.ok) {
-        clearTimeout(timeout);
         this.logger.warn("RSS fetch failed", { source, status: response.status });
         return null;
       }
 
       const xml = await response.text();
-      clearTimeout(timeout);
       const parsed = this.parser.parse(xml);
 
       // RSS 2.0
@@ -307,31 +301,13 @@ export class NewsFetcher {
         message: error instanceof Error ? error.message : String(error),
       });
       return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }
 
 // ─── ユーティリティ関数 ────────────────────────
-
-/** URLがプライベートIPやlocalhostでないか検証 */
-export function isPublicUrl(urlStr: string): boolean {
-  try {
-    const url = new URL(urlStr);
-    const hostname = url.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
-    if (hostname.startsWith("10.")) return false;
-    if (hostname.startsWith("172.")) {
-      const second = parseInt(hostname.split(".")[1], 10);
-      if (second >= 16 && second <= 31) return false;
-    }
-    if (hostname.startsWith("192.168.")) return false;
-    if (hostname.startsWith("169.254.")) return false;
-    if (!url.protocol.startsWith("http")) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 /** BingリダイレクトURLから実URLを抽出 */
 function extractBingUrl(bingUrl: string): string {

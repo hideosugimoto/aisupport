@@ -1,5 +1,5 @@
 import type { Logger } from "../logger/types";
-import { isPublicUrl } from "./news-fetcher";
+import { isPublicUrl } from "./url-utils";
 
 const OGP_TIMEOUT_MS = 3000;
 const OGP_CONCURRENCY = 5;
@@ -13,16 +13,28 @@ export class OgpFetcher {
     // S-1: プライベートIP/localhostへのアクセスをブロック
     if (!isPublicUrl(articleUrl)) return undefined;
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), OGP_TIMEOUT_MS);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), OGP_TIMEOUT_MS);
 
-      const response = await fetch(articleUrl, {
+    try {
+      let response = await fetch(articleUrl, {
         signal: controller.signal,
         headers: { "User-Agent": "AiSupport-Feed/1.0" },
-        redirect: "follow",
+        redirect: "manual",
       });
-      clearTimeout(timeout);
+
+      // リダイレクト先の安全性を検証してから追従
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location || !isPublicUrl(new URL(location, articleUrl).href)) {
+          return undefined;
+        }
+        response = await fetch(new URL(location, articleUrl).href, {
+          signal: controller.signal,
+          headers: { "User-Agent": "AiSupport-Feed/1.0" },
+          redirect: "manual",
+        });
+      }
 
       if (!response.ok) return undefined;
 
@@ -44,6 +56,8 @@ export class OgpFetcher {
     } catch {
       // タイムアウトや接続エラーは silent fail
       return undefined;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
