@@ -1,9 +1,13 @@
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { getUserPlan } from "@/lib/billing/plan-gate";
+import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createLLMClient } from "@/lib/llm/client-factory";
 import { prisma } from "@/lib/db/prisma";
 import { NewsFetcher } from "@/lib/feed/news-fetcher";
 import { OgpFetcher } from "@/lib/feed/ogp-fetcher";
+import { KeywordTranslator } from "@/lib/feed/keyword-translator";
 import { createLogger } from "@/lib/logger";
+import feedConfig from "@/../config/feed.json";
 import type { FeedArticleData } from "@/lib/feed/types";
 
 const logger = createLogger("api:feed-refresh");
@@ -26,27 +30,79 @@ export async function POST() {
     const ogpFetcher = new OgpFetcher(logger.child("ogp"));
     const currentKeywords = keywords.map((k) => k.keyword);
 
-    // 現在のキーワードに紐づかない古い記事を削除
+    // 現在のキーワードに紐づかない古い記事を削除（カテゴリフィード記事は保護）
     const { count: deletedCount } = await prisma.feedArticle.deleteMany({
       where: {
         userId,
-        keyword: { notIn: currentKeywords },
+        keyword: {
+          notIn: currentKeywords,
+          not: { startsWith: "__category_" },
+        },
       },
     });
 
-    // 並列でRSS取得
-    const results = await Promise.allSettled(
-      keywords.map(({ keyword }) => fetcher.fetchByKeyword(keyword))
-    );
+    // Phase 1: 日本語ソース + カテゴリフィード + キーワード翻訳を並列実行
+    let translationMap = new Map<string, string>();
+    const [jpResults, categoryArticles] = await Promise.all([
+      // 日本語キーワードでの検索（英語ソースはスキップ → keywordEnなし）
+      Promise.allSettled(
+        currentKeywords.map((kw) => fetcher.fetchByKeyword(kw))
+      ),
+      // カテゴリフィード
+      fetcher.fetchCategoryFeeds(),
+      // キーワード翻訳（結果をtranslationMapに代入）
+      (async () => {
+        try {
+          const { apiKey } = await resolveApiKey(userId, "openai");
+          const llmClient = createLLMClient("openai", undefined, false, apiKey);
+          const translator = new KeywordTranslator(
+            llmClient,
+            feedConfig.keyword_model,
+            logger.child("translator")
+          );
+          translationMap = await translator.translate(currentKeywords);
+        } catch (error) {
+          logger.warn("Translation skipped", {
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+      })(),
+    ]);
 
-    const allArticles: FeedArticleData[] = results
-      .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
+    const jpArticles: FeedArticleData[] = jpResults
+      .filter(
+        (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
+          r.status === "fulfilled"
+      )
       .flatMap((r) => r.value);
 
-    // OGP画像を並列取得
-    const imageMap = await ogpFetcher.fetchImageUrls(allArticles);
+    // Phase 2: 英語キーワードでの再検索（翻訳が利用可能な場合）
+    let enArticles: FeedArticleData[] = [];
+    if (translationMap.size > 0) {
+      const enResults = await Promise.allSettled(
+        currentKeywords.map((kw) => {
+          const enKw = translationMap.get(kw);
+          if (!enKw) return Promise.resolve([]);
+          return fetcher.fetchByKeyword(kw, enKw);
+        })
+      );
+      enArticles = enResults
+        .filter(
+          (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
+            r.status === "fulfilled"
+        )
+        .flatMap((r) => r.value);
+    }
 
-    // バルクインサート（重複スキップ）
+    const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
+
+    // OGP画像はneedsOgpFetch()でフィルタしたもののみ取得
+    const ogpTargets = allArticles.filter(NewsFetcher.needsOgpFetch);
+    const imageMap = ogpTargets.length > 0
+      ? await ogpFetcher.fetchImageUrls(ogpTargets)
+      : new Map<string, string>();
+
+    // バルクインサート（重複スキップ）— RSS画像を優先
     const { count: newCount } = await prisma.feedArticle.createMany({
       data: allArticles.map((article) => ({
         userId,
@@ -57,7 +113,7 @@ export async function POST() {
         snippet: article.snippet,
         publishedAt: article.publishedAt,
         keyword: article.keyword,
-        imageUrl: imageMap.get(article.url),
+        imageUrl: article.imageUrl ?? imageMap.get(article.url),
       })),
       skipDuplicates: true,
     });

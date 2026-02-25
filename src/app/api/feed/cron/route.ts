@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db/prisma";
+import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createLLMClient } from "@/lib/llm/client-factory";
 import { NewsFetcher } from "@/lib/feed/news-fetcher";
 import { OgpFetcher } from "@/lib/feed/ogp-fetcher";
+import { KeywordTranslator } from "@/lib/feed/keyword-translator";
 import { createLogger } from "@/lib/logger";
 import feedConfig from "@/../config/feed.json";
 import type { FeedArticleData } from "@/lib/feed/types";
@@ -24,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 全Proユーザーのキーワードを一括取得（N+1解消）
+    // 全Proユーザーのキーワードを一括取得
     const proUsers = await prisma.subscription.findMany({
       where: { plan: "pro", status: "active" },
       select: { userId: true },
@@ -47,21 +50,69 @@ export async function POST(request: NextRequest) {
     const ogpFetcher = new OgpFetcher(logger.child("ogp"));
     let totalNew = 0;
 
-    for (const [userId, keywords] of keywordsByUser) {
-      // ユーザー内キーワードを並列fetch
-      const results = await Promise.allSettled(
-        keywords.map((keyword) => fetcher.fetchByKeyword(keyword))
-      );
+    // カテゴリフィードは全ユーザー共通なのでループ外で1回だけ取得
+    const categoryArticles = await fetcher.fetchCategoryFeeds();
 
-      const allArticles: FeedArticleData[] = results
-        .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
+    for (const [userId, keywords] of keywordsByUser) {
+      // Phase 1: 日本語ソース + キーワード翻訳を並列実行
+      let translationMap = new Map<string, string>();
+      const [jpResults] = await Promise.all([
+        Promise.allSettled(
+          keywords.map((kw) => fetcher.fetchByKeyword(kw))
+        ),
+        (async () => {
+          try {
+            const { apiKey } = await resolveApiKey(userId, "openai");
+            const llmClient = createLLMClient("openai", undefined, false, apiKey);
+            const translator = new KeywordTranslator(
+              llmClient,
+              feedConfig.keyword_model,
+              logger.child("translator")
+            );
+            translationMap = await translator.translate(keywords);
+          } catch (error) {
+            logger.warn("Translation skipped for user", {
+              userId,
+              message: error instanceof Error ? error.message : String(error),
+            });
+          }
+        })(),
+      ]);
+
+      const jpArticles: FeedArticleData[] = jpResults
+        .filter(
+          (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
+            r.status === "fulfilled"
+        )
         .flatMap((r) => r.value);
 
-      if (allArticles.length > 0) {
-        // OGP画像を並列取得
-        const imageMap = await ogpFetcher.fetchImageUrls(allArticles);
+      // Phase 2: 英語キーワードでの再検索
+      let enArticles: FeedArticleData[] = [];
+      if (translationMap.size > 0) {
+        const enResults = await Promise.allSettled(
+          keywords.map((kw) => {
+            const enKw = translationMap.get(kw);
+            if (!enKw) return Promise.resolve([]);
+            return fetcher.fetchByKeyword(kw, enKw);
+          })
+        );
+        enArticles = enResults
+          .filter(
+            (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
+              r.status === "fulfilled"
+          )
+          .flatMap((r) => r.value);
+      }
 
-        // バルクインサート（重複スキップ）
+      const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
+
+      if (allArticles.length > 0) {
+        // OGP画像はneedsOgpFetch()でフィルタ
+        const ogpTargets = allArticles.filter(NewsFetcher.needsOgpFetch);
+        const imageMap = ogpTargets.length > 0
+          ? await ogpFetcher.fetchImageUrls(ogpTargets)
+          : new Map<string, string>();
+
         const { count } = await prisma.feedArticle.createMany({
           data: allArticles.map((article) => ({
             userId,
@@ -72,7 +123,7 @@ export async function POST(request: NextRequest) {
             snippet: article.snippet,
             publishedAt: article.publishedAt,
             keyword: article.keyword,
-            imageUrl: imageMap.get(article.url),
+            imageUrl: article.imageUrl ?? imageMap.get(article.url),
           })),
           skipDuplicates: true,
         });

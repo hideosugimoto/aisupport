@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import { SOURCE_LABELS, type FeedSource } from "@/lib/feed/types";
 
 interface FeedArticle {
   id: number;
@@ -409,7 +410,7 @@ export function FeedClient() {
                       <span className="sr-only">（外部サイト、新しいタブで開きます）</span>
                     </h2>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                      {article.source} — {formatDate(article.publishedAt)}
+                      {SOURCE_LABELS[article.source as FeedSource] ?? article.source} — {formatDate(article.publishedAt)}
                     </p>
                     {article.snippet && (() => {
                       const text = stripHtml(article.snippet).trim();
@@ -424,9 +425,11 @@ export function FeedClient() {
                         </p>
                       );
                     })()}
-                    <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                      #{article.keyword}
-                    </span>
+                    {!article.keyword.startsWith("__category_") && (
+                      <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                        #{article.keyword}
+                      </span>
+                    )}
                   </div>
                 </a>
               </article>
