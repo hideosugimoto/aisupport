@@ -6,6 +6,19 @@ import feedConfig from "../../../config/feed.json";
 type SourceConfig = { enabled: boolean; lang: string; label: string; max_articles: number };
 const sources = feedConfig.sources as Record<string, SourceConfig>;
 
+/** RSSフェッチの同時リクエスト上限 */
+const RSS_CONCURRENCY = 5;
+
+/** RSSフェッチ先として許可するホスト */
+const ALLOWED_RSS_HOSTS = new Set([
+  "news.google.com",
+  "www.bing.com",
+  "news.yahoo.co.jp",
+  "feeds.bbci.co.uk",
+  "techcrunch.com",
+  "hnrss.org",
+]);
+
 export class NewsFetcher {
   private readonly parser: XMLParser;
 
@@ -26,34 +39,28 @@ export class NewsFetcher {
     keyword: string,
     keywordEn?: string
   ): Promise<FeedArticleData[]> {
-    const tasks: Promise<FeedArticleData[]>[] = [];
+    const tasks: (() => Promise<FeedArticleData[]>)[] = [];
 
     // 日本語ソース
     if (sources.google_news?.enabled) {
-      tasks.push(this.fetchGoogleNews(keyword, "news"));
-      tasks.push(this.fetchGoogleNews(`${keyword} ブログ コラム`, "blog", keyword));
+      tasks.push(() => this.fetchGoogleNews(keyword, "news"));
+      tasks.push(() => this.fetchGoogleNews(`${keyword} ブログ コラム`, "blog", keyword));
     }
     if (sources.bing_news_jp?.enabled) {
-      tasks.push(this.fetchBingNews(keyword, "ja", "bing_news_jp"));
+      tasks.push(() => this.fetchBingNews(keyword, "ja", "bing_news_jp"));
     }
 
     // 英語ソース（翻訳キーワードがある場合のみ）
     if (keywordEn) {
       if (sources.bing_news_en?.enabled) {
-        tasks.push(this.fetchBingNews(keywordEn, "en", "bing_news_en", keyword));
+        tasks.push(() => this.fetchBingNews(keywordEn, "en", "bing_news_en", keyword));
       }
       if (sources.hacker_news?.enabled) {
-        tasks.push(this.fetchHackerNews(keywordEn, keyword));
+        tasks.push(() => this.fetchHackerNews(keywordEn, keyword));
       }
     }
 
-    const results = await Promise.allSettled(tasks);
-    return results
-      .filter(
-        (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
-          r.status === "fulfilled"
-      )
-      .flatMap((r) => r.value);
+    return this.runWithConcurrency(tasks);
   }
 
   /**
@@ -61,25 +68,19 @@ export class NewsFetcher {
    * keywordは `__category_{source}` 形式で設定
    */
   async fetchCategoryFeeds(): Promise<FeedArticleData[]> {
-    const tasks: Promise<FeedArticleData[]>[] = [];
+    const tasks: (() => Promise<FeedArticleData[]>)[] = [];
 
     if (sources.yahoo_news_jp?.enabled) {
-      tasks.push(this.fetchYahooNews());
+      tasks.push(() => this.fetchYahooNews());
     }
     if (sources.bbc_news?.enabled) {
-      tasks.push(this.fetchBbcNews());
+      tasks.push(() => this.fetchBbcNews());
     }
     if (sources.techcrunch?.enabled) {
-      tasks.push(this.fetchTechCrunch());
+      tasks.push(() => this.fetchTechCrunch());
     }
 
-    const results = await Promise.allSettled(tasks);
-    return results
-      .filter(
-        (r): r is PromiseFulfilledResult<FeedArticleData[]> =>
-          r.status === "fulfilled"
-      )
-      .flatMap((r) => r.value);
+    return this.runWithConcurrency(tasks);
   }
 
   /**
@@ -87,11 +88,32 @@ export class NewsFetcher {
    * RSS内で画像が取得できないソースが対象
    */
   static needsOgpFetch(article: FeedArticleData): boolean {
-    // 既にimageUrlがあればOGP不要
     if (article.imageUrl) return false;
-    // Yahoo, TechCrunchはOGPから画像取得が必要
     const ogpSources: FeedSource[] = ["yahoo_news_jp", "techcrunch"];
     return ogpSources.includes(article.source);
+  }
+
+  // ─── 並列度制限ヘルパー ────────────────────────
+
+  /**
+   * タスクをRSS_CONCURRENCY単位でバッチ実行し、結果をフラット化
+   */
+  private async runWithConcurrency(
+    taskFns: (() => Promise<FeedArticleData[]>)[]
+  ): Promise<FeedArticleData[]> {
+    const allArticles: FeedArticleData[] = [];
+
+    for (let i = 0; i < taskFns.length; i += RSS_CONCURRENCY) {
+      const batch = taskFns.slice(i, i + RSS_CONCURRENCY);
+      const results = await Promise.allSettled(batch.map((fn) => fn()));
+      for (const r of results) {
+        if (r.status === "fulfilled") {
+          allArticles.push(...r.value);
+        }
+      }
+    }
+
+    return allArticles;
   }
 
   // ─── ソース別フェッチメソッド ────────────────────────
@@ -219,6 +241,18 @@ export class NewsFetcher {
     url: string,
     source: string
   ): Promise<Record<string, unknown>[] | null> {
+    // S-1: RSSフェッチ先のホスト許可リストチェック
+    try {
+      const parsed = new URL(url);
+      if (!ALLOWED_RSS_HOSTS.has(parsed.hostname)) {
+        this.logger.warn("RSS fetch blocked: host not allowed", { source, hostname: parsed.hostname });
+        return null;
+      }
+    } catch {
+      this.logger.warn("RSS fetch blocked: invalid URL", { source, url });
+      return null;
+    }
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(
@@ -251,13 +285,14 @@ export class NewsFetcher {
       const atomEntries = parsed?.feed?.entry;
       if (atomEntries) {
         const entries = Array.isArray(atomEntries) ? atomEntries : [atomEntries];
-        // Atomエントリをrssアイテム形式に正規化
         return entries.map((entry: Record<string, unknown>) => ({
           title: entry.title,
           link:
             typeof entry.link === "string"
               ? entry.link
-              : (entry.link as Record<string, string>)?.["@_href"] ?? "",
+              : typeof entry.link === "object" && entry.link !== null
+                ? (entry.link as Record<string, string>)["@_href"] ?? ""
+                : "",
           description: entry.summary ?? entry.content ?? "",
           pubDate: entry.published ?? entry.updated ?? "",
         }));
@@ -278,11 +313,33 @@ export class NewsFetcher {
 
 // ─── ユーティリティ関数 ────────────────────────
 
+/** URLがプライベートIPやlocalhostでないか検証 */
+export function isPublicUrl(urlStr: string): boolean {
+  try {
+    const url = new URL(urlStr);
+    const hostname = url.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
+    if (hostname.startsWith("10.")) return false;
+    if (hostname.startsWith("172.")) {
+      const second = parseInt(hostname.split(".")[1], 10);
+      if (second >= 16 && second <= 31) return false;
+    }
+    if (hostname.startsWith("192.168.")) return false;
+    if (hostname.startsWith("169.254.")) return false;
+    if (!url.protocol.startsWith("http")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** BingリダイレクトURLから実URLを抽出 */
 function extractBingUrl(bingUrl: string): string {
   try {
     const urlObj = new URL(bingUrl);
-    return urlObj.searchParams.get("url") ?? urlObj.searchParams.get("r") ?? bingUrl;
+    const extracted = urlObj.searchParams.get("url") ?? urlObj.searchParams.get("r") ?? bingUrl;
+    // S-1: 抽出したURLの安全性検証
+    return isPublicUrl(extracted) ? extracted : bingUrl;
   } catch {
     return bingUrl;
   }
@@ -290,7 +347,6 @@ function extractBingUrl(bingUrl: string): string {
 
 /** Bing RSS の News:Image からサムネイルURLを抽出 */
 function extractBingImage(item: Record<string, unknown>): string | undefined {
-  // News:Image タグ（fast-xml-parserでは "News:Image" もしくは "news:Image"）
   const imageNode =
     item["News:Image"] ?? item["news:Image"] ?? item["News:image"];
   if (!imageNode) return undefined;
@@ -298,7 +354,6 @@ function extractBingImage(item: Record<string, unknown>): string | undefined {
   if (typeof imageNode === "string") return imageNode;
   if (typeof imageNode === "object" && imageNode !== null) {
     const obj = imageNode as Record<string, unknown>;
-    // contentUrl属性やテキストノード
     return (
       (obj["@_url"] as string) ??
       (obj["#text"] as string) ??

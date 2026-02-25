@@ -1,4 +1,5 @@
 import type { Logger } from "../logger/types";
+import { isPublicUrl } from "./news-fetcher";
 
 const OGP_TIMEOUT_MS = 3000;
 const OGP_CONCURRENCY = 5;
@@ -9,6 +10,9 @@ export class OgpFetcher {
   constructor(private readonly logger: Logger) {}
 
   async fetchImageUrl(articleUrl: string): Promise<string | undefined> {
+    // S-1: プライベートIP/localhostへのアクセスをブロック
+    if (!isPublicUrl(articleUrl)) return undefined;
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), OGP_TIMEOUT_MS);
