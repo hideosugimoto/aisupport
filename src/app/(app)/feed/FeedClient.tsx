@@ -413,9 +413,10 @@ export function FeedClient() {
                     </p>
                     {article.snippet && (() => {
                       const text = stripHtml(article.snippet).trim();
-                      const titleNorm = article.title.replace(/\s+/g, "");
-                      const snippetNorm = text.replace(/\s+/g, "");
-                      // タイトルとほぼ同じなら表示しない
+                      // 記号・空白を除去して比較（"Title - Source" vs "Title  Source" 対策）
+                      const norm = (s: string) => s.replace(/[\s\-\u2010-\u2015\u2212\uFF0D\u30FB·,.、。]/g, "");
+                      const titleNorm = norm(article.title);
+                      const snippetNorm = norm(text);
                       if (!text || titleNorm.includes(snippetNorm) || snippetNorm.includes(titleNorm)) return null;
                       return (
                         <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
