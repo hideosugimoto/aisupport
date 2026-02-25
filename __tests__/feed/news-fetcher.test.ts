@@ -87,4 +87,25 @@ describe("NewsFetcher", () => {
     const articles = await fetcher.fetchByKeyword("テスト");
     expect(articles).toEqual([]);
   });
+
+  it("should return partial results when one query fails", async () => {
+    let callCount = 0;
+    global.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        // news query succeeds
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve(sampleRssXml),
+        });
+      }
+      // blog query fails
+      return Promise.reject(new Error("Network error"));
+    });
+
+    const articles = await fetcher.fetchByKeyword("テスト");
+    // Only news articles returned (blog query failed)
+    expect(articles).toHaveLength(2);
+    expect(articles.every((a) => a.category === "news")).toBe(true);
+  });
 });
