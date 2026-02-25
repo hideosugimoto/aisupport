@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface FeedArticle {
   id: number;
@@ -29,6 +29,13 @@ interface KeywordsResponse {
 }
 
 type TabType = "news" | "blog";
+type KeywordMode = "wide" | "standard" | "deep";
+
+const KEYWORD_MODES: { value: KeywordMode; label: string }[] = [
+  { value: "wide", label: "ワイド（広く浅く）" },
+  { value: "standard", label: "スタンダード" },
+  { value: "deep", label: "ディープ（深く狭く）" },
+];
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -51,6 +58,8 @@ export function FeedClient() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [keywordsError, setKeywordsError] = useState<string | null>(null);
+  const [showModeMenu, setShowModeMenu] = useState(false);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
 
   const fetchKeywords = useCallback(async () => {
     setKeywordsLoading(true);
@@ -130,12 +139,15 @@ export function FeedClient() {
     }
   };
 
-  const handleGenerateKeywords = async () => {
+  const handleGenerateKeywords = async (mode: KeywordMode = "standard") => {
     setGenerating(true);
     setKeywordsError(null);
+    setShowModeMenu(false);
     try {
       const res = await fetch("/api/feed/keywords/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -149,6 +161,19 @@ export function FeedClient() {
       setGenerating(false);
     }
   };
+
+  // ドロップダウン外クリックで閉じる
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target as Node)) {
+        setShowModeMenu(false);
+      }
+    }
+    if (showModeMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showModeMenu]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -234,14 +259,31 @@ export function FeedClient() {
               #{kw.keyword}
             </span>
           ))}
-          <button
-            onClick={handleGenerateKeywords}
-            disabled={generating}
-            aria-label="キーワードを再生成"
-            className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {generating ? "生成中..." : "再生成"}
-          </button>
+          <div ref={modeMenuRef} className="relative inline-block">
+            <button
+              onClick={() => setShowModeMenu((prev) => !prev)}
+              disabled={generating}
+              aria-label="キーワードを再生成"
+              aria-haspopup="true"
+              aria-expanded={showModeMenu}
+              className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? "生成中..." : "再生成 ▾"}
+            </button>
+            {showModeMenu && (
+              <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg z-10">
+                {KEYWORD_MODES.map((m) => (
+                  <button
+                    key={m.value}
+                    onClick={() => handleGenerateKeywords(m.value)}
+                    className="block w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       ) : null}
 
@@ -274,7 +316,7 @@ export function FeedClient() {
             パーソナライズされたニュースを受け取ろう
           </p>
           <button
-            onClick={handleGenerateKeywords}
+            onClick={() => handleGenerateKeywords("standard")}
             disabled={generating}
             className="rounded-lg px-4 py-2 text-sm bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >

@@ -4,12 +4,15 @@ import { prisma } from "@/lib/db/prisma";
 import { createLLMClient } from "@/lib/llm/client-factory";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
 import { KeywordGenerator } from "@/lib/feed/keyword-generator";
+import type { KeywordMode } from "@/lib/feed/keyword-generator";
 import { createLogger } from "@/lib/logger";
 import feedConfig from "@/../config/feed.json";
 
 const logger = createLogger("api:feed-keywords");
 
-export async function POST() {
+const VALID_MODES: KeywordMode[] = ["wide", "standard", "deep"];
+
+export async function POST(request: Request) {
   try {
     const userId = await requireAuth();
     const plan = await getUserPlan(userId);
@@ -19,6 +22,17 @@ export async function POST() {
         { error: "フィード機能はProプランで利用できます" },
         { status: 403 }
       );
+    }
+
+    // modeパラメータ取得
+    let mode: KeywordMode = "standard";
+    try {
+      const body = await request.json();
+      if (body.mode && VALID_MODES.includes(body.mode)) {
+        mode = body.mode;
+      }
+    } catch {
+      // bodyなしの場合はデフォルト(standard)
     }
 
     // レートリミット（1時間に1回）
@@ -52,7 +66,7 @@ export async function POST() {
       feedConfig.keyword_model,
       logger.child("generator")
     );
-    const keywords = await generator.generate(compassItems);
+    const keywords = await generator.generate(compassItems, mode);
 
     if (keywords.length === 0) {
       return Response.json(
@@ -69,7 +83,7 @@ export async function POST() {
       }),
     ]);
 
-    logger.info("Keywords generated", { userId, count: keywords.length });
+    logger.info("Keywords generated", { userId, count: keywords.length, mode });
     return Response.json({ keywords });
   } catch (error) {
     try {

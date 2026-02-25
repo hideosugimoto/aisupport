@@ -8,6 +8,14 @@ export interface CompassItemInput {
   content: string;
 }
 
+export type KeywordMode = "wide" | "standard" | "deep";
+
+const TEMPLATE_MAP: Record<KeywordMode, string> = {
+  wide: "generate-keywords-wide.md",
+  standard: "generate-keywords.md",
+  deep: "generate-keywords-deep.md",
+};
+
 export class KeywordGenerator {
   constructor(
     private readonly llmClient: LLMClient,
@@ -15,7 +23,7 @@ export class KeywordGenerator {
     private readonly logger: Logger
   ) {}
 
-  async generate(compassItems: CompassItemInput[]): Promise<string[]> {
+  async generate(compassItems: CompassItemInput[], mode: KeywordMode = "standard"): Promise<string[]> {
     if (compassItems.length === 0) {
       this.logger.info("No compass items, skipping keyword generation");
       return [];
@@ -26,7 +34,7 @@ export class KeywordGenerator {
         .map((item) => `- ${sanitizePromptInput(item.title)}: ${sanitizePromptInput(item.content).slice(0, feedConfig.compass_content_max_chars)}`)
         .join("\n");
 
-      const template = loadTemplate("feed", "generate-keywords.md");
+      const template = loadTemplate("feed", TEMPLATE_MAP[mode]);
       const prompt = template.replaceAll("{{compass_items}}", itemsText);
 
       const response = await this.llmClient.chat({
