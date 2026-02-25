@@ -411,11 +411,18 @@ export function FeedClient() {
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
                       {article.source} — {formatDate(article.publishedAt)}
                     </p>
-                    {article.snippet && (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
-                        {stripHtml(article.snippet)}
-                      </p>
-                    )}
+                    {article.snippet && (() => {
+                      const text = stripHtml(article.snippet).trim();
+                      const titleNorm = article.title.replace(/\s+/g, "");
+                      const snippetNorm = text.replace(/\s+/g, "");
+                      // タイトルとほぼ同じなら表示しない
+                      if (!text || titleNorm.includes(snippetNorm) || snippetNorm.includes(titleNorm)) return null;
+                      return (
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
+                          {text}
+                        </p>
+                      );
+                    })()}
                     <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                       #{article.keyword}
                     </span>
