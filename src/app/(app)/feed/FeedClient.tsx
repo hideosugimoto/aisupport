@@ -40,8 +40,11 @@ const KEYWORD_MODES: { value: KeywordMode; label: string }[] = [
 ];
 
 function stripHtml(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  return (doc.body.textContent ?? "").replace(/\u00A0/g, " ");
+  // 1回目: HTMLエンティティ(&lt; &gt; &amp;等)をデコード
+  const decoded = new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
+  // 2回目: デコード後の実際のHTMLタグを除去してテキストだけ取得
+  const text = new DOMParser().parseFromString(decoded, "text/html").body.textContent ?? "";
+  return text.replace(/\u00A0/g, " ");
 }
 
 function formatDate(dateStr: string): string {
