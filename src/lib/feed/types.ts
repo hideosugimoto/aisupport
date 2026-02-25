@@ -6,6 +6,7 @@ export interface FeedArticleData {
   snippet: string;
   publishedAt: Date;
   keyword: string;
+  imageUrl?: string;
 }
 
 export interface GeneratedKeywords {

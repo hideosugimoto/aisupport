@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 
 interface FeedArticle {
   id: number;
@@ -11,6 +12,7 @@ interface FeedArticle {
   snippet: string;
   publishedAt: string;
   keyword: string;
+  imageUrl: string | null;
   isRead: boolean;
 }
 
@@ -384,23 +386,37 @@ export function FeedClient() {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                  className="flex gap-3 p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
                 >
-                  <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1 leading-snug hover:text-blue-600 dark:hover:text-blue-400">
-                    {article.title}
-                    <span className="sr-only">（外部サイト、新しいタブで開きます）</span>
-                  </h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                    {article.source} — {formatDate(article.publishedAt)}
-                  </p>
-                  {article.snippet && (
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
-                      {stripHtml(article.snippet)}
-                    </p>
+                  {article.imageUrl && (
+                    <div className="relative shrink-0 w-24 h-16 rounded overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                      <Image
+                        src={article.imageUrl}
+                        alt=""
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
                   )}
-                  <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                    #{article.keyword}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1 leading-snug hover:text-blue-600 dark:hover:text-blue-400">
+                      {article.title}
+                      <span className="sr-only">（外部サイト、新しいタブで開きます）</span>
+                    </h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                      {article.source} — {formatDate(article.publishedAt)}
+                    </p>
+                    {article.snippet && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
+                        {stripHtml(article.snippet)}
+                      </p>
+                    )}
+                    <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                      #{article.keyword}
+                    </span>
+                  </div>
                 </a>
               </article>
             ))}

@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://challenges.cloudflare.com"
         : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://img.clerk.com",
+      "img-src 'self' data: https://img.clerk.com https:",
       "font-src 'self'",
       "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com",
       "worker-src 'self'",

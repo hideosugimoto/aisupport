@@ -2,6 +2,7 @@ import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { getUserPlan } from "@/lib/billing/plan-gate";
 import { prisma } from "@/lib/db/prisma";
 import { NewsFetcher } from "@/lib/feed/news-fetcher";
+import { OgpFetcher } from "@/lib/feed/ogp-fetcher";
 import { createLogger } from "@/lib/logger";
 import type { FeedArticleData } from "@/lib/feed/types";
 
@@ -22,6 +23,7 @@ export async function POST() {
     }
 
     const fetcher = new NewsFetcher(logger.child("fetcher"));
+    const ogpFetcher = new OgpFetcher(logger.child("ogp"));
     const currentKeywords = keywords.map((k) => k.keyword);
 
     // 現在のキーワードに紐づかない古い記事を削除
@@ -41,6 +43,9 @@ export async function POST() {
       .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
       .flatMap((r) => r.value);
 
+    // OGP画像を並列取得
+    const imageMap = await ogpFetcher.fetchImageUrls(allArticles);
+
     // バルクインサート（重複スキップ）
     const { count: newCount } = await prisma.feedArticle.createMany({
       data: allArticles.map((article) => ({
@@ -52,6 +57,7 @@ export async function POST() {
         snippet: article.snippet,
         publishedAt: article.publishedAt,
         keyword: article.keyword,
+        imageUrl: imageMap.get(article.url),
       })),
       skipDuplicates: true,
     });

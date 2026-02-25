@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db/prisma";
 import { NewsFetcher } from "@/lib/feed/news-fetcher";
+import { OgpFetcher } from "@/lib/feed/ogp-fetcher";
 import { createLogger } from "@/lib/logger";
 import feedConfig from "@/../config/feed.json";
 import type { FeedArticleData } from "@/lib/feed/types";
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const fetcher = new NewsFetcher(logger.child("fetcher"));
+    const ogpFetcher = new OgpFetcher(logger.child("ogp"));
     let totalNew = 0;
 
     for (const [userId, keywords] of keywordsByUser) {
@@ -56,6 +58,9 @@ export async function POST(request: NextRequest) {
         .flatMap((r) => r.value);
 
       if (allArticles.length > 0) {
+        // OGP画像を並列取得
+        const imageMap = await ogpFetcher.fetchImageUrls(allArticles);
+
         // バルクインサート（重複スキップ）
         const { count } = await prisma.feedArticle.createMany({
           data: allArticles.map((article) => ({
@@ -67,6 +72,7 @@ export async function POST(request: NextRequest) {
             snippet: article.snippet,
             publishedAt: article.publishedAt,
             keyword: article.keyword,
+            imageUrl: imageMap.get(article.url),
           })),
           skipDuplicates: true,
         });
