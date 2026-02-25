@@ -225,7 +225,7 @@ export function FeedClient() {
           キーワードを読み込み中...
         </div>
       ) : keywords.length > 0 ? (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           {keywords.map((kw) => (
             <span
               key={kw.id}
@@ -234,6 +234,13 @@ export function FeedClient() {
               #{kw.keyword}
             </span>
           ))}
+          <button
+            onClick={handleGenerateKeywords}
+            disabled={generating}
+            className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {generating ? "生成中..." : "再生成"}
+          </button>
         </div>
       ) : null}
 
