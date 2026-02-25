@@ -23,7 +23,7 @@ export class KeywordGenerator {
 
     try {
       const itemsText = compassItems
-        .map((item) => `- ${sanitizePromptInput(item.title)}: ${sanitizePromptInput(item.content).slice(0, 500)}`)
+        .map((item) => `- ${sanitizePromptInput(item.title)}: ${sanitizePromptInput(item.content).slice(0, feedConfig.compass_content_max_chars)}`)
         .join("\n");
 
       const template = loadTemplate("feed", "generate-keywords.md");
