@@ -41,19 +41,25 @@ describe("NewsFetcher", () => {
     global.fetch = originalFetch;
   });
 
-  it("should parse RSS XML into article array", async () => {
+  it("should parse RSS XML into news and blog articles", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       text: () => Promise.resolve(sampleRssXml),
     });
     const articles = await fetcher.fetchByKeyword("Web開発");
-    expect(articles).toHaveLength(2);
-    expect(articles[0].title).toBe("React 19の新機能まとめ");
-    expect(articles[0].url).toBe("https://example.com/react-19");
-    expect(articles[0].snippet).toBe("React 19がリリースされ...");
-    expect(articles[0].keyword).toBe("Web開発");
-    expect(articles[0].source).toBe("google_news");
-    expect(articles[0].category).toBe("news");
+    // 2 queries (news + blog) × 2 items each = 4 articles
+    expect(articles).toHaveLength(4);
+
+    const newsArticles = articles.filter((a) => a.category === "news");
+    const blogArticles = articles.filter((a) => a.category === "blog");
+    expect(newsArticles).toHaveLength(2);
+    expect(blogArticles).toHaveLength(2);
+
+    expect(newsArticles[0].title).toBe("React 19の新機能まとめ");
+    expect(newsArticles[0].url).toBe("https://example.com/react-19");
+    expect(newsArticles[0].snippet).toBe("React 19がリリースされ...");
+    expect(newsArticles[0].keyword).toBe("Web開発");
+    expect(newsArticles[0].source).toBe("google_news");
   });
 
   it("should return empty array for empty RSS", async () => {

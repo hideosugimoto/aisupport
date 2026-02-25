@@ -15,7 +15,26 @@ export class NewsFetcher {
   }
 
   async fetchByKeyword(keyword: string): Promise<FeedArticleData[]> {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(keyword)}&hl=ja&gl=JP&ceid=JP:ja`;
+    const queries: { q: string; category: "news" | "blog" }[] = [
+      { q: keyword, category: "news" },
+      { q: `${keyword} ブログ コラム`, category: "blog" },
+    ];
+
+    const results = await Promise.allSettled(
+      queries.map(({ q, category }) => this.fetchRss(q, keyword, category))
+    );
+
+    return results
+      .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
+      .flatMap((r) => r.value);
+  }
+
+  private async fetchRss(
+    query: string,
+    keyword: string,
+    category: "news" | "blog"
+  ): Promise<FeedArticleData[]> {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
 
     try {
       const controller = new AbortController();
@@ -28,7 +47,7 @@ export class NewsFetcher {
       clearTimeout(timeout);
 
       if (!response.ok) {
-        this.logger.warn("RSS fetch failed", { keyword, status: response.status });
+        this.logger.warn("RSS fetch failed", { query, status: response.status });
         return [];
       }
 
@@ -44,13 +63,13 @@ export class NewsFetcher {
         title: String(item.title ?? "").slice(0, 500),
         url: String(item.link ?? ""),
         source: "google_news",
-        category: "news" as const,
+        category,
         snippet: String(item.description ?? "").slice(0, 1000),
         publishedAt: item.pubDate ? new Date(String(item.pubDate)) : new Date(),
         keyword,
       }));
     } catch (error) {
-      this.logger.error("RSS fetch error", { keyword, message: error instanceof Error ? error.message : String(error) });
+      this.logger.error("RSS fetch error", { query, message: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
