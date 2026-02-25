@@ -1,6 +1,7 @@
 import type { Logger } from "../logger/types";
 
 const OGP_TIMEOUT_MS = 3000;
+const OGP_CONCURRENCY = 5;
 const OG_IMAGE_RE = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i;
 const OG_IMAGE_RE_ALT = /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i;
 
@@ -45,17 +46,22 @@ export class OgpFetcher {
   async fetchImageUrls(
     articles: { url: string }[]
   ): Promise<Map<string, string>> {
-    const results = await Promise.allSettled(
-      articles.map(async (article) => {
-        const imageUrl = await this.fetchImageUrl(article.url);
-        return { url: article.url, imageUrl };
-      })
-    );
-
     const map = new Map<string, string>();
-    for (const result of results) {
-      if (result.status === "fulfilled" && result.value.imageUrl) {
-        map.set(result.value.url, result.value.imageUrl);
+
+    // 同時リクエスト数を制限して並列取得
+    for (let i = 0; i < articles.length; i += OGP_CONCURRENCY) {
+      const batch = articles.slice(i, i + OGP_CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map(async (article) => {
+          const imageUrl = await this.fetchImageUrl(article.url);
+          return { url: article.url, imageUrl };
+        })
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value.imageUrl) {
+          map.set(result.value.url, result.value.imageUrl);
+        }
       }
     }
 
