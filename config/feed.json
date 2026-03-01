@@ -8,6 +8,12 @@
   "keyword_model": "gpt-4o-mini",
   "compass_content_max_chars": 2000,
   "cron_user_concurrency": 3,
+  "digest_batch_size": 10,
+  "digest_model": "gpt-4o-mini",
+  "digest_max_articles": 30,
+  "digest_cron_user_concurrency": 3,
+  "digest_from_email": "noreply@yourdomain.com",
+  "digest_from_name": "AI Support",
   "sources": {
     "bing_news_jp": { "enabled": true, "lang": "ja", "label": "Bing News JP", "max_articles": 5, "host": "www.bing.com" },
     "google_news": { "enabled": true, "lang": "ja", "label": "Google News", "max_articles": 5, "host": "news.google.com" },

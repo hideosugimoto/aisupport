@@ -15,6 +15,7 @@ export async function GET() {
           reminderEnabled: false,
           reminderTime: "09:00",
           budgetAlert: true,
+          digestEnabled: true,
         },
       });
     }
@@ -35,7 +36,7 @@ export async function PUT(request: NextRequest) {
   try {
     const userId = await requireAuth();
     const body = await request.json();
-    const { reminderEnabled, reminderTime, budgetAlert } = body;
+    const { reminderEnabled, reminderTime, budgetAlert, digestEnabled } = body;
 
     const settings = await prisma.notificationSetting.upsert({
       where: { userId },
@@ -44,11 +45,13 @@ export async function PUT(request: NextRequest) {
         reminderEnabled: reminderEnabled ?? false,
         reminderTime: reminderTime ?? "09:00",
         budgetAlert: budgetAlert ?? true,
+        digestEnabled: digestEnabled ?? true,
       },
       update: {
         ...(reminderEnabled !== undefined && { reminderEnabled }),
         ...(reminderTime !== undefined && { reminderTime }),
         ...(budgetAlert !== undefined && { budgetAlert }),
+        ...(digestEnabled !== undefined && { digestEnabled }),
       },
     });
 

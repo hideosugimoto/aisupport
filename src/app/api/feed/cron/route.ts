@@ -1,20 +1,11 @@
 import { NextRequest } from "next/server";
-import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db/prisma";
 import { FeedRefreshService } from "@/lib/feed/feed-refresh-service";
 import { createLogger } from "@/lib/logger";
+import { verifyCronSecret } from "@/lib/cron/verify-secret";
 import feedConfig from "@/../config/feed.json";
 
 const logger = createLogger("cron:feed");
-
-function verifyCronSecret(authHeader: string | null): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || !authHeader) return false;
-  const expected = Buffer.from(`Bearer ${cronSecret}`);
-  const provided = Buffer.from(authHeader);
-  if (expected.length !== provided.length) return false;
-  return timingSafeEqual(expected, provided);
-}
 
 export async function POST(request: NextRequest) {
   if (!verifyCronSecret(request.headers.get("authorization"))) {

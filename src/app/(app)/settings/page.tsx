@@ -8,6 +8,7 @@ interface NotificationSettings {
   reminderEnabled: boolean;
   reminderTime: string;
   budgetAlert: boolean;
+  digestEnabled: boolean;
 }
 
 interface PlanInfo {
@@ -34,6 +35,7 @@ export default function SettingsPage() {
     reminderEnabled: false,
     reminderTime: "09:00",
     budgetAlert: true,
+    digestEnabled: true,
   });
   const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
   const [pushSupported, setPushSupported] = useState(false);
@@ -59,6 +61,7 @@ export default function SettingsPage() {
             reminderEnabled: data.reminderEnabled,
             reminderTime: data.reminderTime,
             budgetAlert: data.budgetAlert,
+            digestEnabled: data.digestEnabled ?? true,
           });
         }
       })
@@ -557,6 +560,26 @@ export default function SettingsPage() {
                   checked={settings.budgetAlert}
                   onChange={(e) =>
                     setSettings((s) => ({ ...s, budgetAlert: e.target.checked }))
+                  }
+                  className="rounded border-zinc-300 dark:border-zinc-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label htmlFor="digest-enabled" className="text-sm text-zinc-700 dark:text-zinc-300">
+                    メールダイジェスト
+                  </label>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    毎朝9時にフィード記事の要約をメールで配信（Pro限定）
+                  </p>
+                </div>
+                <input
+                  id="digest-enabled"
+                  type="checkbox"
+                  checked={settings.digestEnabled}
+                  onChange={(e) =>
+                    setSettings((s) => ({ ...s, digestEnabled: e.target.checked }))
                   }
                   className="rounded border-zinc-300 dark:border-zinc-600"
                 />

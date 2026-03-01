@@ -88,6 +88,7 @@ model NotificationSetting {
   reminderEnabled  Boolean  @default(false) @map("reminder_enabled")
   reminderTime     String   @default("09:00") @map("reminder_time")
   budgetAlert      Boolean  @default(true) @map("budget_alert")
+  digestEnabled    Boolean  @default(true) @map("digest_enabled")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
