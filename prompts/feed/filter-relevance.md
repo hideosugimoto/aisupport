@@ -6,11 +6,12 @@
 - 直接的な言及がなくても、テーマ・分野が近ければ関連ありとする
 - 明らかに無関係な記事（事故、スポーツ結果、芸能ニュースなど）は除外する
 - 判定に迷う場合は関連ありとする（取りこぼし防止）
+- 関連ありの場合、最も関連の強いキーワードを1つ選んで matched_keyword に設定する
 - 必ずJSON配列形式で出力する
 
 ## 出力形式
 ```json
-[{"index": 0, "relevant": true}, {"index": 1, "relevant": false}, ...]
+[{"index": 0, "relevant": true, "matched_keyword": "AI"}, {"index": 1, "relevant": false, "matched_keyword": null}, ...]
 ```
 
 ## ユーザーの興味キーワード

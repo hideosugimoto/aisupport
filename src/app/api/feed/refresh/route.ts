@@ -22,14 +22,11 @@ export async function POST() {
 
     const currentKeywords = keywords.map((k) => k.keyword);
 
-    // 現在のキーワードに紐づかない古い記事を削除（カテゴリフィード記事は保護）
+    // 古い記事を削除（カテゴリ記事も削除して再取得 — LLMフィルタ適用前の古い記事をクリーンアップ）
     const { count: deletedCount } = await prisma.feedArticle.deleteMany({
       where: {
         userId,
-        keyword: {
-          notIn: currentKeywords,
-          not: { startsWith: "__category_" },
-        },
+        keyword: { notIn: currentKeywords },
       },
     });
 

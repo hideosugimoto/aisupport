@@ -433,6 +433,14 @@ export function FeedClient() {
                         #{article.keyword}
                       </span>
                     )}
+                    {article.keyword.startsWith("__category_") && (
+                      <span
+                        aria-label="カテゴリ記事"
+                        className="inline-flex items-center rounded-full bg-zinc-50 dark:bg-zinc-800/50 px-2 py-0.5 text-xs text-zinc-400 dark:text-zinc-500"
+                      >
+                        {SOURCE_LABELS[article.source as FeedSource] ?? article.source}
+                      </span>
+                    )}
                   </div>
                 </a>
               </article>

@@ -49,9 +49,9 @@ describe("RelevanceFilter", () => {
 
     vi.mocked(mockLLMClient.chat).mockResolvedValue({
       content: JSON.stringify([
-        { index: 0, relevant: true },
-        { index: 1, relevant: false },
-        { index: 2, relevant: true },
+        { index: 0, relevant: true, matched_keyword: "AI" },
+        { index: 1, relevant: false, matched_keyword: null },
+        { index: 2, relevant: true, matched_keyword: "機械学習" },
       ]),
       usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
     });
@@ -61,6 +61,77 @@ describe("RelevanceFilter", () => {
     expect(result[0].title).toBe("AI最新動向");
     expect(result[1].title).toBe("機械学習フレームワーク");
     expect(mockLLMClient.chat).toHaveBeenCalledOnce();
+  });
+
+  it("カテゴリ記事のkeywordをmatched_keywordで書き換える", async () => {
+    const articles = [
+      makeArticle({ title: "AI規制の最新動向", keyword: "__category_yahoo_news_jp" }),
+      makeArticle({ title: "新しいMLフレームワーク", keyword: "__category_bbc_news" }),
+    ];
+
+    vi.mocked(mockLLMClient.chat).mockResolvedValue({
+      content: JSON.stringify([
+        { index: 0, relevant: true, matched_keyword: "AI" },
+        { index: 1, relevant: true, matched_keyword: "機械学習" },
+      ]),
+      usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+    });
+
+    const result = await filter.filterArticles(articles, ["AI", "機械学習"]);
+    expect(result).toHaveLength(2);
+    expect(result[0].keyword).toBe("AI");
+    expect(result[1].keyword).toBe("機械学習");
+  });
+
+  it("非カテゴリ記事のkeywordはmatched_keywordで書き換えない", async () => {
+    const articles = [
+      makeArticle({ title: "AI記事", keyword: "人工知能" }),
+    ];
+
+    vi.mocked(mockLLMClient.chat).mockResolvedValue({
+      content: JSON.stringify([
+        { index: 0, relevant: true, matched_keyword: "AI" },
+      ]),
+      usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+    });
+
+    const result = await filter.filterArticles(articles, ["AI"]);
+    expect(result).toHaveLength(1);
+    expect(result[0].keyword).toBe("人工知能");
+  });
+
+  it("matched_keywordがnullのカテゴリ記事はkeywordを維持", async () => {
+    const articles = [
+      makeArticle({ title: "記事", keyword: "__category_yahoo_news_jp" }),
+    ];
+
+    vi.mocked(mockLLMClient.chat).mockResolvedValue({
+      content: JSON.stringify([
+        { index: 0, relevant: true, matched_keyword: null },
+      ]),
+      usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+    });
+
+    const result = await filter.filterArticles(articles, ["AI"]);
+    expect(result).toHaveLength(1);
+    expect(result[0].keyword).toBe("__category_yahoo_news_jp");
+  });
+
+  it("matched_keywordフィールドが省略された場合もkeywordを維持", async () => {
+    const articles = [
+      makeArticle({ title: "記事", keyword: "__category_yahoo_news_jp" }),
+    ];
+
+    vi.mocked(mockLLMClient.chat).mockResolvedValue({
+      content: JSON.stringify([
+        { index: 0, relevant: true },
+      ]),
+      usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+    });
+
+    const result = await filter.filterArticles(articles, ["AI"]);
+    expect(result).toHaveLength(1);
+    expect(result[0].keyword).toBe("__category_yahoo_news_jp");
   });
 
   it("空の記事配列は空配列を返す", async () => {
@@ -126,7 +197,7 @@ describe("RelevanceFilter", () => {
     ];
 
     vi.mocked(mockLLMClient.chat).mockResolvedValue({
-      content: '```json\n[{"index": 0, "relevant": true}, {"index": 1, "relevant": false}]\n```',
+      content: '```json\n[{"index": 0, "relevant": true, "matched_keyword": "テスト"}, {"index": 1, "relevant": false, "matched_keyword": null}]\n```',
       usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
     });
 
@@ -140,9 +211,9 @@ describe("RelevanceFilter", () => {
 
     vi.mocked(mockLLMClient.chat).mockResolvedValue({
       content: JSON.stringify([
-        { index: 0, relevant: true },
-        { index: 99, relevant: true }, // 存在しないindex
-        { index: "bad", relevant: true }, // 不正な型
+        { index: 0, relevant: true, matched_keyword: "AI" },
+        { index: 99, relevant: true, matched_keyword: "AI" }, // 存在しないindex
+        { index: "bad", relevant: true, matched_keyword: "AI" }, // 不正な型
       ]),
       usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
     });

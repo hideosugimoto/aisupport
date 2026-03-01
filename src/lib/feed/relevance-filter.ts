@@ -19,6 +19,7 @@ async function getPromptTemplate(): Promise<string> {
 interface RelevanceResult {
   index: number;
   relevant: boolean;
+  matched_keyword?: string | null;
 }
 
 export class RelevanceFilter {
@@ -68,7 +69,7 @@ export class RelevanceFilter {
         return articles;
       }
 
-      const relevantIndices = new Set<number>();
+      const relevantMap = new Map<number, string | null>();
       for (const item of parsed) {
         const r = item as RelevanceResult;
         if (
@@ -76,11 +77,23 @@ export class RelevanceFilter {
           typeof r.relevant === "boolean" &&
           r.relevant
         ) {
-          relevantIndices.add(r.index);
+          relevantMap.set(
+            r.index,
+            typeof r.matched_keyword === "string" ? r.matched_keyword : null
+          );
         }
       }
 
-      const filtered = articles.filter((_, i) => relevantIndices.has(i));
+      const filtered: FeedArticleData[] = [];
+      for (let i = 0; i < articles.length; i++) {
+        if (!relevantMap.has(i)) continue;
+        const matchedKeyword = relevantMap.get(i);
+        if (matchedKeyword && articles[i].keyword.startsWith("__category_")) {
+          filtered.push({ ...articles[i], keyword: matchedKeyword });
+        } else {
+          filtered.push(articles[i]);
+        }
+      }
 
       this.logger.info("Category articles filtered by relevance", {
         input: articles.length,
