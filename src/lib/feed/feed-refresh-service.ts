@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { NewsFetcher } from "./news-fetcher";
 import { OgpFetcher } from "./ogp-fetcher";
 import { KeywordTranslator } from "./keyword-translator";
+import { filterByKeywordRelevance } from "./article-filter";
+import { RelevanceFilter } from "./relevance-filter";
 import feedConfig from "../../../config/feed.json";
 import type { FeedArticleData } from "./types";
 import type { Logger } from "../logger/types";
@@ -29,7 +31,19 @@ export class FeedRefreshService {
       await this.fetchPhase1(userId, keywords, true);
 
     const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
-    const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
+
+    // D: キーワード記事に簡易マッチフィルタ
+    const filteredJp = filterByKeywordRelevance(jpArticles, keywords);
+    const filteredEn = filterByKeywordRelevance(enArticles, keywords);
+
+    // A: カテゴリ記事にLLM関連性フィルタ
+    const filteredCategory = await this.filterCategoryArticles(
+      userId,
+      categoryArticles,
+      keywords
+    );
+
+    const allArticles = [...filteredJp, ...filteredCategory, ...filteredEn];
 
     const newCount = await this.saveArticles(userId, allArticles);
     return { newCount };
@@ -47,7 +61,19 @@ export class FeedRefreshService {
       await this.fetchPhase1(userId, keywords, false);
 
     const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
-    const allArticles = [...jpArticles, ...categoryArticles, ...enArticles];
+
+    // D: キーワード記事に簡易マッチフィルタ
+    const filteredJp = filterByKeywordRelevance(jpArticles, keywords);
+    const filteredEn = filterByKeywordRelevance(enArticles, keywords);
+
+    // A: カテゴリ記事にLLM関連性フィルタ
+    const filteredCategory = await this.filterCategoryArticles(
+      userId,
+      categoryArticles,
+      keywords
+    );
+
+    const allArticles = [...filteredJp, ...filteredCategory, ...filteredEn];
 
     if (allArticles.length === 0) return { newCount: 0 };
 
@@ -137,6 +163,33 @@ export class FeedRefreshService {
         message: error instanceof Error ? error.message : String(error),
       });
       return new Map();
+    }
+  }
+
+  /**
+   * カテゴリフィード記事にLLM関連性フィルタを適用（失敗時は全件通過）
+   */
+  private async filterCategoryArticles(
+    userId: string,
+    articles: FeedArticleData[],
+    keywords: string[]
+  ): Promise<FeedArticleData[]> {
+    if (articles.length === 0) return articles;
+
+    try {
+      const { apiKey } = await resolveApiKey(userId, "openai");
+      const llmClient = createLLMClient("openai", undefined, false, apiKey);
+      const filter = new RelevanceFilter(
+        llmClient,
+        feedConfig.relevance_filter_model,
+        this.logger.child("relevance-filter")
+      );
+      return await filter.filterArticles(articles, keywords);
+    } catch (error) {
+      this.logger.warn("Category relevance filter skipped", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return articles;
     }
   }
 

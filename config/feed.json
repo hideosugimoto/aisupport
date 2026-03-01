@@ -14,6 +14,7 @@
   "digest_cron_user_concurrency": 3,
   "digest_from_email": "noreply@yourdomain.com",
   "digest_from_name": "AI Support",
+  "relevance_filter_model": "gpt-4o-mini",
   "sources": {
     "bing_news_jp": { "enabled": true, "lang": "ja", "label": "Bing News JP", "max_articles": 5, "host": "www.bing.com" },
     "google_news": { "enabled": true, "lang": "ja", "label": "Google News", "max_articles": 5, "host": "news.google.com" },
