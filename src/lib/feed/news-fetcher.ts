@@ -310,10 +310,12 @@ export class NewsFetcher {
 // ─── ユーティリティ関数 ────────────────────────
 
 /** BingリダイレクトURLから実URLを抽出 */
-function extractBingUrl(bingUrl: string): string {
+export function extractBingUrl(bingUrl: string): string {
   try {
-    const urlObj = new URL(bingUrl);
-    const extracted = urlObj.searchParams.get("url") ?? urlObj.searchParams.get("r") ?? bingUrl;
+    // XMLパーサーが &amp; をデコードしない場合があるため正規化
+    const normalized = bingUrl.replaceAll("&amp;", "&");
+    const urlObj = new URL(normalized);
+    const extracted = urlObj.searchParams.get("url") ?? urlObj.searchParams.get("r") ?? normalized;
     // S-1: 抽出したURLの安全性検証
     return isPublicUrl(extracted) ? extracted : bingUrl;
   } catch {
