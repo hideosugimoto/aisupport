@@ -9,7 +9,7 @@ import feedConfig from "@/../config/feed.json";
 
 const logger = createLogger("cron:digest");
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request.headers.get("authorization"))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
