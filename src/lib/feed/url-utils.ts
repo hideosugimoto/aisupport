@@ -1,4 +1,56 @@
 /**
+ * フィード記事URLを正規化して重複排除に使えるカノニカル形式にする。
+ * - http → https に統一
+ * - トラッキングパラメータ (utm_*, fbclid, gclid 等) を除去
+ * - フラグメント (#section) を除去
+ * - 末尾スラッシュを除去（ルート "/" は維持）
+ */
+const TRACKING_PARAMS = new Set([
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "fbclid",
+  "gclid",
+  "mc_cid",
+  "mc_eid",
+  "ref",
+  "source",
+]);
+
+export function normalizeArticleUrl(urlStr: string): string {
+  try {
+    const url = new URL(urlStr);
+
+    // http → https
+    if (url.protocol === "http:") {
+      url.protocol = "https:";
+    }
+
+    // トラッキングパラメータを除去
+    for (const key of [...url.searchParams.keys()]) {
+      if (TRACKING_PARAMS.has(key) || key.startsWith("utm_")) {
+        url.searchParams.delete(key);
+      }
+    }
+
+    // フラグメント除去
+    url.hash = "";
+
+    // 末尾スラッシュ除去（ルートパスは維持）
+    if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+      url.pathname = url.pathname.slice(0, -1);
+    }
+
+    return url.toString();
+  } catch {
+    // パース失敗時はそのまま返す
+    return urlStr;
+  }
+}
+
+/**
  * URLがパブリック（プライベートIP/localhost以外）かどうかを検証する。
  * SSRF対策として外部URLへのfetch前にチェックする。
  */

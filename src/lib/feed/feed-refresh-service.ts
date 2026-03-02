@@ -5,6 +5,7 @@ import { NewsFetcher } from "./news-fetcher";
 import { OgpFetcher } from "./ogp-fetcher";
 import { KeywordTranslator } from "./keyword-translator";
 import { filterByKeywordRelevance } from "./article-filter";
+import { normalizeArticleUrl } from "./url-utils";
 import { RelevanceFilter } from "./relevance-filter";
 import feedConfig from "../../../config/feed.json";
 import type { FeedArticleData } from "./types";
@@ -206,17 +207,20 @@ export class FeedRefreshService {
       : new Map<string, string>();
 
     const { count } = await prisma.feedArticle.createMany({
-      data: allArticles.map((article) => ({
-        userId,
-        title: article.title,
-        url: article.url,
-        source: article.source,
-        category: article.category,
-        snippet: article.snippet,
-        publishedAt: article.publishedAt,
-        keyword: article.keyword,
-        imageUrl: article.imageUrl ?? imageMap.get(article.url),
-      })),
+      data: allArticles.map((article) => {
+        const normalizedUrl = normalizeArticleUrl(article.url);
+        return {
+          userId,
+          title: article.title,
+          url: normalizedUrl,
+          source: article.source,
+          category: article.category,
+          snippet: article.snippet,
+          publishedAt: article.publishedAt,
+          keyword: article.keyword,
+          imageUrl: article.imageUrl ?? imageMap.get(article.url),
+        };
+      }),
       skipDuplicates: true,
     });
 
