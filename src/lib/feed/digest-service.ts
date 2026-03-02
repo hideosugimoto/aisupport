@@ -107,7 +107,10 @@ export class DigestService {
     articles: DigestArticle[]
   ): Promise<SummarizedArticle[]> {
     const { apiKey } = await resolveApiKey(userId, "openai", this.logger);
-    const llmClient = createLLMClient("openai", undefined, false, apiKey);
+    const llmClient = createLLMClient("openai", {
+      maxRetries: 2,
+      timeoutMs: feedConfig.digest_timeout_ms,
+    }, false, apiKey);
     const template = loadTemplate("feed", "digest-summary.md");
 
     const batchSize = feedConfig.digest_batch_size;
