@@ -47,13 +47,13 @@ describe("NewsFetcher", () => {
       text: () => Promise.resolve(sampleRssXml),
     });
     const articles = await fetcher.fetchByKeyword("Web開発");
-    // 2 queries (news + blog) × 2 items each = 4 articles
-    expect(articles).toHaveLength(4);
+    // 3 queries (google_news news + google_news blog + bing_news_jp) × 2 items each = 6 articles
+    expect(articles).toHaveLength(6);
 
     const newsArticles = articles.filter((a) => a.category === "news");
     const blogArticles = articles.filter((a) => a.category === "blog");
-    expect(newsArticles).toHaveLength(2);
-    expect(blogArticles).toHaveLength(2);
+    expect(newsArticles).toHaveLength(4); // google_news(2) + bing_news_jp(2)
+    expect(blogArticles).toHaveLength(2); // google_news blog(2)
 
     expect(newsArticles[0].title).toBe("React 19の新機能まとめ");
     expect(newsArticles[0].url).toBe("https://example.com/react-19");
