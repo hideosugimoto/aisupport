@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 
+const REMINDER_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 export async function GET() {
   try {
     const userId = await requireAuth();
@@ -24,8 +26,9 @@ export async function GET() {
     try {
       return handleAuthError(error);
     } catch {
+      console.error("[notifications/GET]", error instanceof Error ? error.message : String(error));
       return Response.json(
-        { error: error instanceof Error ? error.message : "Failed to get settings" },
+        { error: "設定の取得に失敗しました" },
         { status: 500 }
       );
     }
@@ -37,6 +40,20 @@ export async function PUT(request: NextRequest) {
     const userId = await requireAuth();
     const body = await request.json();
     const { reminderEnabled, reminderTime, budgetAlert, digestEnabled } = body;
+
+    // Input validation
+    if (reminderEnabled !== undefined && typeof reminderEnabled !== "boolean") {
+      return Response.json({ error: "reminderEnabled must be a boolean" }, { status: 400 });
+    }
+    if (reminderTime !== undefined && (typeof reminderTime !== "string" || !REMINDER_TIME_RE.test(reminderTime))) {
+      return Response.json({ error: "reminderTime must be HH:MM format" }, { status: 400 });
+    }
+    if (budgetAlert !== undefined && typeof budgetAlert !== "boolean") {
+      return Response.json({ error: "budgetAlert must be a boolean" }, { status: 400 });
+    }
+    if (digestEnabled !== undefined && typeof digestEnabled !== "boolean") {
+      return Response.json({ error: "digestEnabled must be a boolean" }, { status: 400 });
+    }
 
     const settings = await prisma.notificationSetting.upsert({
       where: { userId },
@@ -60,8 +77,9 @@ export async function PUT(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
+      console.error("[notifications/PUT]", error instanceof Error ? error.message : String(error));
       return Response.json(
-        { error: error instanceof Error ? error.message : "Failed to update settings" },
+        { error: "設定の更新に失敗しました" },
         { status: 500 }
       );
     }

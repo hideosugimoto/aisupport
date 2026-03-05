@@ -1,20 +1,8 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import type { LLMClient } from "../llm/types";
 import type { Logger } from "../logger/types";
+import { loadTemplate, replaceVariables } from "../llm/prompt-builder";
 
 const MAX_TRANSLATION_LENGTH = 200;
-
-let promptCache: string | null = null;
-
-async function getPromptTemplate(): Promise<string> {
-  if (promptCache) return promptCache;
-  promptCache = await readFile(
-    join(process.cwd(), "prompts/feed/translate-keywords.md"),
-    "utf-8"
-  );
-  return promptCache;
-}
 
 export class KeywordTranslator {
   constructor(
@@ -28,11 +16,10 @@ export class KeywordTranslator {
     if (keywords.length === 0) return map;
 
     try {
-      const promptTemplate = await getPromptTemplate();
-      const prompt = promptTemplate.replace(
-        "{{keywords}}",
-        keywords.join(", ")
-      );
+      const promptTemplate = loadTemplate("feed", "translate-keywords.md");
+      const prompt = replaceVariables(promptTemplate, {
+        keywords: keywords.join(", "),
+      });
 
       const response = await this.llmClient.chat({
         model: this.model,

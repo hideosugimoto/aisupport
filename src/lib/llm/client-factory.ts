@@ -12,6 +12,19 @@ const defaultRetryConfig: RetryConfig = {
   timeoutMs: featuresConfig.default_timeout_ms,
 };
 
+function createBaseClient(provider: LLMProvider, apiKey?: string): LLMClient {
+  switch (provider) {
+    case "openai":
+      return new OpenAIClient(apiKey);
+    case "gemini":
+      return new GeminiClient(apiKey);
+    case "claude":
+      return new ClaudeClient(apiKey);
+    default:
+      throw new Error(`Unknown provider: ${provider}`);
+  }
+}
+
 export function createLLMClient(
   provider: LLMProvider,
   retryConfig?: RetryConfig,
@@ -24,47 +37,16 @@ export function createLLMClient(
   }
 
   const config = retryConfig ?? defaultRetryConfig;
-  let client: LLMClient;
-
-  switch (provider) {
-    case "openai":
-      client = new OpenAIClient(apiKey);
-      break;
-    case "gemini":
-      client = new GeminiClient(apiKey);
-      break;
-    case "claude":
-      client = new ClaudeClient(apiKey);
-      break;
-    default:
-      throw new Error(`Unknown provider: ${provider}`);
-  }
-
-  const wrappedClient = new LLMClientWrapper(client, config);
+  const wrappedClient = new LLMClientWrapper(createBaseClient(provider, apiKey), config);
 
   if (enableFallback) {
-    // フォールバック順序: primary以外のプロバイダーを順番に試行
     const fallbackProviders = featuresConfig.enabled_providers.filter(
       (p) => p !== provider
     ) as LLMProvider[];
 
-    const fallbackClients = fallbackProviders.map((p) => {
-      let fallbackClient: LLMClient;
-      switch (p) {
-        case "openai":
-          fallbackClient = new OpenAIClient();
-          break;
-        case "gemini":
-          fallbackClient = new GeminiClient();
-          break;
-        case "claude":
-          fallbackClient = new ClaudeClient();
-          break;
-        default:
-          throw new Error(`Unknown provider: ${p}`);
-      }
-      return new LLMClientWrapper(fallbackClient, config);
-    });
+    const fallbackClients = fallbackProviders.map((p) =>
+      new LLMClientWrapper(createBaseClient(p), config)
+    );
 
     return new FallbackLLMClient(wrappedClient, fallbackClients);
   }

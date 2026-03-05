@@ -10,6 +10,13 @@ vi.mock("@/lib/llm/prompt-builder", () => ({
     "あなたはアシスタントです。{{compass_title}} {{compass_content}} {{available_time}} {{energy_level}}"
   ),
   sanitizePromptInput: vi.fn().mockImplementation((text: string) => text),
+  replaceVariables: vi.fn().mockImplementation((template: string, variables: Record<string, string>) => {
+    let result = template;
+    for (const [key, value] of Object.entries(variables)) {
+      result = result.replaceAll(`{{${key}}}`, value);
+    }
+    return result;
+  }),
 }));
 
 const mockNeglectDetector: NeglectDetector = {
@@ -72,11 +79,12 @@ describe("CompassSuggester", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(result!.compassItemId).toBe(42);
-    expect(result!.compassTitle).toBe("英語を流暢に話す");
-    expect(result!.suggestedTask).toBe("英語の技術記事を1つ読んで、知らなかった単語を3つメモする");
-    expect(result!.reason).toBe("英語力向上のための小さな一歩として最適です");
-    expect(result!.timeEstimate).toBe(25);
+    if (!result) return; // guard for TypeScript
+    expect(result.compassItemId).toBe(42);
+    expect(result.compassTitle).toBe("英語を流暢に話す");
+    expect(result.suggestedTask).toBe("英語の技術記事を1つ読んで、知らなかった単語を3つメモする");
+    expect(result.reason).toBe("英語力向上のための小さな一歩として最適です");
+    expect(result.timeEstimate).toBe(25);
   });
 
   it("should handle LLM response wrapped in markdown code fences", async () => {
@@ -100,8 +108,9 @@ describe("CompassSuggester", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(result!.suggestedTask).toBe("英語ポッドキャストを15分聴く");
-    expect(result!.timeEstimate).toBe(15);
+    if (!result) return; // guard for TypeScript
+    expect(result.suggestedTask).toBe("英語ポッドキャストを15分聴く");
+    expect(result.timeEstimate).toBe(15);
   });
 
   it("should pass joined tasks as query to NeglectDetector", async () => {

@@ -54,7 +54,7 @@ export async function POST() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[stripe/checkout]", error);
+      console.error("[stripe/checkout]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "チェックアウトセッションの作成に失敗しました" },
         { status: 500 }

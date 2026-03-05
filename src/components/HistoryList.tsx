@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { TaskDecisionRecord } from "@/lib/db/types";
 
@@ -49,7 +49,7 @@ export function HistoryList({
       setTotal(data.total);
       setPage(data.page);
     } catch (error) {
-      console.error("Error fetching history:", error);
+      console.warn("[History] フェッチ失敗:", error instanceof Error ? error.message : String(error));
     } finally {
       setIsLoading(false);
     }
@@ -76,14 +76,14 @@ export function HistoryList({
     });
   };
 
-  const parseTasks = (tasksInput: string) => {
+  const parseTasks = useCallback((tasksInput: string) => {
     try {
       const tasks = JSON.parse(tasksInput);
       return Array.isArray(tasks) ? tasks : [];
     } catch {
       return [];
     }
-  };
+  }, []);
 
   const handleContinue = (item: TaskDecisionRecord) => {
     const tasks = parseTasks(item.tasksInput);
@@ -156,6 +156,7 @@ export function HistoryList({
               <button
                 type="button"
                 onClick={() => toggleExpand(item.id)}
+                aria-expanded={expandedIds.has(item.id)}
                 className="w-full text-left"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -191,7 +192,7 @@ export function HistoryList({
                       </h4>
                       <ul className="list-inside list-disc space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
                         {tasks.map((task: { title: string; description?: string }, idx: number) => (
-                          <li key={idx}>
+                          <li key={`${task.title}-${idx}`}>
                             {task.title}
                             {task.description && (
                               <span className="ml-2 text-zinc-500">

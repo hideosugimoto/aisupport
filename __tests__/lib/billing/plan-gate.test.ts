@@ -44,10 +44,13 @@ describe("plan-gate", () => {
     it("should return pro plan for user with active pro subscription", async () => {
       // Mock: pro subscription found
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        id: "sub-123",
+        id: 123,
         userId: "pro-user",
         plan: "pro",
         status: "active",
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        currentPeriodEnd: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -74,10 +77,13 @@ describe("plan-gate", () => {
     it("should return free plan for user with free subscription", async () => {
       // Mock: free subscription found
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        id: "sub-456",
+        id: 456,
         userId: "free-user",
         plan: "free",
         status: "active",
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        currentPeriodEnd: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -100,10 +106,13 @@ describe("plan-gate", () => {
     it("should fallback to free plan for invalid plan ID", async () => {
       // Mock: subscription with invalid plan
       vi.mocked(prisma.subscription.findUnique).mockResolvedValue({
-        id: "sub-789",
+        id: 789,
         userId: "invalid-plan-user",
         plan: "invalid-plan" as any,
         status: "active",
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        currentPeriodEnd: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -161,10 +170,10 @@ describe("plan-gate", () => {
       expect(result.remaining).toBe(20);
 
       // Verify count was called with correct date range
-      const call = vi.mocked(prisma.llmUsageLog.count).mock.calls[0][0];
-      expect(call.where.userId).toBe("user-123");
-      expect(call.where.createdAt).toHaveProperty("gte");
-      expect(call.where.createdAt).toHaveProperty("lt");
+      const call = vi.mocked(prisma.llmUsageLog.count).mock.calls[0]?.[0];
+      expect(call?.where?.userId).toBe("user-123");
+      expect(call?.where?.createdAt).toHaveProperty("gte");
+      expect(call?.where?.createdAt).toHaveProperty("lt");
     });
 
     it("should deny when at limit", async () => {
@@ -262,13 +271,14 @@ describe("plan-gate", () => {
 
       await checkRequestLimit("user-date-test", freePlan);
 
-      const call = vi.mocked(prisma.llmUsageLog.count).mock.calls[0][0];
+      const call = vi.mocked(prisma.llmUsageLog.count).mock.calls[0]?.[0];
       const now = new Date();
       const expectedMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const expectedMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-      expect(call.where.createdAt.gte).toEqual(expectedMonthStart);
-      expect(call.where.createdAt.lt).toEqual(expectedMonthEnd);
+      const createdAt = call?.where?.createdAt as { gte?: Date; lt?: Date } | undefined;
+      expect(createdAt?.gte).toEqual(expectedMonthStart);
+      expect(createdAt?.lt).toEqual(expectedMonthEnd);
     });
 
     it("should handle zero usage", async () => {

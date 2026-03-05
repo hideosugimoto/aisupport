@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface CostBreakdown {
   provider: string;
@@ -76,13 +76,16 @@ export function CostDashboard() {
 
   useEffect(() => {
     fetch("/api/cost")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`コストデータの取得に失敗しました (${res.status})`);
+        return res.json();
+      })
       .then((d) => {
         setData(d);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "コストデータの取得に失敗しました");
         setLoading(false);
       });
   }, []);
@@ -101,7 +104,7 @@ export function CostDashboard() {
     );
   }
 
-  const handleGenerateReview = async () => {
+  const handleGenerateReview = useCallback(async () => {
     setReviewLoading(true);
     setReviewError(null);
     try {
@@ -120,19 +123,12 @@ export function CostDashboard() {
     } finally {
       setReviewLoading(false);
     }
-  };
+  }, []);
 
   if (!data) return null;
 
   const { summary, dailyCosts, budget, versionStats } = data;
   const maxDailyCost = Math.max(...dailyCosts.map((d) => d.costJpy), 0.01);
-
-  // 予算アラートレベルに応じた色とメッセージ
-  const getAlertColor = () => {
-    if (budget.alertLevel === "exceeded") return "red";
-    if (budget.alertLevel === "warning") return "yellow";
-    return "green";
-  };
 
   const getProgressBarColor = () => {
     if (budget.alertLevel === "exceeded") return "bg-red-600 dark:bg-red-500";
@@ -144,14 +140,14 @@ export function CostDashboard() {
     <div className="space-y-8">
       {/* 予算警告バナー */}
       {budget.alertLevel === "exceeded" && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
           <p className="text-sm font-medium text-red-700 dark:text-red-300">
             月間予算を超過しています
           </p>
         </div>
       )}
       {budget.alertLevel === "warning" && (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
+        <div role="alert" className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
           <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
             予算の80%を超えました
           </p>
@@ -259,6 +255,8 @@ export function CostDashboard() {
                 <div className="flex-1 h-4 bg-zinc-100 dark:bg-zinc-800 rounded overflow-hidden">
                   <div
                     className="h-full bg-zinc-600 dark:bg-zinc-400 rounded"
+                    role="img"
+                    aria-label={`${d.date}: ¥${d.costJpy.toFixed(2)}`}
                     style={{
                       width: `${(d.costJpy / maxDailyCost) * 100}%`,
                     }}
@@ -335,6 +333,7 @@ export function CostDashboard() {
       {/* 今週のレビュー */}
       <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         <button
+          type="button"
           onClick={() => setReviewExpanded(!reviewExpanded)}
           aria-expanded={reviewExpanded}
           className="w-full p-6 text-left flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -364,6 +363,7 @@ export function CostDashboard() {
             {!reviewData && !reviewLoading && (
               <div className="pt-4">
                 <button
+                  type="button"
                   onClick={handleGenerateReview}
                   className="w-full px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 transition-colors"
                 >
@@ -379,10 +379,19 @@ export function CostDashboard() {
             )}
 
             {reviewError && (
-              <div className="pt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  {reviewError}
-                </p>
+              <div className="pt-4 space-y-3">
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    {reviewError}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateReview}
+                  className="w-full px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 transition-colors"
+                >
+                  再度試す
+                </button>
               </div>
             )}
 

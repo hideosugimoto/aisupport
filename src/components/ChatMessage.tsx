@@ -25,8 +25,8 @@ export function ChatMessage({ children, animate = true }: ChatMessageProps) {
       }`}
     >
       {/* Robot icon */}
-      <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-base leading-none select-none">
-        🤖
+      <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-200 text-xs font-bold text-white dark:text-zinc-900 leading-none select-none" aria-hidden="true">
+        AI
       </div>
 
       {/* Message bubble */}

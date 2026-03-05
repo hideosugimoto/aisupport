@@ -12,12 +12,75 @@ function estimateTokens(text: string): number {
   return Math.ceil(asciiChars / 4 + nonAsciiChars / 2);
 }
 
+function extractOverlap(lastContent: string, overlapTokens: number): string {
+  const words = lastContent.split(/\s+/);
+  const overlapWords: string[] = [];
+  let count = 0;
+  for (let i = words.length - 1; i >= 0; i--) {
+    count += estimateTokens(words[i]);
+    if (count > overlapTokens) break;
+    overlapWords.unshift(words[i]);
+  }
+  return overlapWords.join(" ");
+}
+
+function hardSplitByWords(
+  text: string,
+  chunkSizeTokens: number,
+  startIndex: number
+): { newChunks: Chunk[]; currentChunk: string; index: number } {
+  const words = text.split(/\s+/);
+  const newChunks: Chunk[] = [];
+  let currentChunk = "";
+  let index = startIndex;
+  for (const word of words) {
+    if (estimateTokens(currentChunk + " " + word) <= chunkSizeTokens) {
+      currentChunk += (currentChunk ? " " : "") + word;
+    } else {
+      if (currentChunk.trim()) {
+        newChunks.push({ content: currentChunk.trim(), index: index++ });
+      }
+      currentChunk = word;
+    }
+  }
+  return { newChunks, currentChunk, index };
+}
+
+function splitOversizedSection(
+  section: string,
+  chunkSizeTokens: number,
+  startIndex: number
+): { newChunks: Chunk[]; currentChunk: string; index: number } {
+  const paragraphs = section.split(/\n\n+/);
+  const newChunks: Chunk[] = [];
+  let currentChunk = "";
+  let index = startIndex;
+
+  for (const para of paragraphs) {
+    if (estimateTokens(currentChunk + para) <= chunkSizeTokens) {
+      currentChunk += (currentChunk ? "\n\n" : "") + para;
+    } else {
+      if (currentChunk.trim()) {
+        newChunks.push({ content: currentChunk.trim(), index: index++ });
+      }
+      if (estimateTokens(para) > chunkSizeTokens) {
+        const split = hardSplitByWords(para, chunkSizeTokens, index);
+        newChunks.push(...split.newChunks);
+        currentChunk = split.currentChunk;
+        index = split.index;
+      } else {
+        currentChunk = para;
+      }
+    }
+  }
+  return { newChunks, currentChunk, index };
+}
+
 export function chunkMarkdown(
   content: string,
   chunkSizeTokens: number = ragConfig.chunk_size_tokens,
   overlapTokens: number = ragConfig.chunk_overlap_tokens
 ): Chunk[] {
-  // Split by headings (## or ###) while keeping heading with its content
   const sections = content.split(/(?=^#{1,3}\s)/m).filter((s) => s.trim());
 
   const chunks: Chunk[] = [];
@@ -25,62 +88,23 @@ export function chunkMarkdown(
   let index = 0;
 
   for (const section of sections) {
-    const combinedTokens = estimateTokens(currentChunk + section);
-
-    if (combinedTokens <= chunkSizeTokens) {
+    if (estimateTokens(currentChunk + section) <= chunkSizeTokens) {
       currentChunk += section;
     } else {
       if (currentChunk.trim()) {
         chunks.push({ content: currentChunk.trim(), index: index++ });
       }
 
-      // If a single section exceeds chunk size, split by paragraphs
       if (estimateTokens(section) > chunkSizeTokens) {
-        const paragraphs = section.split(/\n\n+/);
-        currentChunk = "";
-
-        for (const para of paragraphs) {
-          if (estimateTokens(currentChunk + para) <= chunkSizeTokens) {
-            currentChunk += (currentChunk ? "\n\n" : "") + para;
-          } else {
-            if (currentChunk.trim()) {
-              chunks.push({ content: currentChunk.trim(), index: index++ });
-            }
-            // Hard split for very long paragraphs
-            if (estimateTokens(para) > chunkSizeTokens) {
-              const words = para.split(/\s+/);
-              currentChunk = "";
-              for (const word of words) {
-                if (estimateTokens(currentChunk + " " + word) <= chunkSizeTokens) {
-                  currentChunk += (currentChunk ? " " : "") + word;
-                } else {
-                  if (currentChunk.trim()) {
-                    chunks.push({ content: currentChunk.trim(), index: index++ });
-                  }
-                  currentChunk = word;
-                }
-              }
-            } else {
-              currentChunk = para;
-            }
-          }
-        }
+        const split = splitOversizedSection(section, chunkSizeTokens, index);
+        chunks.push(...split.newChunks);
+        currentChunk = split.currentChunk;
+        index = split.index;
       } else {
-        // Add overlap from previous chunk
-        if (chunks.length > 0) {
-          const lastChunk = chunks[chunks.length - 1].content;
-          const lastWords = lastChunk.split(/\s+/);
-          const overlapWords: string[] = [];
-          let overlapCount = 0;
-          for (let i = lastWords.length - 1; i >= 0; i--) {
-            overlapCount += estimateTokens(lastWords[i]);
-            if (overlapCount > overlapTokens) break;
-            overlapWords.unshift(lastWords[i]);
-          }
-          currentChunk = overlapWords.join(" ") + "\n\n" + section;
-        } else {
-          currentChunk = section;
-        }
+        const overlap = chunks.length > 0
+          ? extractOverlap(chunks[chunks.length - 1].content, overlapTokens)
+          : "";
+        currentChunk = overlap ? overlap + "\n\n" + section : section;
       }
     }
   }
@@ -110,17 +134,9 @@ export function chunkPlainText(
         chunks.push({ content: currentChunk.trim(), index: index++ });
       }
 
-      // Overlap
       if (chunks.length > 0) {
-        const lastWords = chunks[chunks.length - 1].content.split(/\s+/);
-        const overlapWords: string[] = [];
-        let count = 0;
-        for (let i = lastWords.length - 1; i >= 0; i--) {
-          count += estimateTokens(lastWords[i]);
-          if (count > overlapTokens) break;
-          overlapWords.unshift(lastWords[i]);
-        }
-        currentChunk = overlapWords.join(" ") + "\n\n" + para;
+        const overlap = extractOverlap(chunks[chunks.length - 1].content, overlapTokens);
+        currentChunk = overlap ? overlap + "\n\n" + para : para;
       } else {
         currentChunk = para;
       }

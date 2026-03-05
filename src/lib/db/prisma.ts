@@ -1,11 +1,15 @@
 import { PrismaClient } from "../../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+// Intentional module-scope throw: fail-fast at startup if DATABASE_URL is missing.
+// Next.js tree-shakes this module for client bundles, so it only runs server-side.
 const connectionString = process.env.DATABASE_URL;
 
-const adapter = connectionString
-  ? new PrismaPg({ connectionString })
-  : new PrismaPg({ connectionString: "postgresql://localhost:5432/aisupport" });
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is required");
+}
+
+const adapter = new PrismaPg({ connectionString });
 
 const globalForPrisma = globalThis as unknown as {
   prisma: InstanceType<typeof PrismaClient> | undefined;

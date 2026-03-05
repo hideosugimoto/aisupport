@@ -32,10 +32,11 @@ describe("resolveApiKey", () => {
 
       // Mock findUnique to return a user key
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-1",
+        id: 1,
         userId,
         provider,
         encryptedKey,
+        keyHint: "sk-...7890",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -63,10 +64,11 @@ describe("resolveApiKey", () => {
       const decryptedKey = "sk-openai-key";
 
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-2",
+        id: 2,
         userId,
         provider,
         encryptedKey: "encrypted",
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -85,10 +87,11 @@ describe("resolveApiKey", () => {
       const decryptedKey = "gemini-api-key-xyz";
 
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-3",
+        id: 3,
         userId,
         provider,
         encryptedKey: "encrypted",
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -107,10 +110,11 @@ describe("resolveApiKey", () => {
       const decryptedKey = "claude-api-key-123";
 
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-4",
+        id: 4,
         userId,
         provider,
         encryptedKey: "encrypted",
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -154,10 +158,11 @@ describe("resolveApiKey", () => {
 
       // Mock findUnique to return a user key
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-5",
+        id: 5,
         userId,
         provider,
         encryptedKey,
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -188,10 +193,11 @@ describe("resolveApiKey", () => {
       const provider: LLMProvider = "claude";
 
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-6",
+        id: 6,
         userId,
         provider,
         encryptedKey: "encrypted",
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -245,10 +251,11 @@ describe("resolveApiKey", () => {
       const provider: LLMProvider = "gemini";
 
       vi.mocked(prisma.userApiKey.findUnique).mockResolvedValue({
-        id: "key-7",
+        id: 7,
         userId,
         provider,
         encryptedKey: "encrypted",
+        keyHint: "sk-...hint",
         createdAt: new Date(),
         updatedAt: new Date(),
       });

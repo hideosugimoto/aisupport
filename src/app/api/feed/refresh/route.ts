@@ -40,7 +40,7 @@ export async function POST() {
       return handleAuthError(error);
     } catch {
       logger.error("Feed refresh error", { message: error instanceof Error ? error.message : String(error) });
-      return Response.json({ error: "Internal error" }, { status: 500 });
+      return Response.json({ error: "内部エラー" }, { status: 500 });
     }
   }
 }

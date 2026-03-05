@@ -6,8 +6,18 @@ import { CompareResult as CompareResultComponent } from "@/components/CompareRes
 import type { CompareResult } from "@/lib/compare/parallel-engine";
 import featuresConfig from "../../../../config/features.json";
 
+interface TaskItem {
+  id: string;
+  value: string;
+}
+
+let taskIdCounter = 0;
+function createTask(value = ""): TaskItem {
+  return { id: `task-${++taskIdCounter}`, value };
+}
+
 export default function ComparePage() {
-  const [tasks, setTasks] = useState<string[]>([""]);
+  const [tasks, setTasks] = useState<TaskItem[]>(() => [createTask()]);
   const [availableTime, setAvailableTime] = useState(120);
   const [energyLevel, setEnergyLevel] = useState(3);
   const [results, setResults] = useState<CompareResult[]>([]);
@@ -22,17 +32,15 @@ export default function ComparePage() {
   const [error, setError] = useState<string | null>(null);
 
   const addTask = () => {
-    setTasks([...tasks, ""]);
+    setTasks([...tasks, createTask()]);
   };
 
-  const updateTask = (index: number, value: string) => {
-    const newTasks = [...tasks];
-    newTasks[index] = value;
-    setTasks(newTasks);
+  const updateTask = (id: string, value: string) => {
+    setTasks(tasks.map((t) => (t.id === id ? { ...t, value } : t)));
   };
 
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  const removeTask = (id: string) => {
+    setTasks(tasks.filter((t) => t.id !== id));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +54,7 @@ export default function ComparePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tasks: tasks.filter((t) => t.trim().length > 0),
+          tasks: tasks.map((t) => t.value).filter((v) => v.trim().length > 0),
           availableTime,
           energyLevel,
           models,
@@ -110,22 +118,23 @@ export default function ComparePage() {
         >
           <div className="space-y-6">
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 タスク候補
-              </label>
+              </span>
               {tasks.map((task, index) => (
-                <div key={index} className="mb-2 flex gap-2">
+                <div key={task.id} className="mb-2 flex gap-2">
                   <input
                     type="text"
-                    value={task}
-                    onChange={(e) => updateTask(index, e.target.value)}
+                    value={task.value}
+                    onChange={(e) => updateTask(task.id, e.target.value)}
                     placeholder={`タスク${index + 1}`}
+                    aria-label={`タスク${index + 1}`}
                     className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
                   />
                   {tasks.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => removeTask(index)}
+                      onClick={() => removeTask(task.id)}
                       className="rounded-md border border-zinc-300 px-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                       削除
@@ -146,10 +155,11 @@ export default function ComparePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="compare-time" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   利用可能時間（分）
                 </label>
                 <input
+                  id="compare-time"
                   type="number"
                   value={availableTime}
                   onChange={(e) => setAvailableTime(Number(e.target.value))}
@@ -160,10 +170,11 @@ export default function ComparePage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="compare-energy" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   エネルギー状態（1-5）
                 </label>
                 <input
+                  id="compare-energy"
                   type="number"
                   value={energyLevel}
                   onChange={(e) => setEnergyLevel(Number(e.target.value))}
@@ -175,17 +186,18 @@ export default function ComparePage() {
             </div>
 
             {/* モデル選択（各プロバイダー） */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <fieldset>
+              <legend className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 各エンジンのモデル
-              </label>
+              </legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 {featuresConfig.enabled_providers.map((p) => (
                   <div key={p}>
-                    <label className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                    <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
                       {p}
                     </label>
                     <select
+                      id={`model-${p}`}
                       value={models[p] ?? ""}
                       onChange={(e) =>
                         setModels((prev) => ({ ...prev, [p]: e.target.value }))
@@ -205,7 +217,7 @@ export default function ComparePage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {error && (
               <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">

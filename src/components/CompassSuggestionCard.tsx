@@ -35,7 +35,7 @@ export function CompassSuggestionCard({
     return (
       <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
         <div className="flex items-center gap-2">
-          <span className="text-base" aria-hidden="true">🧭</span>
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-[10px] font-bold text-white dark:bg-teal-400 dark:text-teal-950" aria-hidden="true">C</span>
           <span className="text-sm font-medium text-teal-800 dark:text-teal-200">
             Compass提案を生成中...
           </span>
@@ -62,7 +62,7 @@ export function CompassSuggestionCard({
     >
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-base" aria-hidden="true">🧭</span>
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-[10px] font-bold text-white dark:bg-teal-400 dark:text-teal-950" aria-hidden="true">C</span>
         <span className="text-sm font-medium text-teal-800 dark:text-teal-200">
           Compassからの提案
         </span>
@@ -75,7 +75,7 @@ export function CompassSuggestionCard({
 
       {/* Suggested task */}
       <p className="mb-2 text-sm font-semibold text-teal-900 dark:text-teal-100">
-        <span aria-hidden="true">💡</span>{" "}
+        <span className="font-normal text-teal-500" aria-hidden="true">*</span>{" "}
         {suggestion.suggestedTask}
         <span className="ml-1 font-normal text-teal-600 dark:text-teal-400">
           （約{suggestion.timeEstimate}分）

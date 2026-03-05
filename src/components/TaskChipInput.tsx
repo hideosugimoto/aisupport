@@ -71,7 +71,7 @@ export function TaskChipInput({
         <div className="flex flex-wrap gap-2 mt-2">
           {tasks.map((task, index) => (
             <span
-              key={index}
+              key={`${task}-${index}`}
               className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
             >
               {task}

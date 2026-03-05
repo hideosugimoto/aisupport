@@ -15,6 +15,7 @@ import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
 import { createLogger } from "@/lib/logger";
+import { isAllowedModel } from "@/lib/validation/model-validation";
 
 const repository = new PrismaUsageLogRepository(prisma);
 const logger = createLogger("api:decide");
@@ -47,6 +48,9 @@ export async function POST(request: NextRequest) {
 
     const provider = body.provider as LLMProvider;
     const model = body.model ?? getDefaultModel(provider);
+    if (body.model && !isAllowedModel(provider, model)) {
+      return Response.json({ error: "無効なモデルです" }, { status: 400 });
+    }
     const enableFallback = body.fallback ?? false;
 
     const { apiKey } = await resolveApiKey(userId, provider);

@@ -31,7 +31,7 @@ export async function GET() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[documents/GET]", error);
+      console.error("[documents/GET]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "ドキュメント一覧の取得に失敗しました" },
         { status: 500 }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[documents/POST]", error);
+      console.error("[documents/POST]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "アップロード処理中にエラーが発生しました" },
         { status: 500 }
@@ -174,17 +174,18 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    if (!id) {
-      return Response.json({ error: "IDが必要です" }, { status: 400 });
+    const parsedId = parseInt(id ?? "", 10);
+    if (!id || isNaN(parsedId) || parsedId < 1 || parsedId > 2147483647) {
+      return Response.json({ error: "有効なIDが必要です" }, { status: 400 });
     }
 
-    await vectorStore.deleteDocument(userId, Number(id));
+    await vectorStore.deleteDocument(userId, parsedId);
     return Response.json({ success: true });
   } catch (error) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[documents/DELETE]", error);
+      console.error("[documents/DELETE]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "削除処理中にエラーが発生しました" },
         { status: 500 }

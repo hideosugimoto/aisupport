@@ -136,7 +136,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository(mockDecisions);
     const engine = new DefaultWeeklyReviewEngine(errorClient, repo);
 
-    await expect(engine.generateReview()).rejects.toThrow("API Error");
+    await expect(engine.generateReview("test-user")).rejects.toThrow("API Error");
   });
 
   it("プロンプトに期間と件数が含まれる", async () => {
@@ -149,7 +149,7 @@ describe("DefaultWeeklyReviewEngine", () => {
     const repo = new MockRepository(mockDecisions);
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
-    await engine.generateReview();
+    await engine.generateReview("test-user");
 
     expect(client.lastRequest.messages[1].content).toContain("合計 2 件");
     expect(client.lastRequest.messages[1].content).toMatch(/\d{4}-\d{2}-\d{2}/);

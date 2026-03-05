@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[user/api-keys/POST]", error);
+      console.error("[user/api-keys/POST]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "APIキーの保存に失敗しました" },
         { status: 500 }

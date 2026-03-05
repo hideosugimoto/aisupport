@@ -41,15 +41,22 @@ export async function POST(req: NextRequest) {
     }
     if (!body.provider || typeof body.provider !== "string") {
       errors.push("provider is required and must be a string");
+    } else if (body.provider.length > 50) {
+      errors.push("provider must be at most 50 characters");
     }
-    if (typeof body.promptTokens !== "number" || body.promptTokens < 0) {
-      errors.push("promptTokens is required and must be a non-negative number");
+    if (body.model !== undefined && typeof body.model !== "string") {
+      errors.push("model must be a string");
+    } else if (typeof body.model === "string" && body.model.length > 100) {
+      errors.push("model must be at most 100 characters");
     }
-    if (typeof body.completionTokens !== "number" || body.completionTokens < 0) {
-      errors.push("completionTokens is required and must be a non-negative number");
+    if (typeof body.promptTokens !== "number" || !Number.isFinite(body.promptTokens) || body.promptTokens < 0 || body.promptTokens > 10_000_000) {
+      errors.push("promptTokens is required and must be a finite non-negative number (max 10000000)");
     }
-    if (typeof body.costUsd !== "number" || body.costUsd < 0) {
-      errors.push("costUsd is required and must be a non-negative number");
+    if (typeof body.completionTokens !== "number" || !Number.isFinite(body.completionTokens) || body.completionTokens < 0 || body.completionTokens > 10_000_000) {
+      errors.push("completionTokens is required and must be a finite non-negative number (max 10000000)");
+    }
+    if (typeof body.costUsd !== "number" || !Number.isFinite(body.costUsd) || body.costUsd < 0 || body.costUsd > 1000) {
+      errors.push("costUsd is required and must be a finite non-negative number (max 1000)");
     }
 
     if (errors.length > 0) {
@@ -59,7 +66,8 @@ export async function POST(req: NextRequest) {
     const tasks = Array.isArray(body.tasks) && body.tasks.length > 0
       ? body.tasks
           .filter((t: unknown) => typeof t === "string" && (t as string).trim())
-          .map((t: string) => ({ title: t.trim() }))
+          .slice(0, 50)
+          .map((t: string) => ({ title: t.trim().slice(0, 500) }))
       : [
           {
             title: body.taskTitle,
@@ -73,7 +81,9 @@ export async function POST(req: NextRequest) {
       userId,
       tasksInput: JSON.stringify(tasks),
       energyLevel: body.urgency,
-      availableTime: body.availableTime || 60,
+      availableTime: typeof body.availableTime === "number" && Number.isFinite(body.availableTime) && body.availableTime > 0 && body.availableTime <= 1440
+        ? body.availableTime
+        : 60,
       provider: body.provider,
       model: body.model || "unknown",
       result: body.decision,
@@ -86,7 +96,7 @@ export async function POST(req: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[history/POST]", error);
+      console.error("[history/POST]", error instanceof Error ? error.message : String(error));
       return NextResponse.json(
         { error: "履歴の保存に失敗しました" },
         { status: 500 }
@@ -100,19 +110,20 @@ export async function GET(req: NextRequest) {
   try {
     const userId = await requireAuth();
     const { searchParams } = new URL(req.url);
-    const q = searchParams.get("q") || "";
+    const qRaw = searchParams.get("q") || "";
+    const q = qRaw.slice(0, 200);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-    if (page < 1) {
+    if (isNaN(page) || page < 1) {
       return NextResponse.json(
-        { error: "page must be >= 1" },
+        { error: "ページ番号が無効です" },
         { status: 400 }
       );
     }
-    if (limit < 1 || limit > 100) {
+    if (isNaN(limit) || limit < 1 || limit > 100) {
       return NextResponse.json(
-        { error: "limit must be between 1 and 100" },
+        { error: "取得件数は1〜100の範囲で指定してください" },
         { status: 400 }
       );
     }
@@ -144,7 +155,7 @@ export async function GET(req: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[history/GET]", error);
+      console.error("[history/GET]", error instanceof Error ? error.message : String(error));
       return NextResponse.json(
         { error: "履歴の取得に失敗しました" },
         { status: 500 }

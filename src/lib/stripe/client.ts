@@ -13,7 +13,9 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-// Convenience proxy — throws at use time, not import time
+// Convenience proxy — throws at use time, not import time.
+// type assertion は Proxy パターンの制約上必要: Stripe クラスのプロパティに
+// 動的アクセスするため Record<string | symbol, unknown> へキャストしている。
 export const stripe = new Proxy({} as Stripe, {
   get(_target, prop) {
     return (getStripe() as unknown as Record<string | symbol, unknown>)[prop];

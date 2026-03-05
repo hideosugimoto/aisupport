@@ -1,7 +1,7 @@
 import type { NeglectDetector } from "./neglect-detector";
 import type { LLMClient } from "../llm/types";
 import type { Logger } from "../logger/types";
-import { loadTemplate, sanitizePromptInput } from "../llm/prompt-builder";
+import { loadTemplate, sanitizePromptInput, replaceVariables } from "../llm/prompt-builder";
 
 export interface CompassSuggestion {
   compassItemId: number;
@@ -17,16 +17,8 @@ export interface CompassSuggesterInput {
   energyLevel: number;
 }
 
-function replaceVariables(
-  template: string,
-  variables: Record<string, string>
-): string {
-  let result = template;
-  for (const [key, value] of Object.entries(variables)) {
-    result = result.replaceAll(`{{${key}}}`, value);
-  }
-  return result;
-}
+/** 1日の最大分数（24時間 × 60分） */
+const MAX_MINUTES_PER_DAY = 1440;
 
 export class CompassSuggester {
   constructor(
@@ -81,7 +73,7 @@ export class CompassSuggester {
         typeof raw?.timeEstimate !== "number" ||
         !Number.isFinite(raw.timeEstimate) ||
         raw.timeEstimate <= 0 ||
-        raw.timeEstimate > 1440
+        raw.timeEstimate > MAX_MINUTES_PER_DAY
       ) {
         this.logger.warn("Invalid LLM response", { raw: JSON.stringify(raw).slice(0, 300) });
         return null;
