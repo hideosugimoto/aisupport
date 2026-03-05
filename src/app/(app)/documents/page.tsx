@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 
 interface Document {
@@ -16,9 +16,10 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     try {
       const res = await fetch("/api/documents");
       const data = await res.json();
@@ -26,11 +27,11 @@ export default function DocumentsPage() {
     } catch {
       setError("ドキュメント一覧の取得に失敗しました");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchDocuments();
-  }, []);
+  }, [fetchDocuments]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,9 +68,12 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleDelete = async (id: number, filename: string) => {
-    if (!confirm(`「${filename}」を削除しますか？`)) return;
-
+  const handleDelete = async (id: number) => {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return;
+    }
+    setConfirmDeleteId(null);
     try {
       const res = await fetch(`/api/documents?id=${id}`, { method: "DELETE" });
       if (!res.ok) {
@@ -102,7 +106,7 @@ export default function DocumentsPage() {
                 href="/compass"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                🧭 羅針盤
+                羅針盤
               </Link>
             </nav>
           </div>
@@ -181,13 +185,35 @@ export default function DocumentsPage() {
                       {new Date(doc.createdAt).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleDelete(doc.id, doc.filename)}
-                    aria-label={`${doc.filename}を削除`}
-                    className="rounded-lg px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                  >
-                    削除
-                  </button>
+                  {confirmDeleteId === doc.id ? (
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(doc.id)}
+                        aria-label={`${doc.filename}の削除を確認`}
+                        className="rounded-lg bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                      >
+                        確認
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        aria-label="削除をキャンセル"
+                        className="rounded-lg px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(doc.id)}
+                      aria-label={`${doc.filename}を削除`}
+                      className="rounded-lg px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                    >
+                      削除
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

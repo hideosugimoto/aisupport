@@ -11,7 +11,7 @@ const logger = createLogger("cron:digest");
 
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request.headers.get("authorization"))) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "認証エラー" }, { status: 401 });
   }
 
   try {
@@ -130,6 +130,6 @@ export async function GET(request: NextRequest) {
     logger.error("Digest cron error", {
       message: error instanceof Error ? error.message : String(error),
     });
-    return Response.json({ error: "Internal error" }, { status: 500 });
+    return Response.json({ error: "内部エラー" }, { status: 500 });
   }
 }

@@ -65,7 +65,10 @@ export class DefaultNeglectDetector implements NeglectDetector {
       return null;
     }
 
-    const neglected = maxSimilarityByItem.get(mostNeglectedId)!;
+    const neglected = maxSimilarityByItem.get(mostNeglectedId);
+    if (!neglected) {
+      return null;
+    }
     return {
       compassItemId: mostNeglectedId,
       title: neglected.title,

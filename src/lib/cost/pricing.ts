@@ -11,35 +11,36 @@ export interface PricingInfo {
   providers: Record<string, Record<string, ModelPricing>>;
 }
 
-// Module-level cache
-let cachedPricing: PricingInfo | null = null;
+// Lazy singleton — built once, frozen, never reassigned
+let cachedPricing: Readonly<PricingInfo> | null = null;
 
-export function loadPricing(): PricingInfo {
-  // Return cached value if available
-  if (cachedPricing) {
-    return cachedPricing;
-  }
+function buildPricing(): Readonly<PricingInfo> {
   const providers: Record<string, Record<string, ModelPricing>> = {};
 
   for (const [provider, models] of Object.entries(pricingConfig.providers)) {
-    providers[provider] = {};
+    const modelMap: Record<string, ModelPricing> = {};
     for (const [model, pricing] of Object.entries(
       models as Record<string, { input_per_1m: number; output_per_1m: number }>
     )) {
-      providers[provider][model] = {
+      modelMap[model] = Object.freeze({
         inputPer1m: pricing.input_per_1m,
         outputPer1m: pricing.output_per_1m,
-      };
+      });
     }
+    providers[provider] = Object.freeze(modelMap);
   }
 
-  // Cache the parsed result
-  cachedPricing = {
+  return Object.freeze({
     currency: pricingConfig.currency,
     exchangeRateJpy: pricingConfig.exchange_rate_jpy,
-    providers,
-  };
+    providers: Object.freeze(providers),
+  });
+}
 
+export function loadPricing(): Readonly<PricingInfo> {
+  if (!cachedPricing) {
+    cachedPricing = buildPricing();
+  }
   return cachedPricing;
 }
 

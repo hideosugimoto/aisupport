@@ -9,7 +9,7 @@ const logger = createLogger("cron:feed");
 
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request.headers.get("authorization"))) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "認証エラー" }, { status: 401 });
   }
 
   try {
@@ -60,9 +60,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 古い記事の削除
+    // 古い記事の削除（安全下限チェック付き）
+    const retentionDays = feedConfig.article_retention_days;
+    if (retentionDays < 7) {
+      logger.error("article_retention_days is dangerously low", { retentionDays });
+      return Response.json({ error: "保持期間の設定が不正です" }, { status: 500 });
+    }
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - feedConfig.article_retention_days);
+    cutoff.setDate(cutoff.getDate() - retentionDays);
     const deleted = await prisma.feedArticle.deleteMany({
       where: { fetchedAt: { lt: cutoff } },
     });
@@ -71,6 +76,6 @@ export async function GET(request: NextRequest) {
     return Response.json({ ok: true });
   } catch (error) {
     logger.error("Cron error", { message: error instanceof Error ? error.message : String(error) });
-    return Response.json({ error: "Internal error" }, { status: 500 });
+    return Response.json({ error: "内部エラー" }, { status: 500 });
   }
 }

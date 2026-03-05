@@ -7,11 +7,30 @@ interface MarkdownContentProps {
 
 export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProps) {
   const lines = text.split("\n");
+  // NOTE: ローカル配列mutationはパーサー関数のため意図的。stateには公開しない。
+  // index key は許容: 行は静的なMarkdown文字列からパースされ、並び替えは発生しない
   const elements: React.JSX.Element[] = [];
+  let listItems: React.JSX.Element[] = [];
+  let listType: "ul" | "ol" | null = null;
+
+  const flushList = () => {
+    if (listItems.length > 0 && listType) {
+      const ListTag = listType;
+      const listClass = listType === "ul" ? "ml-4 list-disc space-y-1" : "ml-4 list-decimal space-y-1";
+      elements.push(
+        <ListTag key={`list-${elements.length}`} className={listClass}>
+          {listItems}
+        </ListTag>
+      );
+      listItems = [];
+      listType = null;
+    }
+  };
 
   lines.forEach((line, index) => {
     // h3 heading (### )
     if (line.startsWith("### ")) {
+      flushList();
       const content = line.substring(4);
       const level = Math.min(3 + headingOffset, 6);
       const HeadingTag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -25,6 +44,7 @@ export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProp
 
     // h2 heading (## )
     if (line.startsWith("## ")) {
+      flushList();
       const content = line.substring(3);
       const level = Math.min(2 + headingOffset, 6);
       const HeadingTag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -39,8 +59,9 @@ export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProp
     // Numbered list (1. )
     const numberedMatch = line.match(/^(\d+)\.\s+(.+)$/);
     if (numberedMatch) {
-      elements.push(
-        <li key={index} className="ml-4">
+      if (listType !== "ol") { flushList(); listType = "ol"; }
+      listItems.push(
+        <li key={index}>
           {formatInlineMarkdown(numberedMatch[2])}
         </li>
       );
@@ -49,14 +70,18 @@ export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProp
 
     // Bullet list (- )
     if (line.startsWith("- ")) {
+      if (listType !== "ul") { flushList(); listType = "ul"; }
       const content = line.substring(2);
-      elements.push(
-        <li key={index} className="ml-4 list-disc">
+      listItems.push(
+        <li key={index}>
           {formatInlineMarkdown(content)}
         </li>
       );
       return;
     }
+
+    // Non-list line: flush any open list
+    flushList();
 
     // Empty line
     if (line.trim() === "") {
@@ -69,6 +94,8 @@ export function MarkdownContent({ text, headingOffset = 0 }: MarkdownContentProp
       <p key={index}>{formatInlineMarkdown(line)}</p>
     );
   });
+
+  flushList();
 
   return <>{elements}</>;
 }

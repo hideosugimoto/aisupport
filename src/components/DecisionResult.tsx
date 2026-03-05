@@ -55,7 +55,7 @@ export function DecisionResult({
                 key={match.title}
                 className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
               >
-                <span className="mr-1" aria-hidden="true">🧭</span>
+                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white dark:bg-blue-400 dark:text-blue-950" aria-hidden="true">C</span>
                 {match.title} ({Math.round(match.similarity * 100)}%)
               </span>
             ))}

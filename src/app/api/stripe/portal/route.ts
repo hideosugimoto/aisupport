@@ -27,7 +27,7 @@ export async function POST() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[stripe/portal]", error);
+      console.error("[stripe/portal]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "ポータルセッションの作成に失敗しました" },
         { status: 500 }

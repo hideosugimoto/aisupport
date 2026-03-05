@@ -21,6 +21,8 @@ const TRACKING_PARAMS = new Set([
 
 export function normalizeArticleUrl(urlStr: string): string {
   try {
+    // URL APIの仕様に従い、ローカルの url オブジェクトを直接変更する。
+    // 元の urlStr は変更されない。
     const url = new URL(urlStr);
 
     // http → https

@@ -16,10 +16,10 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const articleId = Number(id);
+    const articleId = parseInt(id, 10);
 
-    if (Number.isNaN(articleId)) {
-      return Response.json({ error: "Invalid ID" }, { status: 400 });
+    if (Number.isNaN(articleId) || articleId < 1 || articleId > 2147483647) {
+      return Response.json({ error: "無効なIDです" }, { status: 400 });
     }
 
     const article = await prisma.feedArticle.findFirst({
@@ -34,10 +34,10 @@ export async function PATCH(
     try {
       body = await request.json();
     } catch {
-      return Response.json({ error: "Invalid request body" }, { status: 400 });
+      return Response.json({ error: "無効なリクエストです" }, { status: 400 });
     }
     if (typeof body !== "object" || body === null || !("isRead" in body)) {
-      return Response.json({ error: "isRead is required" }, { status: 400 });
+      return Response.json({ error: "isReadは必須です" }, { status: 400 });
     }
 
     await prisma.feedArticle.update({
@@ -50,7 +50,7 @@ export async function PATCH(
     try {
       return handleAuthError(error);
     } catch {
-      return Response.json({ error: "Internal error" }, { status: 500 });
+      return Response.json({ error: "内部エラー" }, { status: 500 });
     }
   }
 }

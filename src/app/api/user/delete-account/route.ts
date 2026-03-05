@@ -16,12 +16,14 @@ export async function DELETE() {
       try {
         await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
       } catch (err) {
-        console.warn("[delete-account] Stripe cancel failed (non-critical):", err);
+        console.warn("[delete-account] Stripe cancel failed (non-critical):", err instanceof Error ? err.message : String(err));
       }
     }
 
     // 2. 全ユーザーデータを削除（個人情報保護を最優先）
     await prisma.$transaction([
+      prisma.feedArticle.deleteMany({ where: { userId } }),
+      prisma.feedKeyword.deleteMany({ where: { userId } }),
       prisma.compassChunk.deleteMany({
         where: { compassItem: { userId } },
       }),
@@ -43,7 +45,7 @@ export async function DELETE() {
       const client = await clerkClient();
       await client.users.deleteUser(userId);
     } catch (err) {
-      console.error("[delete-account] Clerk delete failed (user data already removed):", err);
+      console.error("[delete-account] Clerk delete failed (user data already removed):", err instanceof Error ? err.message : String(err));
       return Response.json({
         success: true,
         warning: "データは削除されましたが、認証情報の削除に失敗しました。サポートにお問い合わせください",
@@ -55,7 +57,7 @@ export async function DELETE() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[delete-account]", error);
+      console.error("[delete-account]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "アカウント削除に失敗しました" },
         { status: 500 }

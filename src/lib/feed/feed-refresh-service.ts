@@ -31,23 +31,7 @@ export class FeedRefreshService {
     const { jpArticles, translationMap, categoryArticles } =
       await this.fetchPhase1(userId, keywords, true);
 
-    const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
-
-    // D: キーワード記事に簡易マッチフィルタ
-    const filteredJp = filterByKeywordRelevance(jpArticles, keywords);
-    const filteredEn = filterByKeywordRelevance(enArticles, keywords);
-
-    // A: カテゴリ記事にLLM関連性フィルタ
-    const filteredCategory = await this.filterCategoryArticles(
-      userId,
-      categoryArticles,
-      keywords
-    );
-
-    const allArticles = [...filteredJp, ...filteredCategory, ...filteredEn];
-
-    const newCount = await this.saveArticles(userId, allArticles);
-    return { newCount };
+    return this.processAndSave(userId, keywords, jpArticles, categoryArticles, translationMap);
   }
 
   /**
@@ -61,13 +45,21 @@ export class FeedRefreshService {
     const { jpArticles, translationMap } =
       await this.fetchPhase1(userId, keywords, false);
 
+    return this.processAndSave(userId, keywords, jpArticles, categoryArticles, translationMap);
+  }
+
+  private async processAndSave(
+    userId: string,
+    keywords: string[],
+    jpArticles: FeedArticleData[],
+    categoryArticles: FeedArticleData[],
+    translationMap: Map<string, string>
+  ): Promise<RefreshResult> {
     const enArticles = await this.fetchEnglishArticles(keywords, translationMap);
 
-    // D: キーワード記事に簡易マッチフィルタ
     const filteredJp = filterByKeywordRelevance(jpArticles, keywords);
     const filteredEn = filterByKeywordRelevance(enArticles, keywords);
 
-    // A: カテゴリ記事にLLM関連性フィルタ
     const filteredCategory = await this.filterCategoryArticles(
       userId,
       categoryArticles,

@@ -18,7 +18,7 @@ export async function GET() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[billing/plan]", error);
+      console.error("[billing/plan]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "プラン情報の取得に失敗しました" },
         { status: 500 }

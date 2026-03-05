@@ -1,9 +1,9 @@
 import { readFileSync } from "fs";
-import { join } from "path";
+import { join, resolve, sep } from "path";
 import type { Message } from "./types";
 import featuresConfig from "../../../config/features.json";
 
-const PROMPTS_DIR = join(process.cwd(), "prompts");
+const PROMPTS_DIR = resolve(join(process.cwd(), "prompts"));
 const templateCache = new Map<string, string>();
 
 /**
@@ -23,20 +23,29 @@ export function loadTemplate(type: string, name: string, version?: string): stri
     return cached;
   }
 
-  const content = readFileSync(join(PROMPTS_DIR, relativePath), "utf-8");
-  templateCache.set(relativePath, content);
-  return content;
+  try {
+    const fullPath = resolve(join(PROMPTS_DIR, relativePath));
+    if (!fullPath.startsWith(PROMPTS_DIR + sep)) {
+      throw new Error(`パス "${relativePath}" がプロンプトディレクトリの外部を参照しています`);
+    }
+    const content = readFileSync(fullPath, "utf-8");
+    templateCache.set(relativePath, content);
+    return content;
+  } catch (error) {
+    throw new Error(
+      `プロンプトテンプレート "${relativePath}" の読み込みに失敗: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
-function replaceVariables(
+export function replaceVariables(
   template: string,
   variables: Record<string, string>
 ): string {
-  let result = template;
-  for (const [key, value] of Object.entries(variables)) {
-    result = result.replaceAll(`{{${key}}}`, value);
-  }
-  return result;
+  return Object.entries(variables).reduce(
+    (result, [key, value]) => result.replaceAll(`{{${key}}}`, value),
+    template
+  );
 }
 
 export function sanitizePromptInput(text: string): string {

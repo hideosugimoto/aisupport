@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db/prisma";
 import type Stripe from "stripe";
 
 // Webhook冪等性チェック用（メモリ内、TTL付き）
+// NOTE: サーバーレス環境ではインスタンス間でMapが共有されないため best-effort。
+// DB upsert を使用しているため、重複処理されても結果は冪等。
+// 将来的に Redis 等の外部ストアへの移行を検討。
 const PROCESSED_EVENT_TTL_MS = 5 * 60 * 1000; // 5分
 const processedEvents = new Map<string, number>();
 
@@ -42,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
-    console.error("[stripe/webhook] signature verification failed:", err);
+    console.error("[stripe/webhook] signature verification failed:", err instanceof Error ? err.message : String(err));
     return Response.json({ error: "署名検証に失敗しました" }, { status: 400 });
   }
 
@@ -143,7 +146,7 @@ export async function POST(request: NextRequest) {
 
     return Response.json({ received: true });
   } catch (error) {
-    console.error("[stripe/webhook] processing error:", error);
+    console.error("[stripe/webhook] processing error:", error instanceof Error ? error.message : String(error));
     return Response.json(
       { error: "Webhookの処理中にエラーが発生しました" },
       { status: 500 }

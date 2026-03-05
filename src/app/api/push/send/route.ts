@@ -25,11 +25,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, message, url } = body;
 
-    if (!title || !message) {
+    if (!title || typeof title !== "string" || title.length > 200) {
       return Response.json(
-        { error: "title and message required" },
+        { error: "titleは200文字以内の文字列で指定してください" },
         { status: 400 }
       );
+    }
+    if (!message || typeof message !== "string" || message.length > 1000) {
+      return Response.json(
+        { error: "messageは1000文字以内の文字列で指定してください" },
+        { status: 400 }
+      );
+    }
+
+    if (url !== undefined) {
+      if (typeof url !== "string" || url.length > 2000 || (!url.startsWith("https://") && !url.startsWith("/"))) {
+        return Response.json(
+          { error: "URLはhttps://または/で始まる文字列を指定してください" },
+          { status: 400 }
+        );
+      }
     }
 
     const subscriptions = await prisma.pushSubscription.findMany({
@@ -77,7 +92,7 @@ export async function POST(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[push/send]", error);
+      console.error("[push/send]", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "プッシュ通知の送信に失敗しました" },
         { status: 500 }

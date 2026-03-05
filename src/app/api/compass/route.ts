@@ -47,7 +47,7 @@ export async function GET() {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[compass] GET error:", error);
+      console.error("[compass] GET error:", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "羅針盤の取得に失敗しました" },
         { status: 500 }
@@ -103,7 +103,12 @@ export async function POST(request: NextRequest) {
       }
       if (type === "url") {
         sourceUrl = content;
-        if (!sourceUrl || !sourceUrl.startsWith("http")) {
+        try {
+          const parsed = new URL(sourceUrl ?? "");
+          if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+            throw new Error("invalid protocol");
+          }
+        } catch {
           return Response.json(
             { error: "有効なURLを指定してください" },
             { status: 400 }
@@ -113,6 +118,12 @@ export async function POST(request: NextRequest) {
       if (type === "text" && !content.trim()) {
         return Response.json(
           { error: "テキストを入力してください" },
+          { status: 400 }
+        );
+      }
+      if (type === "text" && content.length > 50000) {
+        return Response.json(
+          { error: "テキストは50000文字以内で入力してください" },
           { status: 400 }
         );
       }
@@ -197,7 +208,7 @@ export async function POST(request: NextRequest) {
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[compass] POST error:", error);
+      console.error("[compass] POST error:", error instanceof Error ? error.message : String(error));
       return Response.json(
         { error: "羅針盤アイテムの追加に失敗しました" },
         { status: 500 }

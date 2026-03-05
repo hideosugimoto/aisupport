@@ -97,19 +97,23 @@ export class NewsFetcher {
   private async runWithConcurrency(
     taskFns: (() => Promise<FeedArticleData[]>)[]
   ): Promise<FeedArticleData[]> {
-    const allArticles: FeedArticleData[] = [];
+    const batchResults: FeedArticleData[][] = [];
 
     for (let i = 0; i < taskFns.length; i += RSS_CONCURRENCY) {
       const batch = taskFns.slice(i, i + RSS_CONCURRENCY);
       const results = await Promise.allSettled(batch.map((fn) => fn()));
-      for (const r of results) {
-        if (r.status === "fulfilled") {
-          allArticles.push(...r.value);
-        }
-      }
+      const fulfilled = results
+        .filter((r): r is PromiseFulfilledResult<FeedArticleData[]> => r.status === "fulfilled")
+        .flatMap((r) => r.value);
+      batchResults.push(fulfilled);
     }
 
-    return allArticles;
+    return batchResults.flat();
+  }
+
+  /** ソース別のmax_articlesを取得（設定がなければfeedConfigのデフォルト値） */
+  private getMaxArticles(source: string): number {
+    return sources[source]?.max_articles ?? feedConfig.max_articles_per_source;
   }
 
   // ─── ソース別フェッチメソッド ────────────────────────
@@ -123,8 +127,7 @@ export class NewsFetcher {
     const items = await this.fetchAndParseRss(url, "google_news");
     if (!items) return [];
 
-    const max = sources.google_news?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, this.getMaxArticles("google_news")).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: String(item.link ?? ""),
       source: "google_news" as FeedSource,
@@ -146,8 +149,7 @@ export class NewsFetcher {
     const items = await this.fetchAndParseRss(url, source);
     if (!items) return [];
 
-    const max = sources[source]?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, this.getMaxArticles(source)).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: extractBingUrl(String(item.link ?? "")),
       source: source as FeedSource,
@@ -164,8 +166,7 @@ export class NewsFetcher {
     const items = await this.fetchAndParseRss(url, "yahoo_news_jp");
     if (!items) return [];
 
-    const max = sources.yahoo_news_jp?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, this.getMaxArticles("yahoo_news_jp")).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: String(item.link ?? ""),
       source: "yahoo_news_jp" as FeedSource,
@@ -181,8 +182,7 @@ export class NewsFetcher {
     const items = await this.fetchAndParseRss(url, "bbc_news");
     if (!items) return [];
 
-    const max = sources.bbc_news?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, this.getMaxArticles("bbc_news")).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: String(item.link ?? ""),
       source: "bbc_news" as FeedSource,
@@ -199,8 +199,7 @@ export class NewsFetcher {
     const items = await this.fetchAndParseRss(url, "techcrunch");
     if (!items) return [];
 
-    const max = sources.techcrunch?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, this.getMaxArticles("techcrunch")).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: String(item.link ?? ""),
       source: "techcrunch" as FeedSource,
@@ -215,12 +214,12 @@ export class NewsFetcher {
     query: string,
     originalKeyword: string
   ): Promise<FeedArticleData[]> {
-    const url = `https://hnrss.org/newest?q=${encodeURIComponent(query)}&count=${sources.hacker_news?.max_articles ?? feedConfig.max_articles_per_source}`;
+    const maxArticles = this.getMaxArticles("hacker_news");
+    const url = `https://hnrss.org/newest?q=${encodeURIComponent(query)}&count=${maxArticles}`;
     const items = await this.fetchAndParseRss(url, "hacker_news");
     if (!items) return [];
 
-    const max = sources.hacker_news?.max_articles ?? feedConfig.max_articles_per_source;
-    return items.slice(0, max).map((item) => ({
+    return items.slice(0, maxArticles).map((item) => ({
       title: String(item.title ?? "").slice(0, 500),
       url: String(item.link ?? ""),
       source: "hacker_news" as FeedSource,

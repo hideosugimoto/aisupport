@@ -25,7 +25,7 @@ export async function GET() {
     try {
       return handleAuthError(error);
     } catch {
-      return Response.json({ error: "Internal error" }, { status: 500 });
+      return Response.json({ error: "内部エラー" }, { status: 500 });
     }
   }
 }

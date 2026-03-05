@@ -63,7 +63,7 @@ export function EnergySelector({ value, onSelect }: EnergySelectorProps) {
                   : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
               }`}
             >
-              <span className="text-lg">{emoji}</span>
+              <span className="text-lg" aria-hidden="true">{emoji}</span>
               <span className="text-xs">{label}</span>
             </button>
           );

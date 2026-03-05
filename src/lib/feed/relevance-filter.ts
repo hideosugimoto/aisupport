@@ -1,20 +1,7 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { sanitizePromptInput } from "../llm/prompt-builder";
+import { sanitizePromptInput, loadTemplate, replaceVariables } from "../llm/prompt-builder";
 import type { LLMClient } from "../llm/types";
 import type { Logger } from "../logger/types";
 import type { FeedArticleData } from "./types";
-
-let promptCache: string | null = null;
-
-async function getPromptTemplate(): Promise<string> {
-  if (promptCache) return promptCache;
-  promptCache = await readFile(
-    join(process.cwd(), "prompts/feed/filter-relevance.md"),
-    "utf-8"
-  );
-  return promptCache;
-}
 
 interface RelevanceResult {
   index: number;
@@ -36,7 +23,7 @@ export class RelevanceFilter {
     if (articles.length === 0 || keywords.length === 0) return articles;
 
     try {
-      const promptTemplate = await getPromptTemplate();
+      const promptTemplate = loadTemplate("feed", "filter-relevance.md");
 
       const articlesText = articles
         .map(
@@ -45,9 +32,10 @@ export class RelevanceFilter {
         )
         .join("\n");
 
-      const prompt = promptTemplate
-        .replace("{{keywords}}", keywords.map(sanitizePromptInput).join(", "))
-        .replace("{{articles}}", articlesText);
+      const prompt = replaceVariables(promptTemplate, {
+        keywords: keywords.map(sanitizePromptInput).join(", "),
+        articles: articlesText,
+      });
 
       const response = await this.llmClient.chat({
         model: this.model,

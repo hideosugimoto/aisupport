@@ -6,6 +6,8 @@ const MAX_REQUESTS = 10;
 const CLEANUP_INTERVAL = 100;
 const MAX_MAP_SIZE = 10000;
 
+// NOTE: インメモリMapはサーバーレスインスタンス間で共有されないため best-effort。
+// TODO(infra): Redis/Upstash 等の外部ストアへの移行を検討（スケール時に対応）。
 const ipRequestMap = new Map<string, { count: number; resetTime: number }>();
 let requestCount = 0;
 

@@ -40,7 +40,7 @@ export async function DELETE(
     try {
       return handleAuthError(error);
     } catch {
-      console.error("[compass] DELETE error:", error);
+      console.error("[compass] DELETE error:", error instanceof Error ? error.message : String(error));
       return Response.json({ error: "削除に失敗しました" }, { status: 500 });
     }
   }

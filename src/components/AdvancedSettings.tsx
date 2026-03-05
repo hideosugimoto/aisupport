@@ -35,17 +35,17 @@ export function AdvancedSettings({
         aria-expanded={isOpen}
         className="w-full text-left rounded-lg border border-zinc-200 px-4 py-3 text-sm text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800/50 transition-colors"
       >
-        {isOpen ? "⚙️ 詳細設定 ▲" : "⚙️ 詳細設定 ▼"}
+        {isOpen ? "詳細設定 ▲" : "詳細設定 ▼"}
       </button>
 
       {isOpen && (
         <div className="mt-3 space-y-4">
           {/* AIエンジン選択 */}
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <span id="advanced-settings-provider-label" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               AIエンジン
-            </label>
-            <div className="flex gap-2">
+            </span>
+            <div className="flex gap-2" role="group" aria-labelledby="advanced-settings-provider-label">
               {featuresConfig.enabled_providers.map((p) => (
                 <button
                   key={p}

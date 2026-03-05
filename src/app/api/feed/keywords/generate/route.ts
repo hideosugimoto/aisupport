@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       return handleAuthError(error);
     } catch {
       logger.error("Keyword generation error", { message: error instanceof Error ? error.message : String(error) });
-      return Response.json({ error: "Internal error" }, { status: 500 });
+      return Response.json({ error: "内部エラー" }, { status: 500 });
     }
   }
 }
