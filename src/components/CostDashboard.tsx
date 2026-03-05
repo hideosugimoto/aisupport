@@ -74,6 +74,27 @@ export function CostDashboard() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
+  const handleGenerateReview = useCallback(async () => {
+    setReviewLoading(true);
+    setReviewError(null);
+    try {
+      const res = await fetch("/api/weekly-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        throw new Error("レビュー生成に失敗しました");
+      }
+      const result = await res.json();
+      setReviewData(result);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setReviewLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetch("/api/cost")
       .then((res) => {
@@ -103,27 +124,6 @@ export function CostDashboard() {
       </div>
     );
   }
-
-  const handleGenerateReview = useCallback(async () => {
-    setReviewLoading(true);
-    setReviewError(null);
-    try {
-      const res = await fetch("/api/weekly-review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) {
-        throw new Error("レビュー生成に失敗しました");
-      }
-      const result = await res.json();
-      setReviewData(result);
-    } catch (err) {
-      setReviewError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setReviewLoading(false);
-    }
-  }, []);
 
   if (!data) return null;
 
