@@ -1,11 +1,8 @@
 "use client";
 
 import { MarkdownContent } from "./MarkdownContent";
-
-interface CompassMatch {
-  title: string;
-  similarity: number;
-}
+import type { CompassRelevance } from "@/lib/compass/types";
+import type { DecisionContextHints } from "@/lib/decision/task-decision-engine";
 
 interface DecisionResultProps {
   content: string;
@@ -15,10 +12,8 @@ interface DecisionResultProps {
   inputTokens: number;
   outputTokens: number;
   onBreakdown?: (task: string) => void;
-  compassRelevance?: {
-    hasCompass: boolean;
-    topMatches: CompassMatch[];
-  };
+  compassRelevance?: CompassRelevance;
+  contextHints?: DecisionContextHints;
 }
 
 export function DecisionResult({
@@ -30,6 +25,7 @@ export function DecisionResult({
   outputTokens,
   onBreakdown,
   compassRelevance,
+  contextHints,
 }: DecisionResultProps) {
   const taskMatch = content.match(/### 今日の最適タスク\n(.+)/);
   const selectedTask = taskMatch?.[1]?.trim() ?? "";
@@ -64,19 +60,29 @@ export function DecisionResult({
       )}
       {!compassRelevance?.hasCompass && (
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300">
+          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="羅針盤を登録すると、目標に基づいた判定ができます">
             羅針盤を登録
           </a>
           すると、目標に基づいた判定ができます
         </div>
       )}
-      <div className="flex gap-4 text-xs text-zinc-400">
+      <div className="flex flex-wrap gap-4 text-xs text-zinc-400">
         <span>
           {provider} / {model}
         </span>
         <span>
           入力: {inputTokens} / 出力: {outputTokens} tokens
         </span>
+        {contextHints && (
+          <span className="flex gap-2">
+            {contextHints.hasCompass && (
+              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 dark:bg-blue-900 dark:text-blue-300">羅針盤</span>
+            )}
+            {contextHints.hasRag && (
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900 dark:text-green-300">RAG</span>
+            )}
+          </span>
+        )}
       </div>
       {onBreakdown && selectedTask && (
         <button

@@ -1,4 +1,9 @@
 import type { CompassSuggestion } from "../compass/compass-suggester";
+import type { CompassRelevance } from "../compass/types";
+import type { DecisionContextHints } from "../decision/task-decision-engine";
+
+export type { CompassRelevance };
+export type ContextHints = DecisionContextHints;
 
 export type ChatStep =
   | "compass-setup"
@@ -14,11 +19,6 @@ export interface CompassItem {
   title: string;
 }
 
-export interface CompassRelevance {
-  hasCompass: boolean;
-  topMatches: { title: string; similarity: number }[];
-}
-
 export type UIState = "idle" | "loading" | "streaming" | "completed" | "error";
 
 export interface State {
@@ -31,6 +31,7 @@ export interface State {
   outputTokens: number;
   error: string | null;
   compassRelevance?: CompassRelevance;
+  contextHints?: ContextHints;
   breakdownStatus: "idle" | "loading" | "streaming" | "completed" | "error";
   breakdownContent: string;
   breakdownInputTokens: number;
@@ -53,6 +54,7 @@ export type Action =
   | { type: "ERROR"; error: string }
   | { type: "RESET" }
   | { type: "SET_COMPASS"; compassRelevance: CompassRelevance }
+  | { type: "SET_CONTEXT_HINTS"; contextHints: ContextHints }
   | { type: "START_BREAKDOWN" }
   | { type: "START_BREAKDOWN_STREAMING" }
   | { type: "APPEND_BREAKDOWN_CONTENT"; content: string }
@@ -100,6 +102,8 @@ export function reducer(state: State, action: Action): State {
       return initialState;
     case "SET_COMPASS":
       return { ...state, compassRelevance: action.compassRelevance };
+    case "SET_CONTEXT_HINTS":
+      return { ...state, contextHints: action.contextHints };
     case "START_BREAKDOWN":
       return {
         ...state,

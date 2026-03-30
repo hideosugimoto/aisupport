@@ -3,6 +3,8 @@ import type { TaskDecisionInput } from "../llm/prompt-builder";
 import { buildTaskDecisionMessages } from "../llm/prompt-builder";
 import { getDefaultModel } from "../config/types";
 import { calculateCostUsd } from "../cost/pricing";
+import type { Retriever } from "../rag/retriever";
+import type { CompassRelevance } from "../compass/types";
 
 export interface CompareResult {
   provider: LLMProvider;
@@ -14,17 +16,46 @@ export interface CompareResult {
   error?: string;
 }
 
+export interface CompareResponse {
+  results: CompareResult[];
+  compassRelevance?: CompassRelevance;
+}
+
 export interface ParallelDecisionEngine {
-  compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]>;
+  compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResponse>;
 }
 
 export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
+  private compassRetriever?: Retriever;
+
   constructor(
     private clients: Partial<Record<LLMProvider, LLMClient>>
   ) {}
 
-  async compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResult[]> {
-    const messages = buildTaskDecisionMessages(input);
+  setCompassRetriever(retriever: Retriever): void {
+    this.compassRetriever = retriever;
+  }
+
+  async compareAll(userId: string, input: TaskDecisionInput, models?: Partial<Record<LLMProvider, string>>): Promise<CompareResponse> {
+    // Compass コンテキストを取得（あれば全モデル共通で使用）
+    let compassContext: string | undefined;
+    let compassRelevance: CompassRelevance | undefined;
+
+    if (this.compassRetriever) {
+      try {
+        const query = input.tasks.join(" ");
+        const result = await this.compassRetriever.retrieve(userId, query);
+        compassContext = result.contextText || undefined;
+        compassRelevance = {
+          hasCompass: true,
+          topMatches: result.results.map(r => ({ title: r.filename, similarity: r.similarity })),
+        };
+      } catch {
+        // Compass 検索失敗時は無視して続行
+      }
+    }
+
+    const messages = buildTaskDecisionMessages(input, undefined, undefined, compassContext);
 
     // 各エンジンの実行タスクを準備
     const tasks = Object.entries(this.clients).map(
@@ -69,7 +100,7 @@ export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
     const results = await Promise.allSettled(tasks);
 
     // fulfilled のみ返す（rejected は起こらないはずだが念のため）
-    return results
+    const compareResults = results
       .map((result) => {
         if (result.status === "fulfilled") {
           return result.value;
@@ -78,5 +109,10 @@ export class DefaultParallelDecisionEngine implements ParallelDecisionEngine {
         return null;
       })
       .filter((result): result is CompareResult => result !== null);
+
+    return {
+      results: compareResults,
+      compassRelevance,
+    };
   }
 }

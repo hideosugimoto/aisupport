@@ -71,6 +71,7 @@ export function ChatResultSection({
                   apiState.status === "completed" ? onBreakdown : undefined
                 }
                 compassRelevance={apiState.compassRelevance}
+                contextHints={apiState.contextHints}
               />
             </div>
           </>

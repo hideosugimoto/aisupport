@@ -132,6 +132,7 @@ model CompassItem {
   content   String
   sourceUrl String?        @map("source_url")
   imageKey  String?        @map("image_key")
+  metadata  String?        // JSON: CompassMetadata (see src/lib/compass/types.ts)
   createdAt DateTime       @default(now()) @map("created_at")
   chunks    CompassChunk[]
 

@@ -1,6 +1,7 @@
 import type { LLMClient, LLMStreamChunk } from "../llm/types";
 import type { UsageLogRepository } from "../db/types";
 import type { Retriever, RetrievalResult } from "../rag/retriever";
+import type { CompassRelevance } from "../compass/types";
 import { nullLogger } from "../logger/null-logger";
 import type { Logger } from "../logger/types";
 import {
@@ -19,6 +20,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
   ]);
 }
 
+export interface DecisionContextHints {
+  hasRag: boolean;
+  hasCompass: boolean;
+  energyLevelUsed: number;
+  availableTimeUsed: number;
+}
+
 export interface DecisionResult {
   content: string;
   provider: string;
@@ -28,10 +36,8 @@ export interface DecisionResult {
   totalTokens: number;
   isAnxietyMode: boolean;
   promptVersion?: string;
-  compassRelevance?: {
-    hasCompass: boolean;
-    topMatches: { title: string; similarity: number }[];
-  };
+  compassRelevance?: CompassRelevance;
+  contextHints?: DecisionContextHints;
 }
 
 export class TaskDecisionEngine {
@@ -132,6 +138,12 @@ export class TaskDecisionEngine {
         hasCompass: true,
         topMatches: compassResult.results.map(r => ({ title: r.filename, similarity: r.similarity })),
       } : undefined,
+      contextHints: {
+        hasRag: !!ragContext,
+        hasCompass: !!compassContext,
+        energyLevelUsed: input.energyLevel,
+        availableTimeUsed: input.availableTime,
+      },
     };
   }
 
@@ -161,54 +173,79 @@ export class TaskDecisionEngine {
     return undefined; // デフォルト
   }
 
-  async *decideStream(
+  async prepareStream(
     userId: string,
     input: TaskDecisionInput
-  ): AsyncIterable<LLMStreamChunk> {
+  ): Promise<{ stream: AsyncIterable<LLMStreamChunk>; meta: DecisionStreamMeta }> {
     // A/B テスト: プロンプトバージョン選択
     const promptVersion = this.selectPromptVersion();
 
     // RAG と Compass を並列取得（タイムアウト付き）
-    const [ragContext, compassContext] = await Promise.all([
+    const [ragContext, compassResult] = await Promise.all([
       withTimeout(this.fetchRagContext(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
-      withTimeout(this.fetchCompassContext(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
+      withTimeout(this.fetchCompassResult(userId, input), RETRIEVAL_TIMEOUT_MS, undefined),
     ]);
+    const compassContext = compassResult?.contextText || undefined;
     const messages = buildTaskDecisionMessages(input, promptVersion, ragContext, compassContext);
     const model = this.model ?? getDefaultModel(this.provider);
 
-    let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
-    let hasUsage = false;
+    const meta: DecisionStreamMeta = {
+      compassRelevance: compassResult ? {
+        hasCompass: true,
+        topMatches: compassResult.results.map(r => ({ title: r.filename, similarity: r.similarity })),
+      } : undefined,
+      contextHints: {
+        hasRag: !!ragContext,
+        hasCompass: !!compassContext,
+        energyLevelUsed: input.energyLevel,
+        availableTimeUsed: input.availableTime,
+      },
+    };
 
+    const client = this.client;
+    const repository = this.repository;
+    const provider = this.provider;
     const isAnxietyMode =
       input.energyLevel <= featuresConfig.anxiety_mode_threshold;
 
-    try {
-      for await (const chunk of this.client.chatStream({ model, messages })) {
-        if (chunk.usage) {
-          lastUsage = chunk.usage;
-          hasUsage = true;
-        }
-        yield chunk;
-      }
-    } finally {
-      if (hasUsage) {
-        // メタデータにプロンプトバージョンを記録
-        const metadata = JSON.stringify({
-          prompt_version: promptVersion || "default",
-          anxiety_mode: isAnxietyMode,
-        });
+    async function* createStream(): AsyncIterable<LLMStreamChunk> {
+      let lastUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+      let hasUsage = false;
 
-        await this.repository.save({
-          userId,
-          provider: this.provider,
-          model,
-          inputTokens: lastUsage.inputTokens,
-          outputTokens: lastUsage.outputTokens,
-          totalTokens: lastUsage.totalTokens,
-          feature: "task_decision",
-          metadata,
-        });
+      try {
+        for await (const chunk of client.chatStream({ model, messages })) {
+          if (chunk.usage) {
+            lastUsage = chunk.usage;
+            hasUsage = true;
+          }
+          yield chunk;
+        }
+      } finally {
+        if (hasUsage) {
+          const metadata = JSON.stringify({
+            prompt_version: promptVersion || "default",
+            anxiety_mode: isAnxietyMode,
+          });
+
+          await repository.save({
+            userId,
+            provider,
+            model,
+            inputTokens: lastUsage.inputTokens,
+            outputTokens: lastUsage.outputTokens,
+            totalTokens: lastUsage.totalTokens,
+            feature: "task_decision",
+            metadata,
+          });
+        }
       }
     }
+
+    return { stream: createStream(), meta };
   }
+}
+
+export interface DecisionStreamMeta {
+  compassRelevance?: CompassRelevance;
+  contextHints: DecisionContextHints;
 }

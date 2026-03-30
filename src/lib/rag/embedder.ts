@@ -9,6 +9,11 @@ export interface Embedder {
 export class OpenAIEmbedder implements Embedder {
   private client: OpenAI;
 
+  /**
+   * Embedding は OpenAI API 固定のため、OPENAI_API_KEY を使用する。
+   * LLM 本体は resolveApiKey() で BYOK 対応しているが、
+   * embedding は現状 BYOK 非対応（将来対応予定）。
+   */
   constructor(apiKey?: string) {
     this.client = new OpenAI({
       apiKey: apiKey ?? process.env.OPENAI_API_KEY,

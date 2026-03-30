@@ -9,7 +9,7 @@ import { getDefaultModel } from "@/lib/config/types";
 import { DefaultRetriever } from "@/lib/rag/retriever";
 import { OpenAIEmbedder } from "@/lib/rag/embedder";
 import { PrismaVectorStore } from "@/lib/rag/vector-store";
-import { PrismaCompassVectorStore } from "@/lib/compass/compass-vector-store";
+import { createCompassRetrieverIfAvailable } from "@/lib/compass/create-compass-retriever";
 import type { LLMProvider } from "@/lib/llm/types";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
@@ -58,38 +58,40 @@ export async function POST(request: NextRequest) {
     const engine = new TaskDecisionEngine(client, repository, provider, model, logger.child("engine"));
 
     // RAG: ドキュメントがあれば retriever を設定
-    let embedder: OpenAIEmbedder | undefined;
     if (process.env.OPENAI_API_KEY) {
       const vectorStore = new PrismaVectorStore();
       const docs = await vectorStore.listDocuments(userId);
       if (docs.length > 0) {
-        embedder = new OpenAIEmbedder();
+        const embedder = new OpenAIEmbedder();
         engine.setRetriever(new DefaultRetriever(embedder, vectorStore));
       }
     }
 
     // Compass: 羅針盤データがあれば compassRetriever を設定
-    if (process.env.OPENAI_API_KEY) {
-      const compassStore = new PrismaCompassVectorStore();
-      const compassEmbedder = embedder ?? new OpenAIEmbedder();
-      const { CompassRetriever } = await import("@/lib/compass/compass-retriever");
-      engine.setCompassRetriever(new CompassRetriever(compassEmbedder, compassStore));
+    const compassRetriever = await createCompassRetrieverIfAvailable();
+    if (compassRetriever) {
+      engine.setCompassRetriever(compassRetriever);
     }
 
     if (body.stream) {
+      const { stream: llmStream, meta } = await engine.prepareStream(userId, {
+        tasks: body.tasks,
+        availableTime: body.availableTime,
+        energyLevel: body.energyLevel,
+      });
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of engine.decideStream(userId, {
-              tasks: body.tasks,
-              availableTime: body.availableTime,
-              energyLevel: body.energyLevel,
-            })) {
+            for await (const chunk of llmStream) {
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
               );
             }
+            // ストリーム完了後にメタ情報を送信
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`)
+            );
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           } catch (error) {

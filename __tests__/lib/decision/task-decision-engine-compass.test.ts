@@ -157,19 +157,21 @@ describe("TaskDecisionEngine - Compass Integration", () => {
     );
   });
 
-  it("decideStream() でも compassContext がプロンプトに注入される", async () => {
+  it("prepareStream() でも compassContext がプロンプトに注入される", async () => {
     const mockCompassRetriever = createMockRetriever("## 羅針盤コンテキスト\n技術習得", [
       { content: "技術習得", filename: "スキルアップ", similarity: 0.75, chunkId: 3, documentId: 30 },
     ]);
 
     engine.setCompassRetriever(mockCompassRetriever);
 
-    const chunks: LLMStreamChunk[] = [];
-    for await (const chunk of engine.decideStream("user-123", {
+    const { stream, meta } = await engine.prepareStream("user-123", {
       tasks: ["勉強", "運動"],
       availableTime: 90,
       energyLevel: 4,
-    })) {
+    });
+
+    const chunks: LLMStreamChunk[] = [];
+    for await (const chunk of stream) {
       chunks.push(chunk);
     }
 
@@ -192,6 +194,14 @@ describe("TaskDecisionEngine - Compass Integration", () => {
         outputTokens: 50,
       })
     );
+
+    // Verify meta is returned with compass info
+    expect(meta.compassRelevance).toBeDefined();
+    expect(meta.compassRelevance?.hasCompass).toBe(true);
+    expect(meta.compassRelevance?.topMatches).toEqual([
+      { title: "スキルアップ", similarity: 0.75 },
+    ]);
+    expect(meta.contextHints.hasCompass).toBe(true);
   });
 
   it("setCompassRetriever() でリトリーバーを設定できる", async () => {

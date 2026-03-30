@@ -9,6 +9,7 @@ import type { LLMProvider } from "@/lib/llm/types";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { getUserPlan } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createCompassRetrieverIfAvailable, createNeglectDetectorIfAvailable } from "@/lib/compass/create-compass-retriever";
 
 const VALID_PROVIDERS = new Set(featuresConfig.enabled_providers);
 
@@ -38,6 +39,16 @@ export async function POST(request: NextRequest) {
     const llmClient = createLLMClient(provider as LLMProvider, undefined, false, apiKey);
     const repository = new PrismaTaskDecisionRepository(prisma);
     const engine = new DefaultWeeklyReviewEngine(llmClient, repository);
+
+    // Compass: 羅針盤データがあればレビューに含める
+    const compassRetriever = await createCompassRetrieverIfAvailable();
+    if (compassRetriever) {
+      engine.setCompassRetriever(compassRetriever);
+    }
+    const neglectDetector = await createNeglectDetectorIfAvailable();
+    if (neglectDetector) {
+      engine.setNeglectDetector(neglectDetector);
+    }
 
     const result = await engine.generateReview(userId, provider);
 

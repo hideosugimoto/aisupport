@@ -4,12 +4,16 @@
 
 An AI-powered decision support assistant that helps you prioritize tasks, compare options, and stay informed — all aligned with your personal goals and values.
 
-## Features
+## Core Features
 
-- **Task Decision** — Input your tasks, energy level, and available time. AI recommends the optimal order and approach.
-- **Option Comparison** — Compare multiple options with AI-generated pros/cons and scoring.
-- **Compass** — Register goals, dreams, and values (text/URL/image). AI references them to keep decisions aligned with what matters to you.
-- **Document RAG** — Upload PDFs and text files for AI to use as context in decisions.
+- **Compass** — Register your goals, dreams, and values (text/URL/image). The compass is the central axis of all decisions — Decide, Compare, and Weekly Review all reference it.
+- **Task Decision** — Input your tasks, energy level, and available time. AI recommends the optimal task aligned with your compass. Streaming responses include compass relevance and context metadata in real time.
+- **Option Comparison** — Compare the same input across multiple AI engines (OpenAI, Gemini, Claude), all sharing the same compass context. See which compass items influenced the comparison.
+- **Weekly Review** — AI analyzes your past week's decisions against your compass, highlights neglected goals, and suggests improvements.
+
+## Supporting Features
+
+- **Document RAG** — Upload PDFs and text files for AI to use as additional context in decisions.
 - **News Feed** — Set keywords and receive curated news daily via Cron, with email digests.
 - **Cost Dashboard** — Track LLM API usage and costs in real time with budget alerts.
 - **Push Notifications** — Daily reminders and budget alerts via Web Push.
@@ -66,6 +70,7 @@ prisma/                     # Database schema
 
 ### Design Principles
 
+- **Compass-Centric** — All decision features (Decide, Compare, Weekly Review) share the same compass context
 - **Dependency Inversion** — All dependencies go through interfaces
 - **Framework Independence** — Business logic in `src/lib/` has no Next.js dependency
 - **Thin Controllers** — API routes are minimal wrappers around business logic

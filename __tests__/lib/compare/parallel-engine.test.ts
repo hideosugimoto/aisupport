@@ -5,6 +5,7 @@ import {
 } from "@/lib/compare/parallel-engine";
 import type { LLMClient, LLMResponse } from "@/lib/llm/types";
 import type { TaskDecisionInput } from "@/lib/llm/prompt-builder";
+import type { Retriever, RetrievalResult } from "@/lib/rag/retriever";
 
 class MockLLMClient implements LLMClient {
   constructor(
@@ -73,21 +74,21 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      expect(results).toHaveLength(3);
+      expect(response.results).toHaveLength(3);
 
-      const openaiResult = results.find((r) => r.provider === "openai");
+      const openaiResult = response.results.find((r) => r.provider === "openai");
       expect(openaiResult).toBeDefined();
       expect(openaiResult?.decision).toBe("OpenAI の判定");
       expect(openaiResult?.usage.totalTokens).toBe(150);
       expect(openaiResult?.error).toBeUndefined();
 
-      const geminiResult = results.find((r) => r.provider === "gemini");
+      const geminiResult = response.results.find((r) => r.provider === "gemini");
       expect(geminiResult).toBeDefined();
       expect(geminiResult?.decision).toBe("Gemini の判定");
 
-      const claudeResult = results.find((r) => r.provider === "claude");
+      const claudeResult = response.results.find((r) => r.provider === "claude");
       expect(claudeResult).toBeDefined();
       expect(claudeResult?.decision).toBe("Claude の判定");
     });
@@ -109,9 +110,9 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      results.forEach((result) => {
+      response.results.forEach((result) => {
         expect(result.durationMs).toBeGreaterThanOrEqual(0);
         expect(typeof result.durationMs).toBe("number");
       });
@@ -126,10 +127,10 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      expect(results[0].costUsd).toBeGreaterThan(0);
-      expect(typeof results[0].costUsd).toBe("number");
+      expect(response.results[0].costUsd).toBeGreaterThan(0);
+      expect(typeof response.results[0].costUsd).toBe("number");
     });
   });
 
@@ -150,15 +151,15 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      expect(results).toHaveLength(2);
+      expect(response.results).toHaveLength(2);
 
-      const openaiResult = results.find((r) => r.provider === "openai");
+      const openaiResult = response.results.find((r) => r.provider === "openai");
       expect(openaiResult?.error).toBeUndefined();
       expect(openaiResult?.decision).toBe("成功");
 
-      const geminiResult = results.find((r) => r.provider === "gemini");
+      const geminiResult = response.results.find((r) => r.provider === "gemini");
       expect(geminiResult?.error).toBeDefined();
       expect(geminiResult?.error).toContain("Mock error");
       expect(geminiResult?.decision).toBe("");
@@ -187,10 +188,10 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      expect(results).toHaveLength(3);
-      const successCount = results.filter((r) => !r.error).length;
+      expect(response.results).toHaveLength(3);
+      const successCount = response.results.filter((r) => !r.error).length;
       expect(successCount).toBe(1);
     });
   });
@@ -215,10 +216,10 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const engine = new DefaultParallelDecisionEngine(clients);
-      const results = await engine.compareAll("test-user", input);
+      const response = await engine.compareAll("test-user", input);
 
-      expect(results).toHaveLength(2);
-      results.forEach((result) => {
+      expect(response.results).toHaveLength(2);
+      response.results.forEach((result) => {
         expect(result.error).toBeDefined();
       });
     });
@@ -255,6 +256,152 @@ describe("ParallelDecisionEngine", () => {
 
       // 並列実行なので200ms未満で完了するはず（逐次なら200ms以上）
       expect(totalTime).toBeLessThan(200);
+    });
+  });
+
+  describe("Compass 統合", () => {
+    function createMockRetriever(
+      contextText: string,
+      results: RetrievalResult["results"] = []
+    ): Retriever {
+      return {
+        retrieve: vi.fn<(userId: string, query: string, topK?: number) => Promise<RetrievalResult>>().mockResolvedValue({
+          contextText,
+          results,
+        }),
+        buildContextSection: vi.fn().mockReturnValue(contextText),
+      };
+    }
+
+    it("compassRetriever なしの場合 compassRelevance は undefined", async () => {
+      const clients = {
+        openai: new MockLLMClient({
+          content: "結果",
+          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        }),
+      };
+
+      const engine = new DefaultParallelDecisionEngine(clients);
+      const response = await engine.compareAll("test-user", input);
+
+      expect(response.compassRelevance).toBeUndefined();
+      expect(response.results).toHaveLength(1);
+    });
+
+    it("compassRetriever 設定時、全モデルに同じ Compass コンテキストが注入される", async () => {
+      const openaiClient = new MockLLMClient({
+        content: "OpenAI 判定",
+        usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+      });
+      const geminiClient = new MockLLMClient({
+        content: "Gemini 判定",
+        usage: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+      });
+      const clients = { openai: openaiClient, gemini: geminiClient };
+
+      const retriever = createMockRetriever(
+        "[羅針盤1: 起業目標 (関連度: 90%)]\n独立して自由に働く",
+        [
+          { content: "独立して自由に働く", filename: "起業目標", similarity: 0.9, chunkId: 1, documentId: 10 },
+          { content: "健康的な生活", filename: "健康目標", similarity: 0.7, chunkId: 2, documentId: 20 },
+        ]
+      );
+
+      const engine = new DefaultParallelDecisionEngine(clients);
+      engine.setCompassRetriever(retriever);
+
+      const response = await engine.compareAll("test-user", input);
+
+      // retriever は1回だけ呼ばれる（全モデル共通）
+      expect(retriever.retrieve).toHaveBeenCalledTimes(1);
+      expect(retriever.retrieve).toHaveBeenCalledWith("test-user", "タスクA タスクB");
+
+      // compassRelevance が正しく返される
+      expect(response.compassRelevance).toBeDefined();
+      expect(response.compassRelevance?.hasCompass).toBe(true);
+      expect(response.compassRelevance?.topMatches).toHaveLength(2);
+      expect(response.compassRelevance?.topMatches[0]).toEqual({
+        title: "起業目標",
+        similarity: 0.9,
+      });
+
+      // 全モデルの結果も正常
+      expect(response.results).toHaveLength(2);
+      expect(response.results.find(r => r.provider === "openai")?.decision).toBe("OpenAI 判定");
+      expect(response.results.find(r => r.provider === "gemini")?.decision).toBe("Gemini 判定");
+    });
+
+    it("Compass Retriever が空コンテキストを返した場合、hasCompass は true で topMatches は空", async () => {
+      const clients = {
+        openai: new MockLLMClient({
+          content: "結果",
+          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        }),
+      };
+
+      const retriever = createMockRetriever("", []);
+      const engine = new DefaultParallelDecisionEngine(clients);
+      engine.setCompassRetriever(retriever);
+
+      const response = await engine.compareAll("test-user", input);
+
+      expect(retriever.retrieve).toHaveBeenCalledTimes(1);
+      // Retriever がセットされていれば hasCompass: true（コンテキストが空でもアイテムは存在する可能性）
+      expect(response.compassRelevance?.hasCompass).toBe(true);
+      expect(response.compassRelevance?.topMatches).toEqual([]);
+      expect(response.results).toHaveLength(1);
+    });
+
+    it("Compass Retriever が失敗しても比較は成功する（graceful degradation）", async () => {
+      const clients = {
+        openai: new MockLLMClient({
+          content: "成功した結果",
+          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        }),
+      };
+
+      const failingRetriever: Retriever = {
+        retrieve: vi.fn().mockRejectedValue(new Error("Embedding API error")),
+        buildContextSection: vi.fn(),
+      };
+
+      const engine = new DefaultParallelDecisionEngine(clients);
+      engine.setCompassRetriever(failingRetriever);
+
+      const response = await engine.compareAll("test-user", input);
+
+      expect(response.compassRelevance).toBeUndefined();
+      expect(response.results).toHaveLength(1);
+      expect(response.results[0].decision).toBe("成功した結果");
+      expect(response.results[0].error).toBeUndefined();
+    });
+
+    it("Compass ありでも一部エンジン失敗時にエラーが記録される", async () => {
+      const clients = {
+        openai: new MockLLMClient({
+          content: "成功",
+          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        }),
+        gemini: new MockLLMClient(
+          { content: "", usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 } },
+          true
+        ),
+      };
+
+      const retriever = createMockRetriever(
+        "[羅針盤1: 目標]",
+        [{ content: "目標", filename: "目標", similarity: 0.8, chunkId: 1, documentId: 1 }]
+      );
+
+      const engine = new DefaultParallelDecisionEngine(clients);
+      engine.setCompassRetriever(retriever);
+
+      const response = await engine.compareAll("test-user", input);
+
+      expect(response.compassRelevance?.hasCompass).toBe(true);
+      expect(response.results).toHaveLength(2);
+      expect(response.results.find(r => r.provider === "openai")?.error).toBeUndefined();
+      expect(response.results.find(r => r.provider === "gemini")?.error).toBeDefined();
     });
   });
 });

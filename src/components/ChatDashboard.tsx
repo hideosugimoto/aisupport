@@ -175,7 +175,7 @@ export function ChatDashboard() {
             dispatch({ type: "APPEND_CONTENT", content: chunk.content });
           }
         },
-        onComplete: (inputTokens, outputTokens) => {
+        onComplete: (inputTokens, outputTokens, meta) => {
           dispatch({
             type: "COMPLETE",
             provider,
@@ -184,6 +184,12 @@ export function ChatDashboard() {
             outputTokens,
             isAnxietyMode: (energyLevel ?? 3) <= featuresConfig.anxiety_mode_threshold,
           });
+          if (meta?.compassRelevance) {
+            dispatch({ type: "SET_COMPASS", compassRelevance: meta.compassRelevance });
+          }
+          if (meta?.contextHints) {
+            dispatch({ type: "SET_CONTEXT_HINTS", contextHints: meta.contextHints });
+          }
         },
         onError: (error) => dispatch({ type: "ERROR", error }),
       }

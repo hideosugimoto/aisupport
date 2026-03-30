@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CompareResult as CompareResultComponent } from "@/components/CompareResult";
 import type { CompareResult } from "@/lib/compare/parallel-engine";
+import type { CompassRelevance } from "@/lib/compass/types";
 import featuresConfig from "../../../../config/features.json";
 
 interface TaskItem {
@@ -21,6 +22,7 @@ export default function ComparePage() {
   const [availableTime, setAvailableTime] = useState(120);
   const [energyLevel, setEnergyLevel] = useState(3);
   const [results, setResults] = useState<CompareResult[]>([]);
+  const [compassRelevance, setCompassRelevance] = useState<CompassRelevance | undefined>();
   const [models, setModels] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const p of featuresConfig.enabled_providers) {
@@ -48,6 +50,7 @@ export default function ComparePage() {
     setLoading(true);
     setError(null);
     setResults([]);
+    setCompassRelevance(undefined);
 
     try {
       const response = await fetch("/api/compare", {
@@ -69,6 +72,7 @@ export default function ComparePage() {
       }
 
       setResults(data.results);
+      setCompassRelevance(data.compassRelevance);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "ネットワークエラーが発生しました"
@@ -235,7 +239,7 @@ export default function ComparePage() {
           </div>
         </form>
 
-        {results.length > 0 && <CompareResultComponent results={results} />}
+        {results.length > 0 && <CompareResultComponent results={results} compassRelevance={compassRelevance} />}
       </div>
     </div>
   );

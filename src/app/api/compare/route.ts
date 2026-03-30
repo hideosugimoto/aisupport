@@ -8,6 +8,7 @@ import featuresConfig from "../../../../config/features.json";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { checkRequestLimit } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
+import { createCompassRetrieverIfAvailable } from "@/lib/compass/create-compass-retriever";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +46,13 @@ export async function POST(request: NextRequest) {
 
     const engine = new DefaultParallelDecisionEngine(clients);
 
-    const results = await engine.compareAll(
+    // Compass: 羅針盤データがあれば全モデル共通で使用
+    const compassRetriever = await createCompassRetrieverIfAvailable();
+    if (compassRetriever) {
+      engine.setCompassRetriever(compassRetriever);
+    }
+
+    const response = await engine.compareAll(
       userId,
       {
         tasks: body.tasks,
@@ -55,7 +62,7 @@ export async function POST(request: NextRequest) {
       body.models
     );
 
-    return Response.json({ results });
+    return Response.json(response);
   } catch (error) {
     try {
       return handleAuthError(error);

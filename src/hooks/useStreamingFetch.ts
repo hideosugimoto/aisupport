@@ -1,18 +1,26 @@
 "use client";
 
 import { useRef, useCallback } from "react";
+import type { CompassRelevance } from "@/lib/compass/types";
+import type { DecisionContextHints } from "@/lib/decision/task-decision-engine";
+
+export interface StreamingMeta {
+  compassRelevance?: CompassRelevance;
+  contextHints?: DecisionContextHints;
+}
 
 export interface StreamingChunk {
   content?: string;
   usage?: { inputTokens: number; outputTokens: number };
   error?: { error: string };
+  meta?: StreamingMeta;
 }
 
 export interface StreamingCallbacks {
   onStart: () => void;
   onStreaming: () => void;
   onChunk: (chunk: StreamingChunk) => void;
-  onComplete: (inputTokens: number, outputTokens: number) => void;
+  onComplete: (inputTokens: number, outputTokens: number, meta?: StreamingMeta) => void;
   onError: (message: string) => void;
 }
 
@@ -66,6 +74,7 @@ export function useStreamingFetch() {
         const decoder = new TextDecoder();
         let lastInputTokens = 0;
         let lastOutputTokens = 0;
+        let lastMeta: StreamingMeta | undefined;
         let lineBuffer = "";
 
         try {
@@ -94,6 +103,9 @@ export function useStreamingFetch() {
                   callbacks.onError(safeMessage);
                   return;
                 }
+                if (chunk.meta) {
+                  lastMeta = chunk.meta;
+                }
                 callbacks.onChunk(chunk);
                 if (chunk.usage) {
                   lastInputTokens = chunk.usage.inputTokens;
@@ -109,7 +121,7 @@ export function useStreamingFetch() {
         }
 
         if (!signal.aborted) {
-          callbacks.onComplete(lastInputTokens, lastOutputTokens);
+          callbacks.onComplete(lastInputTokens, lastOutputTokens, lastMeta);
         }
       } catch (error) {
         if (signal.aborted) return;

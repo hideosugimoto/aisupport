@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DefaultWeeklyReviewEngine } from "../../../src/lib/strategy/weekly-review";
 import type { LLMClient, LLMResponse, TokenUsage } from "../../../src/lib/llm/types";
 import type { TaskDecisionRepository, TaskDecisionRecord } from "../../../src/lib/db/types";
+import type { Retriever, RetrievalResult } from "../../../src/lib/rag/retriever";
+import type { NeglectDetector, NeglectedCompass } from "../../../src/lib/compass/neglect-detector";
 
 class MockLLMClient implements LLMClient {
   public lastRequest: any = null;
@@ -225,5 +227,264 @@ describe("DefaultWeeklyReviewEngine", () => {
     expect(userPrompt).toContain("エネルギー: 4/5");
     expect(userPrompt).toContain("利用可能時間: 60分");
     expect(userPrompt).toContain("openai");
+  });
+});
+
+describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
+  const mockUsage: TokenUsage = {
+    inputTokens: 500,
+    outputTokens: 300,
+    totalTokens: 800,
+  };
+
+  const mockDecisions: TaskDecisionRecord[] = [
+    {
+      id: 1,
+      tasksInput: JSON.stringify(["起業準備", "営業資料作成"]),
+      energyLevel: 4,
+      availableTime: 120,
+      provider: "openai",
+      model: "gpt-4o-mini",
+      result: "### 今日の最適タスク\n起業準備",
+      createdAt: new Date("2026-03-25"),
+    },
+    {
+      id: 2,
+      tasksInput: JSON.stringify(["ジム", "読書"]),
+      energyLevel: 3,
+      availableTime: 60,
+      provider: "openai",
+      model: "gpt-4o-mini",
+      result: "### 今日の最適タスク\nジム",
+      createdAt: new Date("2026-03-27"),
+    },
+  ];
+
+  function createMockRetriever(contextText: string, results: any[] = []): Retriever {
+    return {
+      retrieve: vi.fn<(userId: string, query: string, topK?: number) => Promise<RetrievalResult>>().mockResolvedValue({
+        contextText,
+        results,
+      }),
+      buildContextSection: vi.fn().mockReturnValue(contextText),
+    };
+  }
+
+  function createMockNeglectDetector(result: NeglectedCompass | null): NeglectDetector {
+    return {
+      detect: vi.fn<(userId: string, taskQuery: string) => Promise<NeglectedCompass | null>>().mockResolvedValue(result),
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("Compass Retriever 設定時、プロンプトに羅針盤コンテキストが含まれる", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー\n羅針盤と整合しています",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const retriever = createMockRetriever(
+      "[羅針盤1: 起業の夢 (関連度: 85%)]\n独立して自由に働く",
+      [{ content: "独立して自由に働く", filename: "起業の夢", similarity: 0.85, chunkId: 1, documentId: 10 }]
+    );
+    engine.setCompassRetriever(retriever);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(retriever.retrieve).toHaveBeenCalledWith(
+      "test-user",
+      expect.stringContaining("起業準備")
+    );
+    const userPrompt = client.lastRequest.messages[1].content;
+    expect(userPrompt).toContain("羅針盤（目標・価値観）との照合");
+    expect(userPrompt).toContain("起業の夢");
+    expect(result.compassContext).toBeDefined();
+    expect(result.compassContext?.hasCompass).toBe(true);
+  });
+
+  it("NeglectDetector 設定時、neglected item がプロンプトに含まれる", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー\n健康目標が疎かです",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const detector = createMockNeglectDetector({
+      compassItemId: 20,
+      title: "健康目標",
+      content: "毎週3回運動する",
+      similarity: 0.15,
+    });
+    engine.setNeglectDetector(detector);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(detector.detect).toHaveBeenCalledWith(
+      "test-user",
+      expect.stringContaining("起業準備")
+    );
+    const userPrompt = client.lastRequest.messages[1].content;
+    expect(userPrompt).toContain("今週あまり参照されなかった羅針盤項目");
+    expect(userPrompt).toContain("健康目標");
+    expect(userPrompt).toContain("15%");
+    expect(result.compassContext?.neglectedItem).toEqual({
+      title: "健康目標",
+      similarity: 0.15,
+    });
+  });
+
+  it("Compass Retriever と NeglectDetector の両方が設定されている場合", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## 総合レビュー",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const retriever = createMockRetriever(
+      "[羅針盤1: キャリア目標 (関連度: 90%)]\n年収1000万",
+      [{ content: "年収1000万", filename: "キャリア目標", similarity: 0.9, chunkId: 1, documentId: 1 }]
+    );
+    const detector = createMockNeglectDetector({
+      compassItemId: 5,
+      title: "家族との時間",
+      content: "週末は家族と過ごす",
+      similarity: 0.1,
+    });
+
+    engine.setCompassRetriever(retriever);
+    engine.setNeglectDetector(detector);
+
+    const result = await engine.generateReview("test-user");
+
+    const userPrompt = client.lastRequest.messages[1].content;
+    expect(userPrompt).toContain("羅針盤（目標・価値観）との照合");
+    expect(userPrompt).toContain("キャリア目標");
+    expect(userPrompt).toContain("今週あまり参照されなかった羅針盤項目");
+    expect(userPrompt).toContain("家族との時間");
+    expect(result.compassContext?.hasCompass).toBe(true);
+    expect(result.compassContext?.neglectedItem?.title).toBe("家族との時間");
+  });
+
+  it("Compass Retriever が失敗しても generateReview は成功する（graceful degradation）", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー\n通常のレビュー",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const failingRetriever: Retriever = {
+      retrieve: vi.fn().mockRejectedValue(new Error("Embedding API error")),
+      buildContextSection: vi.fn(),
+    };
+    engine.setCompassRetriever(failingRetriever);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(result.review).toContain("通常のレビュー");
+    expect(result.compassContext).toBeUndefined();
+    expect(result.decisionsCount).toBe(2);
+  });
+
+  it("NeglectDetector が失敗しても generateReview は成功する", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const failingDetector: NeglectDetector = {
+      detect: vi.fn().mockRejectedValue(new Error("DB connection error")),
+    };
+    engine.setNeglectDetector(failingDetector);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(result.review).toBe("## レビュー");
+    expect(result.compassContext).toBeUndefined();
+  });
+
+  it("判定履歴が空の場合、Compass クエリは実行されない", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー\n履歴なし",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository([]);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const retriever = createMockRetriever("コンテキスト");
+    const detector = createMockNeglectDetector(null);
+    engine.setCompassRetriever(retriever);
+    engine.setNeglectDetector(detector);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(retriever.retrieve).not.toHaveBeenCalled();
+    expect(detector.detect).not.toHaveBeenCalled();
+    expect(result.compassContext).toBeUndefined();
+  });
+
+  it("NeglectDetector が null を返した場合、neglectedItem は含まれない", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const retriever = createMockRetriever(
+      "[羅針盤1: 目標 (関連度: 80%)]\nテスト",
+      [{ content: "テスト", filename: "目標", similarity: 0.8, chunkId: 1, documentId: 1 }]
+    );
+    const detector = createMockNeglectDetector(null);
+    engine.setCompassRetriever(retriever);
+    engine.setNeglectDetector(detector);
+
+    const result = await engine.generateReview("test-user");
+
+    expect(result.compassContext?.hasCompass).toBe(true);
+    expect(result.compassContext?.neglectedItem).toBeUndefined();
+  });
+
+  it("Compass Retriever が空のコンテキストを返した場合", async () => {
+    const mockResponse: LLMResponse = {
+      content: "## レビュー",
+      usage: mockUsage,
+    };
+
+    const client = new MockLLMClient(mockResponse);
+    const repo = new MockRepository(mockDecisions);
+    const engine = new DefaultWeeklyReviewEngine(client, repo);
+
+    const retriever = createMockRetriever("", []);
+    engine.setCompassRetriever(retriever);
+
+    const result = await engine.generateReview("test-user");
+
+    const userPrompt = client.lastRequest.messages[1].content;
+    expect(userPrompt).not.toContain("羅針盤（目標・価値観）との照合");
+    expect(result.compassContext).toBeUndefined();
   });
 });
