@@ -193,4 +193,9 @@ Configured in `vercel.json` for Vercel deployment:
 
 ## License
 
-Private
+This project is licensed under a **proprietary license**. It is NOT open-source software.
+
+- **Permitted:** Personal use, learning, modification for personal use
+- **Prohibited:** Commercial use, SaaS/API offering, redistribution, competing services
+
+See [LICENSE](LICENSE) for the full terms.

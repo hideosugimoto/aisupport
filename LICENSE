@@ -1,0 +1,67 @@
+AI Support - Proprietary License
+
+Copyright (c) 2026 Hideo Sugimoto. All rights reserved.
+
+Permission is hereby granted, free of charge, to any individual obtaining a
+copy of this software and associated documentation files (the "Software"),
+to use, copy, and modify the Software for PERSONAL, NON-COMMERCIAL purposes
+only, subject to the following conditions:
+
+1. PERMITTED USE
+
+   You may use the Software for:
+   (a) Personal use and self-hosted deployment for your own individual use.
+   (b) Educational and learning purposes.
+   (c) Modification and creation of derivative works for personal use only.
+
+2. PROHIBITED USE
+
+   You may NOT, without prior written permission from the copyright holder:
+
+   (a) COMMERCIAL USE — Use the Software, in whole or in part, for any
+       commercial purpose, including but not limited to selling, licensing,
+       sublicensing, or offering the Software as part of a paid product or
+       service.
+
+   (b) SaaS / API OFFERING — Host, deploy, or operate the Software (or any
+       derivative work) as a service accessible to third parties, including
+       but not limited to Software-as-a-Service (SaaS), Platform-as-a-Service
+       (PaaS), or as a publicly or privately accessible API.
+
+   (c) REDISTRIBUTION AND RESALE — Distribute, publish, sublicense, sell, or
+       otherwise make the Software (or any derivative work) available to third
+       parties, whether for free or for a fee, in source code or binary form.
+
+   (d) COMPETING SERVICE — Use the Software, in whole or in part, to build,
+       operate, or contribute to any product or service that competes with the
+       Software or any product or service offered by the copyright holder.
+       A "competing service" includes but is not limited to any AI-powered
+       decision support, task prioritization, or goal-aligned planning tool.
+
+3. ATTRIBUTION
+
+   All copies or substantial portions of the Software must retain this
+   copyright notice and license in its entirety.
+
+4. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+   OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+5. TERMINATION
+
+   Any violation of the terms above automatically terminates your rights under
+   this license. Upon termination, you must destroy all copies of the Software
+   in your possession.
+
+6. GOVERNING LAW
+
+   This license shall be governed by and construed in accordance with the laws
+   of Japan.
+
+For commercial licensing inquiries, contact the copyright holder.
