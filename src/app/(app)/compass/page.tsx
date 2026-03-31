@@ -46,7 +46,7 @@ export default function CompassPage() {
         <header className="mb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              あなたの羅針盤
+              マイゴール
             </h1>
             <nav className="flex gap-1">
               <Link
@@ -76,7 +76,7 @@ export default function CompassPage() {
           ) : items.length === 0 ? (
             <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
               <p className="text-4xl mb-4" aria-hidden="true">🧭</p>
-              <p className="font-medium">まだ羅針盤に何も登録されていません。</p>
+              <p className="font-medium">まだマイゴールが登録されていません。</p>
               <p className="text-sm mt-1">あなたの夢や目標を追加してみましょう。</p>
             </div>
           ) : (

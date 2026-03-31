@@ -2,9 +2,10 @@
   "plans": {
     "free": {
       "name": "Free",
-      "monthly_request_limit": 30,
+      "monthly_request_limit": 10,
       "rag_enabled": false,
       "weekly_review_enabled": false,
+      "weekly_review_lite_enabled": true,
       "compass_enabled": true,
       "compass_max_items": 10,
       "compass_image_enabled": false,
@@ -17,12 +18,14 @@
       "monthly_request_limit": -1,
       "rag_enabled": true,
       "weekly_review_enabled": true,
+      "weekly_review_lite_enabled": true,
       "compass_enabled": true,
       "compass_max_items": -1,
       "compass_image_enabled": true,
       "compass_url_enabled": true,
       "feed_enabled": true,
-      "price_jpy": 980
+      "price_jpy": 500,
+      "annual_price_jpy": 4800
     }
   },
   "default_plan": "free"

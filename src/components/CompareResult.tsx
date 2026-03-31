@@ -22,7 +22,7 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
       {compassRelevance?.hasCompass && compassRelevance.topMatches.length > 0 && (
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
-            羅針盤を基準に比較しています
+            マイゴールを基準に比較しています
           </p>
           <div className="flex flex-wrap gap-2">
             {compassRelevance.topMatches.map((match) => (
@@ -39,8 +39,8 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
       )}
       {!compassRelevance?.hasCompass && (
         <div className="mb-4 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="羅針盤を登録すると、目標に基づいた比較ができます">
-            羅針盤を登録
+          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="マイゴールを設定すると、目標に基づいた比較ができます">
+            マイゴールを設定
           </a>
           すると、目標に基づいた比較ができます
         </div>

@@ -26,9 +26,10 @@ describe("plan-gate", () => {
 
       expect(result).toEqual({
         plan: "free",
-        monthlyRequestLimit: 30,
+        monthlyRequestLimit: 10,
         ragEnabled: false,
         weeklyReviewEnabled: false,
+        weeklyReviewLiteEnabled: true,
         compassEnabled: true,
         compassMaxItems: 10,
         compassImageEnabled: false,
@@ -62,6 +63,7 @@ describe("plan-gate", () => {
         monthlyRequestLimit: -1,
         ragEnabled: true,
         weeklyReviewEnabled: true,
+        weeklyReviewLiteEnabled: true,
         compassEnabled: true,
         compassMaxItems: -1,
         compassImageEnabled: true,
@@ -92,9 +94,10 @@ describe("plan-gate", () => {
 
       expect(result).toEqual({
         plan: "free",
-        monthlyRequestLimit: 30,
+        monthlyRequestLimit: 10,
         ragEnabled: false,
         weeklyReviewEnabled: false,
+        weeklyReviewLiteEnabled: true,
         compassEnabled: true,
         compassMaxItems: 10,
         compassImageEnabled: false,
@@ -138,9 +141,10 @@ describe("plan-gate", () => {
     // Helper to create plan info
     const freePlan: PlanInfo = {
       plan: "free",
-      monthlyRequestLimit: 30,
+      monthlyRequestLimit: 10,
       ragEnabled: false,
       weeklyReviewEnabled: false,
+      weeklyReviewLiteEnabled: true,
       compassEnabled: true,
       compassMaxItems: 10,
       compassImageEnabled: false,
@@ -153,6 +157,7 @@ describe("plan-gate", () => {
       monthlyRequestLimit: -1,
       ragEnabled: true,
       weeklyReviewEnabled: true,
+      weeklyReviewLiteEnabled: true,
       compassEnabled: true,
       compassMaxItems: -1,
       compassImageEnabled: true,

@@ -11,7 +11,10 @@ interface DecisionResultProps {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  remaining?: number;
   onBreakdown?: (task: string) => void;
+  onShare?: () => void;
+  sharing?: boolean;
   compassRelevance?: CompassRelevance;
   contextHints?: DecisionContextHints;
 }
@@ -23,7 +26,10 @@ export function DecisionResult({
   model,
   inputTokens,
   outputTokens,
+  remaining,
   onBreakdown,
+  onShare,
+  sharing,
   compassRelevance,
   contextHints,
 }: DecisionResultProps) {
@@ -43,7 +49,7 @@ export function DecisionResult({
       {compassRelevance?.hasCompass && compassRelevance.topMatches.length > 0 && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
-            羅針盤との関連
+            マイゴールとの関連
           </p>
           <div className="flex flex-wrap gap-2">
             {compassRelevance.topMatches.map((match) => (
@@ -51,7 +57,7 @@ export function DecisionResult({
                 key={match.title}
                 className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
               >
-                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white dark:bg-blue-400 dark:text-blue-950" aria-hidden="true">C</span>
+                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white dark:bg-blue-400 dark:text-blue-950" aria-hidden="true">G</span>
                 {match.title} ({Math.round(match.similarity * 100)}%)
               </span>
             ))}
@@ -59,11 +65,17 @@ export function DecisionResult({
         </div>
       )}
       {!compassRelevance?.hasCompass && (
-        <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="羅針盤を登録すると、目標に基づいた判定ができます">
-            羅針盤を登録
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            マイゴールを設定すると、もっと的確な判定ができます
+          </p>
+          <a
+            href="/compass"
+            className="mt-2 inline-block rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            aria-label="マイゴールを設定する"
+          >
+            マイゴールを設定する
           </a>
-          すると、目標に基づいた判定ができます
         </div>
       )}
       <div className="flex flex-wrap gap-4 text-xs text-zinc-400">
@@ -76,14 +88,29 @@ export function DecisionResult({
         {contextHints && (
           <span className="flex gap-2">
             {contextHints.hasCompass && (
-              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 dark:bg-blue-900 dark:text-blue-300">羅針盤</span>
+              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 dark:bg-blue-900 dark:text-blue-300">マイゴール</span>
             )}
             {contextHints.hasRag && (
               <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900 dark:text-green-300">RAG</span>
             )}
           </span>
         )}
+        {remaining !== undefined && remaining >= 0 && (
+          <span className={remaining <= 3 ? "font-medium text-amber-500" : ""}>
+            残り {remaining} 回 / 今月
+          </span>
+        )}
       </div>
+      {onShare && (
+        <button
+          type="button"
+          onClick={onShare}
+          disabled={sharing}
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
+        >
+          {sharing ? "共有中..." : "結果を共有する"}
+        </button>
+      )}
       {onBreakdown && selectedTask && (
         <button
           type="button"

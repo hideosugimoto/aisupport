@@ -118,9 +118,9 @@ export class DefaultWeeklyReviewEngine implements WeeklyReviewEngine {
       if (this.compassRetriever) {
         const compassResult = await this.compassRetriever.retrieve(userId, taskQuery);
         if (compassResult.contextText) {
-          summary += "\n\n## 羅針盤（目標・価値観）との照合\n" +
-            "以下はユーザーが登録した羅針盤のうち、今週の判断に関連するものです。\n" +
-            "この週の判断が羅針盤とどの程度整合していたかを分析してください。\n\n" +
+          summary += "\n\n## マイゴール（目標・価値観）との照合\n" +
+            "以下はユーザーが登録したマイゴールのうち、今週の判断に関連するものです。\n" +
+            "この週の判断がマイゴールとどの程度整合していたかを分析してください。\n\n" +
             compassResult.contextText;
           context = { hasCompass: true };
         }
@@ -129,7 +129,7 @@ export class DefaultWeeklyReviewEngine implements WeeklyReviewEngine {
       if (this.neglectDetector) {
         const neglected = await this.neglectDetector.detect(userId, taskQuery);
         if (neglected) {
-          summary += "\n\n## 今週あまり参照されなかった羅針盤項目\n" +
+          summary += "\n\n## 今週あまり参照されなかったマイゴール\n" +
             `- **${neglected.title}**（関連度: ${Math.round(neglected.similarity * 100)}%）\n` +
             "この項目が今週の判断であまり反映されていなかった可能性があります。来週の改善提案に含めてください。";
           context = {

@@ -353,7 +353,7 @@ export function FeedClient() {
       {!keywordsLoading && keywords.length === 0 && !keywordsError && (
         <div className="mb-6 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 text-center">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-            羅針盤データからキーワードを生成して
+            マイゴールからキーワードを生成して
             <br />
             パーソナライズされたニュースを受け取ろう
           </p>

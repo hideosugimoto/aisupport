@@ -8,6 +8,7 @@ export interface PlanInfo {
   monthlyRequestLimit: number;
   ragEnabled: boolean;
   weeklyReviewEnabled: boolean;
+  weeklyReviewLiteEnabled: boolean;
   compassEnabled: boolean;
   compassMaxItems: number;
   compassImageEnabled: boolean;
@@ -28,6 +29,7 @@ export async function getUserPlan(userId: string): Promise<PlanInfo> {
     monthlyRequestLimit: planConfig.monthly_request_limit,
     ragEnabled: planConfig.rag_enabled,
     weeklyReviewEnabled: planConfig.weekly_review_enabled,
+    weeklyReviewLiteEnabled: planConfig.weekly_review_lite_enabled,
     compassEnabled: planConfig.compass_enabled,
     compassMaxItems: planConfig.compass_max_items,
     compassImageEnabled: planConfig.compass_image_enabled,
@@ -69,7 +71,7 @@ export async function checkCompassLimit(
   const resolvedPlan = plan ?? await getUserPlan(userId);
 
   if (!resolvedPlan.compassEnabled) {
-    return { allowed: false, error: "羅針盤機能はご利用いただけません" };
+    return { allowed: false, error: "マイゴール機能はご利用いただけません" };
   }
 
   if (type === "image" && !resolvedPlan.compassImageEnabled) {
@@ -85,7 +87,7 @@ export async function checkCompassLimit(
     if (count >= resolvedPlan.compassMaxItems) {
       return {
         allowed: false,
-        error: `羅針盤アイテムの上限(${resolvedPlan.compassMaxItems}件)に達しました。Proプランにアップグレードしてください。`,
+        error: `マイゴールの上限(${resolvedPlan.compassMaxItems}件)に達しました。Proプランにアップグレードしてください。`,
       };
     }
   }

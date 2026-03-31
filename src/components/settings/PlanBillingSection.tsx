@@ -88,15 +88,20 @@ export function PlanBillingSection({
           </div>
 
           {planInfo.plan === "free" ? (
-            <button
-              type="button"
-              onClick={onUpgrade}
-              disabled={upgrading}
-              aria-busy={upgrading}
-              className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              {upgrading ? "処理中..." : `Proプランにアップグレード (月額${plansConfig.plans.pro.price_jpy}円)`}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onUpgrade}
+                disabled={upgrading}
+                aria-busy={upgrading}
+                className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              >
+                {upgrading ? "処理中..." : `Proプランにアップグレード (月額${plansConfig.plans.pro.price_jpy}円)`}
+              </button>
+              <p className="mt-2 text-center text-xs text-zinc-400">
+                年額 {(plansConfig.plans.pro as Record<string, unknown>).annual_price_jpy ? Number((plansConfig.plans.pro as Record<string, unknown>).annual_price_jpy).toLocaleString() : String(plansConfig.plans.pro.price_jpy * 10)}円もあります
+              </p>
+            </>
           ) : (
             <button
               type="button"

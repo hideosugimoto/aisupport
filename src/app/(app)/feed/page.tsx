@@ -25,7 +25,7 @@ export default async function FeedPage() {
             パーソナルフィード
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            羅針盤データをもとにパーソナライズされたニュースをお届けします
+            マイゴールをもとにパーソナライズされたニュースをお届けします
           </p>
         </header>
 

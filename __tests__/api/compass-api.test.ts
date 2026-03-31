@@ -227,7 +227,7 @@ describe("POST /api/compass (テキスト)", () => {
   it("プラン制限（max_items）に達している場合 403 を返す", async () => {
     mockCheckCompassLimit.mockResolvedValue({
       allowed: false,
-      error: "羅針盤アイテムの上限に達しています",
+      error: "マイゴールの上限に達しています",
     });
 
     const request = new Request("http://localhost/api/compass", {

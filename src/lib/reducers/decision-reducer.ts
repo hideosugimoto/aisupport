@@ -32,6 +32,7 @@ export interface State {
   error: string | null;
   compassRelevance?: CompassRelevance;
   contextHints?: ContextHints;
+  remaining?: number;
   breakdownStatus: "idle" | "loading" | "streaming" | "completed" | "error";
   breakdownContent: string;
   breakdownInputTokens: number;
@@ -50,6 +51,7 @@ export type Action =
       inputTokens: number;
       outputTokens: number;
       isAnxietyMode: boolean;
+      remaining?: number;
     }
   | { type: "ERROR"; error: string }
   | { type: "RESET" }
@@ -95,6 +97,7 @@ export function reducer(state: State, action: Action): State {
         inputTokens: action.inputTokens,
         outputTokens: action.outputTokens,
         isAnxietyMode: action.isAnxietyMode,
+        remaining: action.remaining,
       };
     case "ERROR":
       return { ...state, status: "error", error: action.error };

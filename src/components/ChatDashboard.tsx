@@ -10,6 +10,7 @@ import { CompassSetupStep } from "./chat/CompassSetupStep";
 import { ChatConfirmStep } from "./chat/ChatConfirmStep";
 import { ChatResultSection } from "./chat/ChatResultSection";
 import { SessionContinueModal } from "./chat/SessionContinueModal";
+import { QuickStartFlow } from "./chat/QuickStartFlow";
 import type { CompassSuggestion } from "@/lib/compass/compass-suggester";
 import {
   reducer,
@@ -36,6 +37,7 @@ export function ChatDashboard() {
     hasCompass,
     isCompassLoading,
     addDraft,
+    addPreset,
     removeDraft,
     saveDrafts,
     skip: skipCompassSetup,
@@ -62,6 +64,12 @@ export function ChatDashboard() {
   // Session continuation state
   const [isSelectingCompleted, setIsSelectingCompleted] = useState(false);
   const [completedIndices, setCompletedIndices] = useState<Set<number>>(new Set());
+
+  // Quick start state
+  const [isQuickStart, setIsQuickStart] = useState(true);
+
+  // Share state
+  const [sharing, setSharing] = useState(false);
 
   // Compass suggestion state
   const [compassSuggestion, setCompassSuggestion] = useState<CompassSuggestion | null>(null);
@@ -131,8 +139,12 @@ export function ChatDashboard() {
     setModel(featuresConfig.default_model[p as keyof typeof featuresConfig.default_model]);
   }, []);
 
-  // Submit handler
-  const handleSubmit = async () => {
+  // Core submit logic (shared between normal and quick start flows)
+  const executeDecision = async (params: {
+    tasks: string[];
+    availableTime: number;
+    energyLevel: number;
+  }) => {
     const canProceed = await checkBudget();
     if (!canProceed) return;
 
@@ -144,9 +156,9 @@ export function ChatDashboard() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        tasks: tasks.filter((t) => t.trim().length > 0),
-        timeMinutes: availableTime ?? 60,
-        energyLevel: energyLevel ?? 3,
+        tasks: params.tasks,
+        timeMinutes: params.availableTime,
+        energyLevel: params.energyLevel,
         provider,
         model,
       }),
@@ -159,9 +171,9 @@ export function ChatDashboard() {
     await fetchDecision(
       "/api/decide",
       {
-        tasks: tasks.filter((t) => t.trim().length > 0),
-        availableTime: availableTime ?? 60,
-        energyLevel: energyLevel ?? 3,
+        tasks: params.tasks,
+        availableTime: params.availableTime,
+        energyLevel: params.energyLevel,
         provider,
         model,
         stream: true,
@@ -182,7 +194,8 @@ export function ChatDashboard() {
             model,
             inputTokens,
             outputTokens,
-            isAnxietyMode: (energyLevel ?? 3) <= featuresConfig.anxiety_mode_threshold,
+            isAnxietyMode: params.energyLevel <= featuresConfig.anxiety_mode_threshold,
+            remaining: meta?.remaining,
           });
           if (meta?.compassRelevance) {
             dispatch({ type: "SET_COMPASS", compassRelevance: meta.compassRelevance });
@@ -194,6 +207,15 @@ export function ChatDashboard() {
         onError: (error) => dispatch({ type: "ERROR", error }),
       }
     );
+  };
+
+  // Submit handler (normal flow)
+  const handleSubmit = () => {
+    return executeDecision({
+      tasks: tasks.filter((t) => t.trim().length > 0),
+      availableTime: availableTime ?? 60,
+      energyLevel: energyLevel ?? 3,
+    });
   };
 
   // Fetch compass relevance after decision completes
@@ -320,6 +342,44 @@ export function ChatDashboard() {
     }
   }, [tasks, apiState.status]);
 
+  // Quick start submit handler
+  const handleQuickSubmit = (data: { tasks: string[]; availableTime: number; energyLevel: number }) => {
+    setTasks(data.tasks);
+    setAvailableTime(data.availableTime);
+    setEnergyLevel(data.energyLevel);
+    setIsQuickStart(false);
+    // Execute directly with provided params (no setTimeout needed)
+    executeDecision(data);
+  };
+
+  // Share handler
+  const handleShare = async () => {
+    if (!apiState.content) return;
+    setSharing(true);
+    try {
+      const res = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: apiState.content,
+          tasks,
+          provider: apiState.provider,
+          model: apiState.model,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const shareUrl = `${window.location.origin}${data.url}`;
+        await navigator.clipboard.writeText(shareUrl);
+        alert("共有リンクをコピーしました");
+      }
+    } catch {
+      alert("共有リンクの作成に失敗しました");
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const isSubmitting = apiState.status === "loading" || apiState.status === "streaming";
 
   // --- Render ---
@@ -345,14 +405,23 @@ export function ChatDashboard() {
         </div>
       )}
 
-      {/* COMPASS SETUP */}
-      {!hasCompass && currentStep === "compass-setup" && (
+      {/* QUICK START (first-time users without compass) */}
+      {isQuickStart && !hasCompass && !isCompassLoading && apiState.status === "idle" && tasks.length === 0 && (
+        <QuickStartFlow
+          onSubmit={handleQuickSubmit}
+          onSwitchToFull={() => setIsQuickStart(false)}
+        />
+      )}
+
+      {/* COMPASS SETUP (shown when quick start is skipped) */}
+      {!isQuickStart && !hasCompass && currentStep === "compass-setup" && (
         <CompassSetupStep
           compassInput={compassInput}
           compassDrafts={compassDrafts}
           compassSaving={compassSaving}
           onInputChange={setCompassInput}
           onAddDraft={addDraft}
+          onAddPreset={addPreset}
           onRemoveDraft={removeDraft}
           onSave={saveDrafts}
           onSkip={skipCompassSetup}
@@ -471,6 +540,8 @@ export function ChatDashboard() {
             onBreakdown={handleBreakdown}
             onRetry={() => dispatch({ type: "RESET" })}
             onAddCompassTask={handleAddCompassTask}
+            onShare={handleShare}
+            sharing={sharing}
           />
 
           {/* Session actions */}

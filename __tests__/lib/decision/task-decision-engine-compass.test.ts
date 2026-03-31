@@ -70,7 +70,7 @@ describe("TaskDecisionEngine - Compass Integration", () => {
 
   it("compassRetriever が設定されている場合、decide() で compassRelevance を返す", async () => {
     const mockCompassRetriever = createMockRetriever(
-      "## 羅針盤コンテキスト\n夢を追いかける",
+      "## マイゴールコンテキスト\n夢を追いかける",
       [
         { content: "夢を追いかける", filename: "起業の夢", similarity: 0.87, chunkId: 1, documentId: 10 },
         { content: "健康的な生活", filename: "健康目標", similarity: 0.65, chunkId: 2, documentId: 20 },
@@ -110,7 +110,7 @@ describe("TaskDecisionEngine - Compass Integration", () => {
 
   it("RAG と Compass が並列で取得される（Promise.all）", async () => {
     const mockRagRetriever = createMockRetriever("## RAG コンテキスト\n参考資料");
-    const mockCompassRetriever = createMockRetriever("## 羅針盤コンテキスト\n夢の記録", [
+    const mockCompassRetriever = createMockRetriever("## マイゴールコンテキスト\n夢の記録", [
       { content: "夢の記録", filename: "夢", similarity: 0.8, chunkId: 1, documentId: 1 },
     ]);
 
@@ -158,7 +158,7 @@ describe("TaskDecisionEngine - Compass Integration", () => {
   });
 
   it("prepareStream() でも compassContext がプロンプトに注入される", async () => {
-    const mockCompassRetriever = createMockRetriever("## 羅針盤コンテキスト\n技術習得", [
+    const mockCompassRetriever = createMockRetriever("## マイゴールコンテキスト\n技術習得", [
       { content: "技術習得", filename: "スキルアップ", similarity: 0.75, chunkId: 3, documentId: 30 },
     ]);
 
@@ -238,7 +238,7 @@ describe("TaskDecisionEngine - Compass Integration", () => {
 
   it("RAG と Compass の両方がある場合、両方のコンテキストがプロンプトに含まれる", async () => {
     const mockRagRetriever = createMockRetriever("## RAG\n参考資料A");
-    const mockCompassRetriever = createMockRetriever("## 羅針盤\n夢B", [
+    const mockCompassRetriever = createMockRetriever("## マイゴール\n夢B", [
       { content: "夢B", filename: "目標B", similarity: 0.85, chunkId: 1, documentId: 1 },
     ]);
 

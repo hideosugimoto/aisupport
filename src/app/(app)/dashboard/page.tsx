@@ -1,4 +1,5 @@
 import { ChatDashboard } from "@/components/ChatDashboard";
+import { DailySummaryBanner } from "@/components/DailySummaryBanner";
 import Link from "next/link";
 
 export default function Home() {
@@ -45,7 +46,7 @@ export default function Home() {
                 href="/compass"
                 className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
               >
-                羅針盤
+                マイゴール
               </Link>
               <Link
                 href="/settings"
@@ -59,6 +60,7 @@ export default function Home() {
             構造と論理で判断。選択肢を削り、完璧より前進。
           </p>
         </header>
+        <DailySummaryBanner />
         <ChatDashboard />
       </div>
     </div>

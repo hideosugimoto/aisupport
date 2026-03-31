@@ -80,7 +80,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
       className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"
     >
       <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-        新しい羅針盤を追加
+        新しいマイゴールを追加
       </h2>
 
       {/* Type tabs */}

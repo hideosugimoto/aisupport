@@ -154,6 +154,20 @@ model CompassChunk {
   @@map("compass_chunks")
 }
 
+model SharedResult {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  content   String
+  tasks     String
+  provider  String
+  model     String
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([userId])
+  @@map("shared_results")
+}
+
 model FeedKeyword {
   id        Int      @id @default(autoincrement())
   userId    String   @map("user_id")

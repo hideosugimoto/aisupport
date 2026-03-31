@@ -300,7 +300,7 @@ describe("ParallelDecisionEngine", () => {
       const clients = { openai: openaiClient, gemini: geminiClient };
 
       const retriever = createMockRetriever(
-        "[羅針盤1: 起業目標 (関連度: 90%)]\n独立して自由に働く",
+        "[マイゴール1: 起業目標 (関連度: 90%)]\n独立して自由に働く",
         [
           { content: "独立して自由に働く", filename: "起業目標", similarity: 0.9, chunkId: 1, documentId: 10 },
           { content: "健康的な生活", filename: "健康目標", similarity: 0.7, chunkId: 2, documentId: 20 },
@@ -389,7 +389,7 @@ describe("ParallelDecisionEngine", () => {
       };
 
       const retriever = createMockRetriever(
-        "[羅針盤1: 目標]",
+        "[マイゴール1: 目標]",
         [{ content: "目標", filename: "目標", similarity: 0.8, chunkId: 1, documentId: 1 }]
       );
 

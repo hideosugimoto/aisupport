@@ -49,7 +49,7 @@ export async function GET() {
     } catch {
       console.error("[compass] GET error:", error instanceof Error ? error.message : String(error));
       return Response.json(
-        { error: "羅針盤の取得に失敗しました" },
+        { error: "マイゴールの取得に失敗しました" },
         { status: 500 }
       );
     }
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
     } catch {
       console.error("[compass] POST error:", error instanceof Error ? error.message : String(error));
       return Response.json(
-        { error: "羅針盤アイテムの追加に失敗しました" },
+        { error: "マイゴールの追加に失敗しました" },
         { status: 500 }
       );
     }

@@ -7,6 +7,7 @@ import type { DecisionContextHints } from "@/lib/decision/task-decision-engine";
 export interface StreamingMeta {
   compassRelevance?: CompassRelevance;
   contextHints?: DecisionContextHints;
+  remaining?: number;
 }
 
 export interface StreamingChunk {

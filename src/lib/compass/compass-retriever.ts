@@ -26,11 +26,11 @@ export class CompassRetriever implements Retriever {
 
     const sections = results.map(
       (r, i) =>
-        `[羅針盤${i + 1}: ${r.filename} (関連度: ${(r.similarity * 100).toFixed(0)}%)]\n${r.content}`
+        `[マイゴール${i + 1}: ${r.filename} (関連度: ${(r.similarity * 100).toFixed(0)}%)]\n${r.content}`
     );
 
     return (
-      "## あなたの羅針盤（目標・夢・インスピレーション）\n\n" +
+      "## あなたのマイゴール（目標・夢・インスピレーション）\n\n" +
       "以下はあなたが登録した目標や夢に関連する情報です。今日のタスク選定の指針にしてください。\n\n" +
       sections.join("\n\n---\n\n")
     );

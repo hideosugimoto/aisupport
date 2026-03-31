@@ -18,6 +18,8 @@ interface ChatResultSectionProps {
   onBreakdown: (task: string) => void;
   onRetry: () => void;
   onAddCompassTask: (task: string) => void;
+  onShare?: () => void;
+  sharing?: boolean;
 }
 
 export function ChatResultSection({
@@ -30,6 +32,8 @@ export function ChatResultSection({
   onBreakdown,
   onRetry,
   onAddCompassTask,
+  onShare,
+  sharing,
 }: ChatResultSectionProps) {
   const isAnxietyMode =
     (energyLevel ?? 3) <= featuresConfig.anxiety_mode_threshold;
@@ -67,9 +71,12 @@ export function ChatResultSection({
                 model={apiState.model || model}
                 inputTokens={apiState.inputTokens}
                 outputTokens={apiState.outputTokens}
+                remaining={apiState.remaining}
                 onBreakdown={
                   apiState.status === "completed" ? onBreakdown : undefined
                 }
+                onShare={apiState.status === "completed" ? onShare : undefined}
+                sharing={sharing}
                 compassRelevance={apiState.compassRelevance}
                 contextHints={apiState.contextHints}
               />

@@ -280,9 +280,9 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     vi.clearAllMocks();
   });
 
-  it("Compass Retriever 設定時、プロンプトに羅針盤コンテキストが含まれる", async () => {
+  it("Compass Retriever 設定時、プロンプトにマイゴールコンテキストが含まれる", async () => {
     const mockResponse: LLMResponse = {
-      content: "## レビュー\n羅針盤と整合しています",
+      content: "## レビュー\nマイゴールと整合しています",
       usage: mockUsage,
     };
 
@@ -291,7 +291,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
     const retriever = createMockRetriever(
-      "[羅針盤1: 起業の夢 (関連度: 85%)]\n独立して自由に働く",
+      "[マイゴール1: 起業の夢 (関連度: 85%)]\n独立して自由に働く",
       [{ content: "独立して自由に働く", filename: "起業の夢", similarity: 0.85, chunkId: 1, documentId: 10 }]
     );
     engine.setCompassRetriever(retriever);
@@ -303,7 +303,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
       expect.stringContaining("起業準備")
     );
     const userPrompt = client.lastRequest.messages[1].content;
-    expect(userPrompt).toContain("羅針盤（目標・価値観）との照合");
+    expect(userPrompt).toContain("マイゴール（目標・価値観）との照合");
     expect(userPrompt).toContain("起業の夢");
     expect(result.compassContext).toBeDefined();
     expect(result.compassContext?.hasCompass).toBe(true);
@@ -334,7 +334,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
       expect.stringContaining("起業準備")
     );
     const userPrompt = client.lastRequest.messages[1].content;
-    expect(userPrompt).toContain("今週あまり参照されなかった羅針盤項目");
+    expect(userPrompt).toContain("今週あまり参照されなかったマイゴール項目");
     expect(userPrompt).toContain("健康目標");
     expect(userPrompt).toContain("15%");
     expect(result.compassContext?.neglectedItem).toEqual({
@@ -354,7 +354,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
     const retriever = createMockRetriever(
-      "[羅針盤1: キャリア目標 (関連度: 90%)]\n年収1000万",
+      "[マイゴール1: キャリア目標 (関連度: 90%)]\n年収1000万",
       [{ content: "年収1000万", filename: "キャリア目標", similarity: 0.9, chunkId: 1, documentId: 1 }]
     );
     const detector = createMockNeglectDetector({
@@ -370,9 +370,9 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     const result = await engine.generateReview("test-user");
 
     const userPrompt = client.lastRequest.messages[1].content;
-    expect(userPrompt).toContain("羅針盤（目標・価値観）との照合");
+    expect(userPrompt).toContain("マイゴール（目標・価値観）との照合");
     expect(userPrompt).toContain("キャリア目標");
-    expect(userPrompt).toContain("今週あまり参照されなかった羅針盤項目");
+    expect(userPrompt).toContain("今週あまり参照されなかったマイゴール項目");
     expect(userPrompt).toContain("家族との時間");
     expect(result.compassContext?.hasCompass).toBe(true);
     expect(result.compassContext?.neglectedItem?.title).toBe("家族との時間");
@@ -455,7 +455,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     const engine = new DefaultWeeklyReviewEngine(client, repo);
 
     const retriever = createMockRetriever(
-      "[羅針盤1: 目標 (関連度: 80%)]\nテスト",
+      "[マイゴール1: 目標 (関連度: 80%)]\nテスト",
       [{ content: "テスト", filename: "目標", similarity: 0.8, chunkId: 1, documentId: 1 }]
     );
     const detector = createMockNeglectDetector(null);
@@ -484,7 +484,7 @@ describe("DefaultWeeklyReviewEngine - Compass 統合", () => {
     const result = await engine.generateReview("test-user");
 
     const userPrompt = client.lastRequest.messages[1].content;
-    expect(userPrompt).not.toContain("羅針盤（目標・価値観）との照合");
+    expect(userPrompt).not.toContain("マイゴール（目標・価値観）との照合");
     expect(result.compassContext).toBeUndefined();
   });
 });

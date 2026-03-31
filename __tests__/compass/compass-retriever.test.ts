@@ -30,7 +30,7 @@ describe("CompassRetriever", () => {
 
     expect(mockEmbedder.embedSingle).toHaveBeenCalledWith("今日やるべきこと");
     expect(result.results).toHaveLength(2);
-    expect(result.contextText).toContain("羅針盤");
+    expect(result.contextText).toContain("マイゴール");
     expect(result.contextText).toContain("将来の目標");
     expect(result.contextText).toContain("スキルアップ");
     expect(result.contextText).toContain("関連度: 85%");
@@ -100,9 +100,9 @@ describe("CompassRetriever", () => {
 
     const result = await retriever.retrieve("user-1", "query");
 
-    expect(result.contextText).toContain("羅針盤1:");
-    expect(result.contextText).toContain("羅針盤2:");
-    expect(result.contextText).toContain("羅針盤3:");
+    expect(result.contextText).toContain("マイゴール1:");
+    expect(result.contextText).toContain("マイゴール2:");
+    expect(result.contextText).toContain("マイゴール3:");
   });
 
   it("should separate results with dividers", async () => {
@@ -123,7 +123,7 @@ describe("CompassRetriever", () => {
 
     const result = await retriever.retrieve("user-1", "query");
 
-    expect(result.contextText).toContain("あなたの羅針盤");
+    expect(result.contextText).toContain("あなたのマイゴール");
     expect(result.contextText).toContain("目標・夢・インスピレーション");
     expect(result.contextText).toContain("タスク選定の指針");
   });

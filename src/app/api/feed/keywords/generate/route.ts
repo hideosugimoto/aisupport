@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     if (compassItems.length === 0) {
       return Response.json(
-        { error: "羅針盤にアイテムを追加してからキーワードを生成してください" },
+        { error: "マイゴールを追加してからキーワードを生成してください" },
         { status: 400 }
       );
     }

@@ -36,6 +36,12 @@ export function useCompassSetup() {
     setCompassInput("");
   }, [compassInput, compassDrafts.length]);
 
+  const addPreset = useCallback((value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || compassDrafts.length >= 10) return;
+    setCompassDrafts((prev) => [...prev, trimmed]);
+  }, [compassDrafts.length]);
+
   const removeDraft = useCallback((index: number) => {
     setCompassDrafts((prev) => prev.filter((_, i) => i !== index));
   }, []);
@@ -80,6 +86,7 @@ export function useCompassSetup() {
     hasCompass,
     isCompassLoading,
     addDraft,
+    addPreset,
     removeDraft,
     saveDrafts,
     skip,

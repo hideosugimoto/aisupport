@@ -89,8 +89,9 @@ export async function POST(request: NextRequest) {
               );
             }
             // ストリーム完了後にメタ情報を送信
+            const streamMeta = { ...meta, remaining: Math.max(0, limitCheck.remaining - 1) };
             controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ meta })}\n\n`)
+              encoder.encode(`data: ${JSON.stringify({ meta: streamMeta })}\n\n`)
             );
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
