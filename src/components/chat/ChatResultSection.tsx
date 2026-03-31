@@ -20,6 +20,7 @@ interface ChatResultSectionProps {
   onAddCompassTask: (task: string) => void;
   onShare?: () => void;
   sharing?: boolean;
+  shareUrl?: string;
 }
 
 export function ChatResultSection({
@@ -34,6 +35,7 @@ export function ChatResultSection({
   onAddCompassTask,
   onShare,
   sharing,
+  shareUrl,
 }: ChatResultSectionProps) {
   const isAnxietyMode =
     (energyLevel ?? 3) <= featuresConfig.anxiety_mode_threshold;
@@ -77,6 +79,7 @@ export function ChatResultSection({
                 }
                 onShare={apiState.status === "completed" ? onShare : undefined}
                 sharing={sharing}
+                shareUrl={shareUrl}
                 compassRelevance={apiState.compassRelevance}
                 contextHints={apiState.contextHints}
               />

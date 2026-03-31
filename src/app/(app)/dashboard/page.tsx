@@ -43,6 +43,12 @@ export default function Home() {
                 フィード
               </Link>
               <Link
+                href="/weekly-review"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
+              >
+                振り返り
+              </Link>
+              <Link
                 href="/compass"
                 className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >

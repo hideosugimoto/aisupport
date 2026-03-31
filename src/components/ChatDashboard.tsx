@@ -70,6 +70,7 @@ export function ChatDashboard() {
 
   // Share state
   const [sharing, setSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | undefined>(undefined);
 
   // Compass suggestion state
   const [compassSuggestion, setCompassSuggestion] = useState<CompassSuggestion | null>(null);
@@ -287,6 +288,7 @@ export function ChatDashboard() {
     clearWarning();
     setCompassSuggestion(null);
     setCompassSuggestionLoading(false);
+    setShareUrl(undefined);
   };
 
   // Continue session
@@ -352,9 +354,14 @@ export function ChatDashboard() {
     executeDecision(data);
   };
 
-  // Share handler
+  // Share handler with confirmation
   const handleShare = async () => {
     if (!apiState.content) return;
+    const confirmed = window.confirm(
+      "この判定結果を共有リンクとして公開します。\nリンクを知っている人は誰でも閲覧できます。\n\nよろしいですか？"
+    );
+    if (!confirmed) return;
+
     setSharing(true);
     try {
       const res = await fetch("/api/share", {
@@ -369,9 +376,7 @@ export function ChatDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        const shareUrl = `${window.location.origin}${data.url}`;
-        await navigator.clipboard.writeText(shareUrl);
-        alert("共有リンクをコピーしました");
+        setShareUrl(`${window.location.origin}${data.url}`);
       }
     } catch {
       alert("共有リンクの作成に失敗しました");
@@ -542,6 +547,7 @@ export function ChatDashboard() {
             onAddCompassTask={handleAddCompassTask}
             onShare={handleShare}
             sharing={sharing}
+            shareUrl={shareUrl}
           />
 
           {/* Session actions */}

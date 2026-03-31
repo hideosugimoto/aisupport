@@ -15,6 +15,7 @@ interface DecisionResultProps {
   onBreakdown?: (task: string) => void;
   onShare?: () => void;
   sharing?: boolean;
+  shareUrl?: string;
   compassRelevance?: CompassRelevance;
   contextHints?: DecisionContextHints;
 }
@@ -30,6 +31,7 @@ export function DecisionResult({
   onBreakdown,
   onShare,
   sharing,
+  shareUrl,
   compassRelevance,
   contextHints,
 }: DecisionResultProps) {
@@ -101,15 +103,47 @@ export function DecisionResult({
           </span>
         )}
       </div>
-      {onShare && (
+      {onShare && !shareUrl && (
         <button
           type="button"
           onClick={onShare}
           disabled={sharing}
           className="rounded-lg border border-border-brand px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg2 disabled:opacity-50"
         >
-          {sharing ? "共有中..." : "結果を共有する"}
+          {sharing ? "共有リンクを作成中..." : "結果を共有する"}
         </button>
+      )}
+      {shareUrl && (
+        <div className="rounded-lg border border-border-brand bg-surface p-4 space-y-3">
+          <p className="text-xs text-text2">
+            共有リンクが作成されました（30日間有効・誰でも閲覧可能）
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => { navigator.clipboard.writeText(shareUrl); }}
+              className="rounded-lg border border-border-brand px-3 py-1.5 text-xs font-medium text-text hover:bg-bg2 transition-colors"
+            >
+              リンクをコピー
+            </button>
+            <a
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("AIが今日の最適タスクを判定しました")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-border-brand px-3 py-1.5 text-xs font-medium text-text hover:bg-bg2 transition-colors"
+            >
+              X(Twitter)
+            </a>
+            <a
+              href={`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-border-brand px-3 py-1.5 text-xs font-medium text-text hover:bg-bg2 transition-colors"
+            >
+              LINE
+            </a>
+          </div>
+        </div>
       )}
       {onBreakdown && selectedTask && (
         <button
