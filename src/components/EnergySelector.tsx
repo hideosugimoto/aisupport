@@ -59,8 +59,8 @@ export function EnergySelector({ value, onSelect }: EnergySelectorProps) {
               onClick={() => onSelect(level)}
               className={`flex flex-col items-center gap-1 rounded-lg border px-3 py-2.5 text-sm min-w-[4.5rem] transition-colors ${
                 isSelected
-                  ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
-                  : "border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? "bg-root-bg text-root-color border-root-bg"
+                  : "border-border-brand text-text2 hover:bg-bg2"
               }`}
             >
               <span className="text-lg" aria-hidden="true">{emoji}</span>
@@ -70,7 +70,7 @@ export function EnergySelector({ value, onSelect }: EnergySelectorProps) {
         })}
       </div>
       {value !== null && value <= ANXIETY_MODE_THRESHOLD && (
-        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+        <p className="mt-1 text-xs text-amber-brand">
           無理のないタスクを提案します
         </p>
       )}

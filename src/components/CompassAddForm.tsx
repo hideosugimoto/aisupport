@@ -77,14 +77,14 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"
+      className="rounded-lg border border-border-brand bg-surface p-6"
     >
-      <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <h2 className="mb-4 text-lg font-semibold text-text">
         新しいマイゴールを追加
       </h2>
 
       {/* Type tabs */}
-      <div className="mb-4 flex gap-2 border-b border-zinc-200 dark:border-zinc-700" role="tablist">
+      <div className="mb-4 flex gap-2 border-b border-border-brand" role="tablist">
         <button
           type="button"
           role="tab"
@@ -94,8 +94,8 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
           onClick={() => setType("text")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             type === "text"
-              ? "border-b-2 border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100"
-              : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              ? "border-b-2 border-root-bg text-text"
+              : "text-text2 hover:text-text"
           }`}
         >
           <span aria-hidden="true">📝</span> テキスト
@@ -109,8 +109,8 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
           onClick={() => setType("url")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             type === "url"
-              ? "border-b-2 border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100"
-              : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              ? "border-b-2 border-root-bg text-text"
+              : "text-text2 hover:text-text"
           }`}
         >
           <span aria-hidden="true">🔗</span> URL
@@ -124,8 +124,8 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
           onClick={() => setType("image")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             type === "image"
-              ? "border-b-2 border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100"
-              : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              ? "border-b-2 border-root-bg text-text"
+              : "text-text2 hover:text-text"
           }`}
         >
           <span aria-hidden="true">🖼️</span> 画像
@@ -134,7 +134,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
 
       {/* Title input (common for all types) */}
       <div className="mb-4">
-        <label htmlFor="compass-title" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="compass-title" className="mb-2 block text-sm font-medium text-text">
           タイトル {type !== "image" && "(任意)"}
         </label>
         <input
@@ -149,15 +149,15 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
               ? "例: 憧れのライフスタイル"
               : "例: ビジョンボード"
           }
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
         />
       </div>
 
       {/* Content input based on type */}
       {type === "text" && (
         <div role="tabpanel" id="panel-text" aria-labelledby="tab-text" className="mb-4">
-          <label htmlFor="compass-content" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            内容 <span className="text-red-500">*</span>
+          <label htmlFor="compass-content" className="mb-2 block text-sm font-medium text-text">
+            内容 <span className="text-amber-brand">*</span>
           </label>
           <textarea
             id="compass-content"
@@ -166,15 +166,15 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             onChange={(e) => setContent(e.target.value)}
             rows={5}
             placeholder="あなたの夢や目標、大切にしている価値観を自由に書いてください..."
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
           />
         </div>
       )}
 
       {type === "url" && (
         <div role="tabpanel" id="panel-url" aria-labelledby="tab-url" className="mb-4">
-          <label htmlFor="compass-url" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            URL <span className="text-red-500">*</span>
+          <label htmlFor="compass-url" className="mb-2 block text-sm font-medium text-text">
+            URL <span className="text-amber-brand">*</span>
           </label>
           <input
             id="compass-url"
@@ -183,9 +183,9 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="https://example.com/inspiring-article"
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
           />
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-xs text-text2">
             記事や画像のURLを入力すると、AIが内容を要約します
           </p>
         </div>
@@ -193,8 +193,8 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
 
       {type === "image" && (
         <div role="tabpanel" id="panel-image" aria-labelledby="tab-image" className="mb-4">
-          <label htmlFor="compass-image" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            画像 <span className="text-red-500">*</span>
+          <label htmlFor="compass-image" className="mb-2 block text-sm font-medium text-text">
+            画像 <span className="text-amber-brand">*</span>
           </label>
           <input
             id="compass-image"
@@ -203,9 +203,9 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             required
             accept="image/jpeg,image/png,image/webp"
             onChange={handleFileChange}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
           />
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-xs text-text2">
             対応形式: JPEG, PNG, WebP
           </p>
           {preview && (
@@ -213,7 +213,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
               <img
                 src={preview}
                 alt="アップロード予定の画像プレビュー"
-                className="max-h-48 rounded-lg border border-zinc-200 dark:border-zinc-700"
+                className="max-h-48 rounded-lg border border-border-brand"
               />
             </div>
           )}
@@ -222,7 +222,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
 
       {/* Error message */}
       {error && (
-        <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+        <div role="alert" className="mb-4 rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">
           {error}
         </div>
       )}
@@ -231,7 +231,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        className="w-full rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
       >
         {loading ? "追加中..." : "追加"}
       </button>

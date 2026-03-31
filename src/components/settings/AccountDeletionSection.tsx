@@ -35,15 +35,15 @@ export function AccountDeletionSection({ onMessage }: AccountDeletionSectionProp
   };
 
   return (
-    <div className="rounded-lg border border-red-200 bg-white p-6 dark:border-red-900 dark:bg-zinc-900">
-      <h2 className="mb-2 text-sm font-medium text-red-600 dark:text-red-400">
+    <div className="rounded-lg border border-amber-bd bg-surface p-6">
+      <h2 className="mb-2 text-sm font-medium text-amber-brand">
         アカウント削除
       </h2>
-      <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="mb-4 text-xs text-text2">
         アカウントを削除すると、全データが完全に消去されます。この操作は取り消せません。
       </p>
       {confirmDelete && (
-        <p role="alert" aria-live="assertive" className="mb-3 text-xs font-medium text-red-600 dark:text-red-400">
+        <p role="alert" aria-live="assertive" className="mb-3 text-xs font-medium text-amber-brand">
           本当に削除しますか？もう一度ボタンを押すと削除されます。
         </p>
       )}
@@ -52,7 +52,7 @@ export function AccountDeletionSection({ onMessage }: AccountDeletionSectionProp
         onClick={handleDeleteAccount}
         disabled={deleting}
         aria-busy={deleting}
-        className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-amber-brand px-4 py-2 text-sm font-medium text-root-color transition-colors hover:opacity-90 disabled:opacity-50"
       >
         {deleting
           ? "削除中..."

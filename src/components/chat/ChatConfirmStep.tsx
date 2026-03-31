@@ -46,15 +46,15 @@ export function ChatConfirmStep({
           <p>準備完了です。</p>
           <div className="space-y-1 text-sm">
             <p>
-              <span className="mr-1 font-medium text-zinc-500" aria-hidden="true">[T]</span>
+              <span className="mr-1 font-medium text-text2" aria-hidden="true">[T]</span>
               タスク: {tasks.join("、")}
             </p>
             <p>
-              <span className="mr-1 font-medium text-zinc-500" aria-hidden="true">[t]</span>
+              <span className="mr-1 font-medium text-text2" aria-hidden="true">[t]</span>
               時間: {availableTime}分
             </p>
             <p>
-              <span className="mr-1 font-medium text-zinc-500" aria-hidden="true">[E]</span>
+              <span className="mr-1 font-medium text-text2" aria-hidden="true">[E]</span>
               エネルギー: {energyLevel} {ENERGY_LABELS[energyLevel]}
             </p>
           </div>
@@ -67,7 +67,7 @@ export function ChatConfirmStep({
           onClick={onSubmit}
           disabled={isSubmitting}
           aria-busy={isSubmitting}
-          className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="w-full rounded-lg bg-root-bg px-4 py-3 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
         >
           {isSubmitting ? "判断中..." : "最適なタスクを判断する"}
         </button>

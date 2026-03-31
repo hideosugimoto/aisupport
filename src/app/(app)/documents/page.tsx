@@ -88,29 +88,29 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-12">
         <header className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-text">
               ドキュメント管理
             </h1>
             <nav className="flex gap-1">
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 タスク決定
               </Link>
               <Link
                 href="/compass"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 マイゴール
               </Link>
             </nav>
           </div>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-text2">
             RAG用ドキュメントをアップロードして判定精度を向上させます
           </p>
         </header>
@@ -118,12 +118,12 @@ export default function DocumentsPage() {
         {/* Upload form */}
         <form
           onSubmit={handleUpload}
-          className="mb-8 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"
+          className="mb-8 rounded-lg border border-border-brand bg-surface p-6"
         >
-          <label htmlFor="file-upload" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <label htmlFor="file-upload" className="mb-2 block text-sm font-medium text-text">
             ファイルアップロード
           </label>
-          <p id="file-upload-hint" className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+          <p id="file-upload-hint" className="mb-3 text-xs text-text2">
             対応形式: Markdown (.md), テキスト (.txt), PDF (.pdf)
           </p>
           <div className="flex gap-2">
@@ -133,12 +133,12 @@ export default function DocumentsPage() {
               type="file"
               accept=".md,.txt,.pdf"
               aria-describedby="file-upload-hint"
-              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm"
             />
             <button
               type="submit"
               disabled={uploading}
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              className="rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
             >
               {uploading ? "処理中..." : "アップロード"}
             </button>
@@ -147,26 +147,26 @@ export default function DocumentsPage() {
 
         {/* Messages */}
         {error && (
-          <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+          <div role="alert" className="mb-4 rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">
             {error}
           </div>
         )}
         {success && (
-          <div role="status" aria-live="polite" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
+          <div role="status" aria-live="polite" className="mb-4 rounded-lg border border-forest-bd bg-forest-bg p-3 text-sm text-forest">
             {success}
           </div>
         )}
 
         {/* Document list */}
-        <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-          <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <div className="rounded-lg border border-border-brand bg-surface">
+          <div className="border-b border-border-brand px-4 py-3">
+            <h2 className="text-sm font-medium text-text">
               アップロード済みドキュメント ({documents.length})
             </h2>
           </div>
 
           {documents.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="px-4 py-8 text-center text-sm text-text2">
               ドキュメントがありません
             </div>
           ) : (
@@ -174,13 +174,13 @@ export default function DocumentsPage() {
               {documents.map((doc) => (
                 <li
                   key={doc.id}
-                  className="flex items-center justify-between border-b border-zinc-100 px-4 py-3 last:border-b-0 dark:border-zinc-800"
+                  className="flex items-center justify-between border-b border-border-brand px-4 py-3 last:border-b-0"
                 >
                   <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    <p className="text-sm font-medium text-text">
                       {doc.filename}
                     </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-text2">
                       {doc.chunkCount}チャンク &middot;{" "}
                       {new Date(doc.createdAt).toLocaleDateString("ja-JP")}
                     </p>
@@ -191,7 +191,7 @@ export default function DocumentsPage() {
                         type="button"
                         onClick={() => handleDelete(doc.id)}
                         aria-label={`${doc.filename}の削除を確認`}
-                        className="rounded-lg bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                        className="rounded-lg bg-amber-brand px-2 py-1 text-xs text-root-color hover:opacity-90"
                       >
                         確認
                       </button>
@@ -199,7 +199,7 @@ export default function DocumentsPage() {
                         type="button"
                         onClick={() => setConfirmDeleteId(null)}
                         aria-label="削除をキャンセル"
-                        className="rounded-lg px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        className="rounded-lg px-2 py-1 text-xs text-text2 hover:bg-bg2"
                       >
                         取消
                       </button>
@@ -209,7 +209,7 @@ export default function DocumentsPage() {
                       type="button"
                       onClick={() => handleDelete(doc.id)}
                       aria-label={`${doc.filename}を削除`}
-                      className="rounded-lg px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                      className="rounded-lg px-3 py-1.5 text-xs text-amber-brand hover:bg-amber-bg"
                     >
                       削除
                     </button>

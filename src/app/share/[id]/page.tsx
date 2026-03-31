@@ -51,9 +51,9 @@ export default async function SharePage({ params }: PageProps) {
   })();
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+        <h1 className="text-xl font-bold text-text mb-6">
           AI意思決定アシスタントの判定結果
         </h1>
 
@@ -62,7 +62,7 @@ export default async function SharePage({ params }: PageProps) {
             {tasks.map((task) => (
               <span
                 key={task}
-                className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                className="rounded-full bg-bg2 px-3 py-1 text-xs text-text2"
               >
                 {task}
               </span>
@@ -70,11 +70,11 @@ export default async function SharePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="prose prose-zinc dark:prose-invert max-w-none rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="prose max-w-none rounded-lg border border-border-brand bg-surface p-6">
           <MarkdownContent text={shared.content} />
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs text-zinc-400">
+        <div className="mt-4 flex items-center justify-between text-xs text-text3">
           <span>{shared.provider} / {shared.model}</span>
           <span>{shared.createdAt.toLocaleDateString("ja-JP")}</span>
         </div>
@@ -82,7 +82,7 @@ export default async function SharePage({ params }: PageProps) {
         <div className="mt-8 text-center">
           <Link
             href="/sign-up"
-            className="rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white hover:bg-zinc-700 transition-colors dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-lg bg-root-bg px-6 py-3 text-sm font-medium text-root-color hover:bg-forest transition-colors"
           >
             無料で始める
           </Link>

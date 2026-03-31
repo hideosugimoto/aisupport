@@ -116,12 +116,12 @@ export function HistoryList({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="キーワードで検索..."
-          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm"
         />
         <button
           type="submit"
           disabled={isLoading}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
         >
           検索
         </button>
@@ -129,14 +129,14 @@ export function HistoryList({
 
       {/* Loading state */}
       {isLoading && (
-        <div className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="text-center text-sm text-text2">
           読み込み中...
         </div>
       )}
 
       {/* Results count */}
       {!isLoading && (
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="text-sm text-text2">
           {total}件の履歴
         </div>
       )}
@@ -151,7 +151,7 @@ export function HistoryList({
           return (
             <div
               key={item.id}
-              className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+              className="rounded-lg border border-border-brand bg-surface p-4"
             >
               <button
                 type="button"
@@ -161,10 +161,10 @@ export function HistoryList({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-2">
-                    <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <h3 className="font-medium text-text">
                       {firstTask.title || "タスク"}
                     </h3>
-                    <div className="flex flex-wrap gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+                    <div className="flex flex-wrap gap-3 text-xs text-text2">
                       <span>エネルギー: {item.energyLevel}/5</span>
                       <span>時間: {item.availableTime}分</span>
                       <span>
@@ -174,7 +174,7 @@ export function HistoryList({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-text3">
                       {isExpanded ? "▲" : "▼"}
                     </span>
                   </div>
@@ -183,19 +183,19 @@ export function HistoryList({
 
               {/* Expanded content */}
               {isExpanded && (
-                <div className="mt-4 space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <div className="mt-4 space-y-4 border-t border-border-brand pt-4">
                   {/* Tasks input */}
                   {tasks.length > 0 && (
                     <div>
-                      <h4 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      <h4 className="mb-2 text-sm font-medium text-text">
                         タスク候補
                       </h4>
-                      <ul className="list-inside list-disc space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      <ul className="list-inside list-disc space-y-1 text-sm text-text2">
                         {tasks.map((task: { title: string; description?: string }, idx: number) => (
                           <li key={`${task.title}-${idx}`}>
                             {task.title}
                             {task.description && (
-                              <span className="ml-2 text-zinc-500">
+                              <span className="ml-2 text-text2">
                                 - {task.description}
                               </span>
                             )}
@@ -207,10 +207,10 @@ export function HistoryList({
 
                   {/* AI Decision */}
                   <div>
-                    <h4 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <h4 className="mb-2 text-sm font-medium text-text">
                       AI判定結果
                     </h4>
-                    <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                    <div className="prose prose-sm max-w-none rounded-lg bg-bg p-3">
                       <pre className="whitespace-pre-wrap text-xs">
                         {item.result}
                       </pre>
@@ -221,7 +221,7 @@ export function HistoryList({
                   <button
                     type="button"
                     onClick={() => handleContinue(item)}
-                    className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                    className="rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest"
                   >
                     このタスクで続ける
                   </button>
@@ -232,8 +232,8 @@ export function HistoryList({
         })}
 
         {items.length === 0 && !isLoading && (
-          <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-lg border border-border-brand bg-surface p-8 text-center">
+            <p className="text-sm text-text2">
               {searchQuery ? "検索結果がありません" : "履歴がありません"}
             </p>
           </div>
@@ -247,18 +247,18 @@ export function HistoryList({
             type="button"
             onClick={() => handlePageChange(page - 1)}
             disabled={page === 1 || isLoading}
-            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:hover:bg-zinc-700"
+            className="rounded-lg border border-border-brand px-3 py-1 text-sm transition-colors hover:bg-bg2 disabled:opacity-50"
           >
             前へ
           </button>
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-text2">
             {page} / {totalPages}
           </span>
           <button
             type="button"
             onClick={() => handlePageChange(page + 1)}
             disabled={page === totalPages || isLoading}
-            className="rounded-lg border border-zinc-300 px-3 py-1 text-sm transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:hover:bg-zinc-700"
+            className="rounded-lg border border-border-brand px-3 py-1 text-sm transition-colors hover:bg-bg2 disabled:opacity-50"
           >
             次へ
           </button>

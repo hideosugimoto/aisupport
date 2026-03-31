@@ -55,7 +55,7 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
             onChange={(e) => setTask(e.target.value)}
             placeholder="例: 企画書を書く"
             aria-label="今日やりたいこと"
-            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            className="w-full rounded-lg border border-border-brand bg-surface px-4 py-3 text-sm text-text placeholder:text-text3 focus:border-text2 focus:outline-none"
             onKeyDown={(e) => {
               if (e.key === "Enter" && canSubmit) handleSubmit();
             }}
@@ -65,7 +65,7 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
         {/* Time presets */}
         {task.trim().length > 0 && (
           <div>
-            <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-sm text-text2">
               使える時間は？
             </p>
             <div className="flex gap-2">
@@ -76,8 +76,8 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
                   onClick={() => setTime(preset.value)}
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     time === preset.value
-                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                      : "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      ? "bg-root-bg text-root-color"
+                      : "border border-border-brand text-text hover:bg-bg2"
                   }`}
                 >
                   {preset.label}
@@ -90,7 +90,7 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
         {/* Energy presets */}
         {time !== null && (
           <div>
-            <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-sm text-text2">
               今の調子は？
             </p>
             <div className="flex gap-2">
@@ -101,8 +101,8 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
                   onClick={() => setEnergy(preset.value)}
                   className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                     energy === preset.value
-                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                      : "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      ? "bg-root-bg text-root-color"
+                      : "border border-border-brand text-text hover:bg-bg2"
                   }`}
                 >
                   {preset.icon} {preset.label}
@@ -118,7 +118,7 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              className="rounded-lg bg-root-bg px-6 py-2.5 text-sm font-medium text-root-color transition-colors hover:bg-forest"
             >
               判定する
             </button>
@@ -129,7 +129,7 @@ export function QuickStartFlow({ onSubmit, onSwitchToFull }: QuickStartFlowProps
         <button
           type="button"
           onClick={onSwitchToFull}
-          className="text-xs text-zinc-400 underline hover:text-zinc-600 dark:hover:text-zinc-300"
+          className="text-xs text-text3 underline hover:text-text2"
         >
           もっと詳しく入力する
         </button>

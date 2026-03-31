@@ -1,26 +1,334 @@
 @import "tailwindcss";
 
+/* ============================================
+   Brand Design System — Base Theme
+   ============================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --bg:        #f7f5f2;
+  --bg2:       #eeebe6;
+  --surface:   #ffffff;
+  --border:    #e0dcd5;
+  --border2:   #c8c3ba;
+
+  /* Text */
+  --text:      #2a2520;
+  --text2:     #7a7268;
+  --text3:     #b0a89e;
+
+  /* Forest */
+  --forest:      #285240;
+  --forest-bg:   #eef6f1;
+  --forest-bd:   #deeee6;
+
+  /* Amber */
+  --amber:       #c47b1a;
+  --amber-bg:    #fbf4e4;
+  --amber-bd:    #f5e6c8;
+
+  /* Sky */
+  --sky:         #2e7db8;
+  --sky-bg:      #eaf4fb;
+  --sky-bd:      #d4e8f5;
+
+  /* Moss */
+  --moss:        #3d7878;
+  --moss-bg:     #e8f4f4;
+  --moss-bd:     #d0e8e8;
+
+  /* Stone */
+  --stone:       #7a7268;
+  --stone-bg:    #f7f5f2;
+  --stone-bd:    #e0dcd5;
+
+  /* Root node */
+  --root-bg:     #1e3a2f;
+  --root-color:  #ffffff;
+
+  /* Legacy mapping */
+  --background: var(--bg);
+  --foreground: var(--text);
+}
+
+/* ============================================
+   Feminine Theme — 桜・薔薇・ラベンダー
+   ============================================ */
+[data-theme="feminine"] {
+  --bg:        #faf6f4;
+  --bg2:       #f4eeeb;
+  --surface:   #ffffff;
+  --border:    #e8ddd8;
+  --border2:   #d4c8c2;
+
+  --text:      #2e2220;
+  --text2:     #8a706a;
+  --text3:     #c4aba4;
+
+  --forest:      #a05068;
+  --forest-bg:   #fdf0f4;
+  --forest-bd:   #e8c0cc;
+
+  --amber:       #7060a0;
+  --amber-bg:    #f4f0fc;
+  --amber-bd:    #d0c4ec;
+
+  --sky:         #507060;
+  --sky-bg:      #eef5f0;
+  --sky-bd:      #b8d4c4;
+
+  --moss:        #a06048;
+  --moss-bg:     #fdf0ea;
+  --moss-bd:     #e8c4b0;
+
+  --stone:       #708090;
+  --stone-bg:    #f0f4f8;
+  --stone-bd:    #c0ccd8;
+
+  --root-bg:     #a05068;
+  --root-color:  #ffffff;
+}
+
+/* ============================================
+   Dark Theme — 夜間・集中・プレミアム
+   ============================================ */
+[data-theme="dark"] {
+  --bg:        #1a1814;
+  --bg2:       #242018;
+  --surface:   #242018;
+  --border:    #3a3530;
+  --border2:   #4a4540;
+
+  --text:      #f0ece4;
+  --text2:     #a09880;
+  --text3:     #5a5448;
+
+  --forest:      #4a9068;
+  --forest-bg:   rgba(74,144,104,.14);
+  --forest-bd:   rgba(74,144,104,.3);
+
+  --amber:       #d4922a;
+  --amber-bg:    rgba(212,146,42,.13);
+  --amber-bd:    rgba(212,146,42,.3);
+
+  --sky:         #4a9ccc;
+  --sky-bg:      rgba(74,156,204,.13);
+  --sky-bd:      rgba(74,156,204,.3);
+
+  --moss:        #5aa898;
+  --moss-bg:     rgba(90,168,152,.13);
+  --moss-bd:     rgba(90,168,152,.3);
+
+  --stone:       #9a9080;
+  --stone-bg:    rgba(154,144,128,.12);
+  --stone-bd:    rgba(154,144,128,.25);
+
+  --root-bg:     #2a4a36;
+  --root-color:  #4a9068;
+}
+
+/* Feminine テーマのタイトルフォント */
+[data-theme="feminine"] h1,
+[data-theme="feminine"] h2 {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Brand surfaces */
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-surface: var(--surface);
+  --color-border-brand: var(--border);
+  --color-border2: var(--border2);
+
+  /* Brand text */
+  --color-text: var(--text);
+  --color-text2: var(--text2);
+  --color-text3: var(--text3);
+
+  /* Brand colors */
+  --color-forest: var(--forest);
+  --color-forest-bg: var(--forest-bg);
+  --color-forest-bd: var(--forest-bd);
+
+  --color-amber-brand: var(--amber);
+  --color-amber-bg: var(--amber-bg);
+  --color-amber-bd: var(--amber-bd);
+
+  --color-sky: var(--sky);
+  --color-sky-bg: var(--sky-bg);
+  --color-sky-bd: var(--sky-bd);
+
+  --color-moss: var(--moss);
+  --color-moss-bg: var(--moss-bg);
+  --color-moss-bd: var(--moss-bd);
+
+  --color-stone: var(--stone);
+  --color-stone-bg: var(--stone-bg);
+  --color-stone-bd: var(--stone-bd);
+
+  --color-root-bg: var(--root-bg);
+  --color-root-color: var(--root-color);
+
+  /* Typography */
+  --font-sans: 'DM Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Utility classes for brand design system
+   ============================================ */
+
+/* Badge variants */
+.badge-success {
+  background: var(--forest-bg);
+  color: var(--forest);
+  border: 1px solid var(--forest-bd);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-warning {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid var(--amber-bd);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-info {
+  background: var(--sky-bg);
+  color: var(--sky);
+  border: 1px solid var(--sky-bd);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-muted {
+  background: var(--stone-bg);
+  color: var(--stone);
+  border: 1px solid var(--stone-bd);
+  border-radius: 9999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Metric card */
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.metric-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.metric-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.04em;
+}
+.metric-delta-up {
+  color: var(--forest);
+  font-size: 12px;
+}
+.metric-delta-down {
+  color: var(--amber);
+  font-size: 12px;
+}
+
+/* Branch icon box */
+.branch-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Task shape badge */
+.task-shape {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pill button */
+.pill {
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.pill:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+/* Brand card */
+.brand-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.brand-card.open {
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+
+/* Table styling */
+.brand-table thead th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+}
+.brand-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.brand-table tbody tr:hover td {
+  background: var(--bg2);
+}
+
+/* Animations */
+.accordion-expand {
+  transition: max-height .35s cubic-bezier(.4, 0, .2, 1);
+}
+.chevron-rotate {
+  transition: transform .25s;
+}
+.chevron-rotate.open {
+  transform: rotate(180deg);
 }

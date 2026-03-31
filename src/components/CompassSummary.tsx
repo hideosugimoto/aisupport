@@ -16,14 +16,14 @@ export function CompassSummary({ items, className }: CompassSummaryProps) {
 
   return (
     <div
-      className={`rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800 ${className ?? ""}`}
+      className={`rounded-lg border border-border-brand bg-bg p-3 ${className ?? ""}`}
     >
-      <p className="text-sm text-zinc-700 dark:text-zinc-300">
+      <p className="text-sm text-text">
         <span aria-hidden="true">🧭</span> {titlesText}
       </p>
       <Link
         href="/compass"
-        className="mt-1 inline-block text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+        className="mt-1 inline-block text-xs text-text3 hover:text-text2"
       >
         編集
       </Link>

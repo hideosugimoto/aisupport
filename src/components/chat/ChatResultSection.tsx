@@ -43,13 +43,13 @@ export function ChatResultSection({
       {apiState.status === "error" && (
         <ChatMessage>
           <div role="alert" className="space-y-2">
-            <p className="text-red-600 dark:text-red-400">
+            <p className="text-amber-brand">
               {apiState.error}
             </p>
             <button
               type="button"
               onClick={onRetry}
-              className="text-sm text-red-600 underline hover:text-red-800 dark:text-red-400"
+              className="text-sm text-amber-brand underline hover:text-amber-brand"
             >
               リトライ
             </button>
@@ -89,7 +89,7 @@ export function ChatResultSection({
         <div
           role="status"
           aria-busy="true"
-          className="ml-11 text-sm text-zinc-500 dark:text-zinc-400"
+          className="ml-11 text-sm text-text2"
         >
           タスクを分解中...
         </div>
@@ -99,9 +99,9 @@ export function ChatResultSection({
       {apiState.breakdownStatus === "error" && (
         <div
           role="alert"
-          className="ml-11 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950"
+          className="ml-11 rounded-lg border border-amber-bd bg-amber-bg p-4"
         >
-          <p className="text-sm text-red-700 dark:text-red-300">
+          <p className="text-sm text-amber-brand">
             {apiState.breakdownError}
           </p>
         </div>

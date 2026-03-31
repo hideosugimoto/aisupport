@@ -40,11 +40,11 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
   const truncatedContent = item.content.length > 100 ? item.content.slice(0, 100) + "…" : item.content;
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="rounded-lg border border-border-brand bg-surface p-4">
       <div className="mb-2 flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-6 w-8 items-center justify-center rounded bg-zinc-200 text-[10px] font-bold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300" aria-hidden="true">{typeLabel}</span>
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          <span className="inline-flex h-6 w-8 items-center justify-center rounded bg-bg2 text-[10px] font-bold text-text2" aria-hidden="true">{typeLabel}</span>
+          <h3 className="text-sm font-semibold text-text">
             {item.title}
           </h3>
         </div>
@@ -53,7 +53,7 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
             type="button"
             onClick={() => setConfirmDelete(true)}
             aria-label={`${item.title}を削除`}
-            className="rounded-lg px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-red-400"
+            className="rounded-lg px-2 py-1 text-xs text-text2 hover:bg-bg2 hover:text-amber-brand"
           >
             削除
           </button>
@@ -65,7 +65,7 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
               disabled={deleting}
               aria-busy={deleting}
               aria-label={`${item.title}を削除`}
-              className="rounded-lg bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
+              className="rounded-lg bg-amber-brand px-2 py-1 text-xs text-root-color hover:opacity-90 disabled:opacity-50"
             >
               {deleting ? "削除中..." : "確認"}
             </button>
@@ -74,7 +74,7 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
               onClick={() => setConfirmDelete(false)}
               disabled={deleting}
               aria-label="削除をキャンセル"
-              className="rounded-lg px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="rounded-lg px-2 py-1 text-xs text-text2 hover:bg-bg2"
             >
               キャンセル
             </button>
@@ -82,7 +82,7 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
         )}
       </div>
 
-      <p className="mb-3 text-sm text-zinc-700 dark:text-zinc-300">
+      <p className="mb-3 text-sm text-text">
         {truncatedContent}
       </p>
 
@@ -91,13 +91,13 @@ export function CompassItemCard({ item, onDelete }: CompassItemProps) {
           href={item.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-2 block truncate text-xs text-blue-600 hover:underline dark:text-blue-400"
+          className="mb-2 block truncate text-xs text-sky hover:underline"
         >
           {item.sourceUrl}
         </a>
       )}
 
-      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-between text-xs text-text2">
         <span>
           {item.chunkCount}チャンク
         </span>

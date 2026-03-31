@@ -67,11 +67,11 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
   };
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-      <h2 className="mb-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+    <div className="rounded-lg border border-border-brand bg-surface p-6">
+      <h2 className="mb-4 text-sm font-medium text-text">
         APIキー管理（BYOK）
       </h2>
-      <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="mb-4 text-xs text-text2">
         自分のAPIキーを登録すると、プラットフォームのキーの代わりに使用されます。
       </p>
 
@@ -80,20 +80,20 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
           {apiKeys.map((key) => (
             <div
               key={key.provider}
-              className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800"
+              className="flex items-center justify-between rounded-lg border border-border-brand bg-bg px-3 py-2"
             >
               <div>
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <span className="text-sm font-medium text-text">
                   {PROVIDER_LABELS[key.provider] ?? key.provider}
                 </span>
-                <span className="ml-2 font-mono text-xs text-zinc-400">
+                <span className="ml-2 font-mono text-xs text-text3">
                   {key.keyHint}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => handleDeleteApiKey(key.provider)}
-                className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                className="text-xs text-amber-brand hover:text-amber-brand"
               >
                 削除
               </button>
@@ -104,14 +104,14 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
 
       <div className="space-y-3">
         <div>
-          <label htmlFor="api-key-provider" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+          <label htmlFor="api-key-provider" className="mb-1 block text-xs text-text2">
             プロバイダー
           </label>
           <select
             id="api-key-provider"
             value={newKeyProvider}
             onChange={(e) => setNewKeyProvider(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
           >
             <option value="openai">OpenAI</option>
             <option value="gemini">Google Gemini</option>
@@ -119,7 +119,7 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
           </select>
         </div>
         <div>
-          <label htmlFor="api-key-input" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+          <label htmlFor="api-key-input" className="mb-1 block text-xs text-text2">
             APIキー
           </label>
           <input
@@ -128,7 +128,7 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
             value={newKeyValue}
             onChange={(e) => setNewKeyValue(e.target.value)}
             placeholder="APIキーを入力..."
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
           />
         </div>
         <button
@@ -136,7 +136,7 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
           onClick={handleSaveApiKey}
           disabled={savingKey || !newKeyValue.trim()}
           aria-busy={savingKey}
-          className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="w-full rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
         >
           {savingKey ? "保存中..." : "キーを保存"}
         </button>

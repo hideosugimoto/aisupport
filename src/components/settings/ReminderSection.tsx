@@ -22,14 +22,14 @@ export function ReminderSection({
 }: ReminderSectionProps) {
   return (
     <>
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-        <h2 className="mb-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+      <div className="rounded-lg border border-border-brand bg-surface p-6">
+        <h2 className="mb-4 text-sm font-medium text-text">
           リマインダー
         </h2>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label htmlFor="reminder-enabled" className="text-sm text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="reminder-enabled" className="text-sm text-text">
               毎日のリマインダー
             </label>
             <input
@@ -39,13 +39,13 @@ export function ReminderSection({
               onChange={(e) =>
                 onSettingsChange((s) => ({ ...s, reminderEnabled: e.target.checked }))
               }
-              className="rounded border-zinc-300 dark:border-zinc-600"
+              className="rounded border-border-brand"
             />
           </div>
 
           {settings.reminderEnabled && (
             <div>
-              <label htmlFor="reminder-time" className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+              <label htmlFor="reminder-time" className="mb-1 block text-xs text-text2">
                 通知時刻
               </label>
               <input
@@ -55,17 +55,17 @@ export function ReminderSection({
                 onChange={(e) =>
                   onSettingsChange((s) => ({ ...s, reminderTime: e.target.value }))
                 }
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                className="rounded-lg border border-border-brand px-3 py-2 text-sm"
               />
             </div>
           )}
 
           <div className="flex items-center justify-between">
             <div>
-              <label htmlFor="budget-alert" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="budget-alert" className="text-sm text-text">
                 予算アラート
               </label>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-text2">
                 月間予算の80%を超えたら通知
               </p>
             </div>
@@ -76,16 +76,16 @@ export function ReminderSection({
               onChange={(e) =>
                 onSettingsChange((s) => ({ ...s, budgetAlert: e.target.checked }))
               }
-              className="rounded border-zinc-300 dark:border-zinc-600"
+              className="rounded border-border-brand"
             />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <label htmlFor="digest-enabled" className="text-sm text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="digest-enabled" className="text-sm text-text">
                 メールダイジェスト
               </label>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-text2">
                 毎朝9時にフィード記事の要約をメールで配信（Pro限定）
               </p>
             </div>
@@ -96,7 +96,7 @@ export function ReminderSection({
               onChange={(e) =>
                 onSettingsChange((s) => ({ ...s, digestEnabled: e.target.checked }))
               }
-              className="rounded border-zinc-300 dark:border-zinc-600"
+              className="rounded border-border-brand"
             />
           </div>
         </div>
@@ -107,7 +107,7 @@ export function ReminderSection({
         onClick={onSave}
         disabled={saving}
         aria-busy={saving}
-        className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        className="w-full rounded-lg bg-root-bg px-4 py-3 text-sm font-medium text-root-color transition-colors hover:bg-forest disabled:opacity-50"
       >
         {saving ? "保存中..." : "通知設定を保存"}
       </button>

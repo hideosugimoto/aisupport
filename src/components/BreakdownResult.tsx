@@ -22,14 +22,14 @@ export function BreakdownResult({
   return (
     <div className="mt-4 space-y-4">
       {isAnxietyMode && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <div className="rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">
           低エネルギーモードで分解しています（より小さな粒度）
         </div>
       )}
-      <div className="prose prose-zinc dark:prose-invert max-w-none rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="prose max-w-none rounded-lg border border-border-brand bg-bg p-6">
         <MarkdownContent text={content} />
       </div>
-      <div className="flex gap-4 text-xs text-zinc-400">
+      <div className="flex gap-4 text-xs text-text3">
         <span>
           {provider} / {model}
         </span>

@@ -28,20 +28,20 @@ export function DailySummaryBanner() {
   if (!yesterdayTask && streakDays === 0 && todayCount === 0) return null;
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="rounded-lg border border-border-brand bg-surface p-4">
       <div className="space-y-1.5">
         {yesterdayTask && (
-          <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="text-sm text-text">
             昨日は「{yesterdayTask}」に取り組みました
           </p>
         )}
         {streakDays > 0 && (
-          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          <p className="text-sm font-medium text-text">
             {streakDays}日連続で利用中
           </p>
         )}
         {todayCount > 0 && (
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-text3">
             今日の判定: {todayCount}回
           </p>
         )}

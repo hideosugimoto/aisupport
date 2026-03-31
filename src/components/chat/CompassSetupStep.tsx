@@ -60,7 +60,7 @@ export function CompassSetupStep({
         {/* Preset goals */}
         {compassDrafts.length === 0 && (
           <div>
-            <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mb-2 text-xs text-text2">
               タップで選ぶか、自分で入力してください
             </p>
             <div className="flex flex-wrap gap-2">
@@ -69,7 +69,7 @@ export function CompassSetupStep({
                   key={preset.label}
                   type="button"
                   onClick={() => handlePresetClick(preset.value)}
-                  className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="rounded-full border border-border-brand px-3 py-1.5 text-sm text-text hover:bg-bg2"
                 >
                   {preset.label}
                 </button>
@@ -92,12 +92,12 @@ export function CompassSetupStep({
             placeholder="例: 海外で暮らしたい"
             maxLength={200}
             aria-label="マイゴールを入力"
-            className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder-zinc-500"
+            className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm text-text placeholder-text3 focus:outline-none focus:ring-2 focus:ring-forest"
           />
           <button
             type="button"
             onClick={onAddDraft}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-lg bg-root-bg px-4 py-2 text-sm text-root-color hover:bg-forest"
           >
             追加
           </button>
@@ -108,14 +108,14 @@ export function CompassSetupStep({
             {compassDrafts.map((draft, index) => (
               <span
                 key={`draft-${draft}-${index}`}
-                className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
+                className="inline-flex items-center gap-1 rounded-full bg-bg2 px-3 py-1 text-sm text-text"
               >
                 {draft}
                 <button
                   type="button"
                   onClick={() => onRemoveDraft(index)}
                   aria-label={`${draft} を削除`}
-                  className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                  className="text-text3 hover:text-text2"
                 >
                   ×
                 </button>
@@ -130,7 +130,7 @@ export function CompassSetupStep({
               type="button"
               onClick={onSave}
               disabled={compassSaving}
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              className="rounded-lg bg-root-bg px-4 py-2 text-sm text-root-color hover:bg-forest disabled:opacity-50"
             >
               {compassSaving ? "保存中..." : "マイゴールに登録"}
             </button>
@@ -138,15 +138,15 @@ export function CompassSetupStep({
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            className="text-sm text-text3 hover:text-text2"
           >
             スキップして先にタスク判定する
           </button>
         </div>
 
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-text3">
           写真やURLも登録できます →{" "}
-          <a href="/compass" className="underline hover:text-zinc-600 dark:hover:text-zinc-200">
+          <a href="/compass" className="underline hover:text-text2">
             マイゴールページへ
           </a>
         </p>

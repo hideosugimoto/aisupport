@@ -15,9 +15,9 @@ const nextConfig: NextConfig = {
       isDevelopment
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://challenges.cloudflare.com"
         : "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https://img.clerk.com https:",
-      "font-src 'self'",
+      "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com",
       "worker-src 'self'",
       "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",

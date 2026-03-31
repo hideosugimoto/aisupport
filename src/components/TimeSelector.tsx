@@ -46,9 +46,9 @@ export function TimeSelector({ value, onSelect }: TimeSelectorProps) {
   }
 
   const baseButton =
-    "rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors";
+    "rounded-lg border border-border-brand px-4 py-2.5 text-sm font-medium text-text2 hover:bg-bg2 transition-colors";
   const activeButton =
-    "rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 transition-colors";
+    "rounded-lg border border-root-bg bg-root-bg px-4 py-2.5 text-sm font-medium text-root-color transition-colors";
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -83,7 +83,7 @@ export function TimeSelector({ value, onSelect }: TimeSelectorProps) {
           placeholder="分を入力"
           value={customValue}
           onChange={handleCustomChange}
-          className="w-24 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+          className="w-24 rounded-lg border border-border-brand px-3 py-2 text-sm"
           aria-label="カスタム時間（分）"
         />
       )}

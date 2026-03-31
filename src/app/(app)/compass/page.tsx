@@ -41,29 +41,29 @@ export default function CompassPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:py-12">
         <header className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-text">
               マイゴール
             </h1>
             <nav className="flex gap-1">
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 タスク決定
               </Link>
               <Link
                 href="/documents"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 RAG
               </Link>
             </nav>
           </div>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-text2">
             夢・目標・インスピレーションを登録して、日々のタスク判定の指針にしましょう。
           </p>
         </header>
@@ -72,9 +72,9 @@ export default function CompassPage() {
 
         <div className="mt-8" aria-live="polite" aria-busy={loading}>
           {loading ? (
-            <p className="text-center text-zinc-500">読み込み中...</p>
+            <p className="text-center text-text2">読み込み中...</p>
           ) : items.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
+            <div className="text-center py-12 text-text2">
               <p className="text-4xl mb-4" aria-hidden="true">🧭</p>
               <p className="font-medium">まだマイゴールが登録されていません。</p>
               <p className="text-sm mt-1">あなたの夢や目標を追加してみましょう。</p>

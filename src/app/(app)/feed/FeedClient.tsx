@@ -215,7 +215,7 @@ export function FeedClient() {
         <div
           role="tablist"
           aria-label="フィードカテゴリ"
-          className="flex gap-0 border-b border-zinc-200 dark:border-zinc-800"
+          className="flex gap-0 border-b border-border-brand"
         >
           <button
             role="tab"
@@ -232,8 +232,8 @@ export function FeedClient() {
             }}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "news"
-                ? "border-b-2 border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100"
-                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "border-b-2 border-root-bg text-text"
+                : "text-text2 hover:text-text"
             }`}
           >
             ニュース
@@ -253,8 +253,8 @@ export function FeedClient() {
             }}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "blog"
-                ? "border-b-2 border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100"
-                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "border-b-2 border-root-bg text-text"
+                : "text-text2 hover:text-text"
             }`}
           >
             ブログ・コラム
@@ -263,7 +263,7 @@ export function FeedClient() {
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="rounded-lg px-3 py-2 text-sm bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg px-3 py-2 text-sm bg-root-bg text-root-color font-medium hover:bg-forest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {refreshing ? "取得中..." : "最新を取得"}
         </button>
@@ -271,7 +271,7 @@ export function FeedClient() {
 
       {/* キーワードチップ */}
       {keywordsLoading ? (
-        <div className="mb-4 text-sm text-zinc-400 dark:text-zinc-500">
+        <div className="mb-4 text-sm text-text3">
           キーワードを読み込み中...
         </div>
       ) : keywords.length > 0 ? (
@@ -279,7 +279,7 @@ export function FeedClient() {
           {keywords.map((kw) => (
             <span
               key={kw.id}
-              className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-xs text-zinc-600 dark:text-zinc-400"
+              className="inline-flex items-center rounded-full bg-bg2 px-3 py-1 text-xs text-text2"
             >
               #{kw.keyword}
             </span>
@@ -292,7 +292,7 @@ export function FeedClient() {
               aria-label="キーワードを再生成"
               aria-haspopup="menu"
               aria-expanded={showModeMenu}
-              className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center rounded-full border border-border-brand px-3 py-1 text-xs text-text2 hover:bg-bg2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? "生成中..." : "再生成 ▾"}
             </button>
@@ -300,7 +300,7 @@ export function FeedClient() {
               <div
                 role="menu"
                 aria-label="キーワード生成モード"
-                className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-lg z-10"
+                className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border-brand bg-surface shadow-lg z-10"
               >
                 {KEYWORD_MODES.map((m, i) => (
                   <button
@@ -318,7 +318,7 @@ export function FeedClient() {
                         menuItemRefs.current[(i - 1 + KEYWORD_MODES.length) % KEYWORD_MODES.length]?.focus();
                       }
                     }}
-                    className="block w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:outline-none first:rounded-t-lg last:rounded-b-lg transition-colors"
+                    className="block w-full text-left px-4 py-2 text-sm text-text hover:bg-bg2 focus:bg-bg2 focus:outline-none first:rounded-t-lg last:rounded-b-lg transition-colors"
                   >
                     {m.label}
                   </button>
@@ -333,7 +333,7 @@ export function FeedClient() {
       {keywordsError && (
         <div
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+          className="mb-4 rounded-lg border border-amber-bd bg-amber-bg px-4 py-3 text-sm text-amber-brand"
         >
           {keywordsError}
         </div>
@@ -343,7 +343,7 @@ export function FeedClient() {
       {error && (
         <div
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+          className="mb-4 rounded-lg border border-amber-bd bg-amber-bg px-4 py-3 text-sm text-amber-brand"
         >
           {error}
         </div>
@@ -351,8 +351,8 @@ export function FeedClient() {
 
       {/* キーワード未生成の案内 */}
       {!keywordsLoading && keywords.length === 0 && !keywordsError && (
-        <div className="mb-6 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 text-center">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+        <div className="mb-6 rounded-lg border border-border-brand p-6 text-center">
+          <p className="text-sm text-text2 mb-4">
             マイゴールからキーワードを生成して
             <br />
             パーソナライズされたニュースを受け取ろう
@@ -360,7 +360,7 @@ export function FeedClient() {
           <button
             onClick={() => handleGenerateKeywords("standard")}
             disabled={generating}
-            className="rounded-lg px-4 py-2 text-sm bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg px-4 py-2 text-sm bg-root-bg text-root-color font-medium hover:bg-forest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {generating ? "生成中..." : "キーワードを生成する"}
           </button>
@@ -376,7 +376,7 @@ export function FeedClient() {
         aria-labelledby={activeTab === "news" ? "tab-news" : "tab-blog"}
       >
         {loading && articles.length === 0 ? (
-          <div role="status" className="text-sm text-zinc-400 dark:text-zinc-500">
+          <div role="status" className="text-sm text-text3">
             記事を読み込み中...
           </div>
         ) : articles.length > 0 ? (
@@ -384,16 +384,16 @@ export function FeedClient() {
             {articles.map((article) => (
               <article
                 key={article.id}
-                className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+                className="rounded-lg border border-border-brand"
               >
                 <a
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex gap-3 p-4 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                  className="flex gap-3 p-4 hover:bg-bg2 transition-colors"
                 >
                   {article.imageUrl && (
-                    <div className="relative shrink-0 w-24 h-16 rounded overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                    <div className="relative shrink-0 w-24 h-16 rounded overflow-hidden bg-bg2">
                       <Image
                         src={article.imageUrl}
                         alt=""
@@ -405,11 +405,11 @@ export function FeedClient() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1 leading-snug hover:text-blue-600 dark:hover:text-blue-400">
+                    <h2 className="text-sm font-semibold text-text mb-1 leading-snug hover:text-sky">
                       {article.title}
                       <span className="sr-only">（外部サイト、新しいタブで開きます）</span>
                     </h2>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                    <p className="text-xs text-text2 mb-2">
                       {SOURCE_LABELS[article.source as FeedSource] ?? article.source} — {formatDate(article.publishedAt)}
                     </p>
                     {article.snippet && (() => {
@@ -420,7 +420,7 @@ export function FeedClient() {
                       const snippetNorm = norm(text);
                       if (!text || titleNorm.includes(snippetNorm) || snippetNorm.includes(titleNorm)) return null;
                       return (
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 line-clamp-2">
+                        <p className="text-sm text-text2 mb-2 line-clamp-2">
                           {text}
                         </p>
                       );
@@ -428,7 +428,7 @@ export function FeedClient() {
                     {!article.keyword.startsWith("__category_") && (
                       <span
                         aria-label={`キーワード: ${article.keyword}`}
-                        className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 dark:text-zinc-400"
+                        className="inline-flex items-center rounded-full bg-bg2 px-2 py-0.5 text-xs text-text2"
                       >
                         #{article.keyword}
                       </span>
@@ -436,7 +436,7 @@ export function FeedClient() {
                     {article.keyword.startsWith("__category_") && (
                       <span
                         aria-label="カテゴリ記事"
-                        className="inline-flex items-center rounded-full bg-zinc-50 dark:bg-zinc-800/50 px-2 py-0.5 text-xs text-zinc-400 dark:text-zinc-500"
+                        className="inline-flex items-center rounded-full bg-bg px-2 py-0.5 text-xs text-text3"
                       >
                         {SOURCE_LABELS[article.source as FeedSource] ?? article.source}
                       </span>
@@ -447,8 +447,8 @@ export function FeedClient() {
             ))}
           </div>
         ) : !loading && keywords.length > 0 ? (
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-6 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-lg border border-border-brand p-6 text-center">
+            <p className="text-sm text-text2">
               記事がありません。「最新を取得」ボタンで記事を取得してください。
             </p>
           </div>
@@ -459,7 +459,7 @@ export function FeedClient() {
           <div className="mt-4 text-center">
             <button
               onClick={handleLoadMore}
-              className="rounded-lg px-4 py-2 text-sm border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="rounded-lg px-4 py-2 text-sm border border-border-brand text-text2 hover:bg-bg2 transition-colors"
             >
               もっと読み込む
             </button>
@@ -467,7 +467,7 @@ export function FeedClient() {
         )}
 
         {loading && articles.length > 0 && (
-          <div role="status" className="mt-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
+          <div role="status" className="mt-4 text-center text-sm text-text3">
             読み込み中...
           </div>
         )}

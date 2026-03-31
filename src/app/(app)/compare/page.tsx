@@ -83,46 +83,46 @@ export default function ComparePage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:py-12">
         <header className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-text">
               エンジン比較
             </h1>
             <nav className="flex gap-1">
               <Link
                 href="/history"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 履歴
               </Link>
               <Link
                 href="/cost"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 コスト確認
               </Link>
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 タスク決定に戻る
               </Link>
             </nav>
           </div>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-text2">
             全エンジンで並列判定し、比較します
           </p>
         </header>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded-lg border border-border-brand bg-surface p-6"
         >
           <div className="space-y-6">
             <div>
-              <span className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <span className="mb-2 block text-sm font-medium text-text">
                 タスク候補
               </span>
               {tasks.map((task, index) => (
@@ -133,13 +133,13 @@ export default function ComparePage() {
                     onChange={(e) => updateTask(task.id, e.target.value)}
                     placeholder={`タスク${index + 1}`}
                     aria-label={`タスク${index + 1}`}
-                    className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                    className="flex-1 rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
                   />
                   {tasks.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeTask(task.id)}
-                      className="rounded-md border border-zinc-300 px-3 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                      className="rounded-md border border-border-brand px-3 text-sm text-text hover:bg-bg2"
                     >
                       削除
                     </button>
@@ -150,7 +150,7 @@ export default function ComparePage() {
                 <button
                   type="button"
                   onClick={addTask}
-                  className="mt-2 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  className="mt-2 text-sm text-text2 hover:text-text"
                 >
                   + タスクを追加
                 </button>
@@ -159,7 +159,7 @@ export default function ComparePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="compare-time" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="compare-time" className="mb-2 block text-sm font-medium text-text">
                   利用可能時間（分）
                 </label>
                 <input
@@ -169,12 +169,12 @@ export default function ComparePage() {
                   onChange={(e) => setAvailableTime(Number(e.target.value))}
                   min="1"
                   max="1440"
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
                 />
               </div>
 
               <div>
-                <label htmlFor="compare-energy" className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <label htmlFor="compare-energy" className="mb-2 block text-sm font-medium text-text">
                   エネルギー状態（1-5）
                 </label>
                 <input
@@ -184,20 +184,20 @@ export default function ComparePage() {
                   onChange={(e) => setEnergyLevel(Number(e.target.value))}
                   min="1"
                   max="5"
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
                 />
               </div>
             </div>
 
             {/* モデル選択（各プロバイダー） */}
             <fieldset>
-              <legend className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <legend className="mb-2 block text-sm font-medium text-text">
                 各エンジンのモデル
               </legend>
               <div className="grid gap-3 sm:grid-cols-3">
                 {featuresConfig.enabled_providers.map((p) => (
                   <div key={p}>
-                    <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                    <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-text2">
                       {p}
                     </label>
                     <select
@@ -206,7 +206,7 @@ export default function ComparePage() {
                       onChange={(e) =>
                         setModels((prev) => ({ ...prev, [p]: e.target.value }))
                       }
-                      className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                      className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
                     >
                       {(
                         featuresConfig.available_models[
@@ -224,7 +224,7 @@ export default function ComparePage() {
             </fieldset>
 
             {error && (
-              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+              <div role="alert" className="rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">
                 {error}
               </div>
             )}
@@ -232,7 +232,7 @@ export default function ComparePage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-zinc-900 px-4 py-3 font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              className="w-full rounded-lg bg-root-bg px-4 py-3 font-medium text-root-color transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "比較中..." : "全エンジンで比較"}
             </button>

@@ -16,21 +16,21 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
 
   return (
     <div className="mt-6">
-      <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <h2 className="mb-4 text-lg font-semibold text-text">
         比較結果（{results.length}エンジン）
       </h2>
       {compassRelevance?.hasCompass && compassRelevance.topMatches.length > 0 && (
-        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
+        <div className="mb-4 rounded-lg border border-sky-bd bg-sky-bg p-4">
+          <p className="mb-2 text-sm font-medium text-sky">
             マイゴールを基準に比較しています
           </p>
           <div className="flex flex-wrap gap-2">
             {compassRelevance.topMatches.map((match) => (
               <span
                 key={match.title}
-                className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                className="inline-flex items-center rounded-full bg-sky-bg px-3 py-1 text-xs font-medium text-sky"
               >
-                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white dark:bg-blue-400 dark:text-blue-950" aria-hidden="true">C</span>
+                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky text-[9px] font-bold text-root-color" aria-hidden="true">C</span>
                 {match.title} ({Math.round(match.similarity * 100)}%)
               </span>
             ))}
@@ -38,8 +38,8 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
         </div>
       )}
       {!compassRelevance?.hasCompass && (
-        <div className="mb-4 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          <a href="/compass" className="underline hover:text-zinc-700 dark:hover:text-zinc-300" aria-label="マイゴールを設定すると、目標に基づいた比較ができます">
+        <div className="mb-4 rounded-lg border border-border-brand bg-bg p-3 text-sm text-text2">
+          <a href="/compass" className="underline hover:text-text" aria-label="マイゴールを設定すると、目標に基づいた比較ができます">
             マイゴールを設定
           </a>
           すると、目標に基づいた比較ができます
@@ -49,34 +49,34 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
         {results.map((result) => (
           <div
             key={result.provider}
-            className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-lg border border-border-brand bg-surface p-4"
           >
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+              <h3 className="text-base font-semibold text-text">
                 {result.provider}
               </h3>
               {result.error ? (
-                <span className="rounded bg-red-100 px-2 py-1 text-xs font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+                <span className="rounded bg-amber-bg px-2 py-1 text-xs font-medium text-amber-brand">
                   エラー
                 </span>
               ) : (
-                <span className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-950 dark:text-green-200">
+                <span className="rounded bg-forest-bg px-2 py-1 text-xs font-medium text-forest">
                   成功
                 </span>
               )}
             </div>
 
             {result.error ? (
-              <div className="text-sm text-red-600 dark:text-red-400">
+              <div className="text-sm text-amber-brand">
                 {result.error}
               </div>
             ) : (
               <>
-                <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none mb-3">
+                <div className="prose prose-sm max-w-none mb-3">
                   <MarkdownContent text={result.decision} />
                 </div>
 
-                <div className="space-y-1 border-t border-zinc-200 pt-3 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                <div className="space-y-1 border-t border-border-brand pt-3 text-xs text-text2">
                   <div className="flex justify-between">
                     <span>所要時間</span>
                     <span className="font-medium">{result.durationMs}ms</span>

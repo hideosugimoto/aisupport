@@ -388,7 +388,7 @@ export function ChatDashboard() {
     return (
       <div className="space-y-6">
         <ChatMessage animate={false}>
-          <p className="text-zinc-400">読み込み中...</p>
+          <p className="text-text3">読み込み中...</p>
         </ChatMessage>
       </div>
     );
@@ -398,8 +398,8 @@ export function ChatDashboard() {
     <div className="space-y-6">
       {/* Budget warning */}
       {budgetWarning && (
-        <div role="alert" aria-live="assertive" className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950">
-          <p className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+        <div role="alert" aria-live="assertive" className="rounded-lg border border-amber-bd bg-amber-bg p-4">
+          <p className="text-sm font-medium text-amber-brand">
             {budgetWarning}
           </p>
         </div>
@@ -486,7 +486,7 @@ export function ChatDashboard() {
             <ChatMessage>
               <div className="space-y-1">
                 <p>今の気力・体力はどのくらいですか？</p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-text3">
                   低いときは無理のないタスクを提案します。
                 </p>
               </div>
@@ -520,7 +520,7 @@ export function ChatDashboard() {
       {currentStep === "loading" && (
         <div className="space-y-4" role="status" aria-live="polite">
           <ChatMessage>
-            <p className="text-zinc-500 dark:text-zinc-400">分析しています...</p>
+            <p className="text-text2">分析しています...</p>
           </ChatMessage>
         </div>
       )}
@@ -550,14 +550,14 @@ export function ChatDashboard() {
               <button
                 type="button"
                 onClick={handleStartContinue}
-                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                className="rounded-lg bg-root-bg px-4 py-2 text-sm font-medium text-root-color transition-colors hover:bg-forest"
               >
                 完了して次へ
               </button>
               <button
                 type="button"
                 onClick={handleReset}
-                className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="rounded-lg border border-border-brand px-4 py-2 text-sm text-text2 hover:bg-bg2"
               >
                 新しいタスク判定を始める
               </button>

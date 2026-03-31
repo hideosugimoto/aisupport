@@ -7,6 +7,7 @@ import { ApiKeySection } from "@/components/settings/ApiKeySection";
 import { PushNotificationSection } from "@/components/settings/PushNotificationSection";
 import { ReminderSection } from "@/components/settings/ReminderSection";
 import { AccountDeletionSection } from "@/components/settings/AccountDeletionSection";
+import { ThemeSection } from "@/components/settings/ThemeSection";
 
 interface NotificationSettings {
   reminderEnabled: boolean;
@@ -204,17 +205,17 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-bg">
       <div className="mx-auto max-w-2xl px-4 py-6 sm:py-12">
         <header className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-text">
               設定
             </h1>
             <nav className="flex gap-1">
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
               >
                 ダッシュボード
               </Link>
@@ -223,12 +224,14 @@ export default function SettingsPage() {
         </header>
 
         {message && (
-          <div role="status" aria-live="polite" className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
+          <div role="status" aria-live="polite" className="mb-4 rounded-lg border border-sky-bd bg-sky-bg p-3 text-sm text-sky">
             {message}
           </div>
         )}
 
         <div className="space-y-6">
+          <ThemeSection />
+
           <PlanBillingSection
             planInfo={planInfo}
             upgrading={upgrading}
@@ -258,11 +261,11 @@ export default function SettingsPage() {
 
           <AccountDeletionSection onMessage={setMessage} />
 
-          <div className="flex justify-center gap-4 pt-4 text-xs text-zinc-400 dark:text-zinc-500">
-            <Link href="/terms" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+          <div className="flex justify-center gap-4 pt-4 text-xs text-text3">
+            <Link href="/terms" className="hover:text-text2">
               利用規約
             </Link>
-            <Link href="/privacy" className="hover:text-zinc-600 dark:hover:text-zinc-300">
+            <Link href="/privacy" className="hover:text-text2">
               プライバシーポリシー
             </Link>
           </div>

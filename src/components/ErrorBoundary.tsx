@@ -29,13 +29,13 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950">
-            <p className="text-sm text-red-700 dark:text-red-300">
+          <div className="rounded-lg border border-amber-bd bg-amber-bg p-6 text-center">
+            <p className="text-sm text-amber-brand">
               予期しないエラーが発生しました。ページをリロードしてください。
             </p>
             <button
               onClick={() => this.setState({ hasError: false })}
-              className="mt-3 text-sm text-red-600 underline hover:text-red-800 dark:text-red-400"
+              className="mt-3 text-sm text-amber-brand underline hover:text-amber-brand"
             >
               再試行
             </button>

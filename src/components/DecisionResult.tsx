@@ -39,25 +39,25 @@ export function DecisionResult({
   return (
     <div className="mt-6 space-y-4">
       {isAnxietyMode && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <div className="rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">
           低エネルギーモードで回答しています
         </div>
       )}
-      <div className="prose prose-zinc dark:prose-invert max-w-none rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="prose max-w-none rounded-lg border border-border-brand bg-surface p-6">
         <MarkdownContent text={content} />
       </div>
       {compassRelevance?.hasCompass && compassRelevance.topMatches.length > 0 && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <p className="mb-2 text-sm font-medium text-blue-800 dark:text-blue-200">
+        <div className="rounded-lg border border-sky-bd bg-sky-bg p-4">
+          <p className="mb-2 text-sm font-medium text-sky">
             マイゴールとの関連
           </p>
           <div className="flex flex-wrap gap-2">
             {compassRelevance.topMatches.map((match) => (
               <span
                 key={match.title}
-                className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                className="inline-flex items-center rounded-full bg-sky-bg px-3 py-1 text-xs font-medium text-sky"
               >
-                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white dark:bg-blue-400 dark:text-blue-950" aria-hidden="true">G</span>
+                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky text-[9px] font-bold text-root-color" aria-hidden="true">G</span>
                 {match.title} ({Math.round(match.similarity * 100)}%)
               </span>
             ))}
@@ -65,20 +65,20 @@ export function DecisionResult({
         </div>
       )}
       {!compassRelevance?.hasCompass && (
-        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="rounded-lg border border-sky-bd bg-sky-bg p-4">
+          <p className="text-sm text-sky">
             マイゴールを設定すると、もっと的確な判定ができます
           </p>
           <a
             href="/compass"
-            className="mt-2 inline-block rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="mt-2 inline-block rounded-lg bg-sky px-4 py-1.5 text-sm font-medium text-root-color hover:opacity-90 transition-colors"
             aria-label="マイゴールを設定する"
           >
             マイゴールを設定する
           </a>
         </div>
       )}
-      <div className="flex flex-wrap gap-4 text-xs text-zinc-400">
+      <div className="flex flex-wrap gap-4 text-xs text-text3">
         <span>
           {provider} / {model}
         </span>
@@ -88,15 +88,15 @@ export function DecisionResult({
         {contextHints && (
           <span className="flex gap-2">
             {contextHints.hasCompass && (
-              <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700 dark:bg-blue-900 dark:text-blue-300">マイゴール</span>
+              <span className="rounded bg-sky-bg px-1.5 py-0.5 text-sky">マイゴール</span>
             )}
             {contextHints.hasRag && (
-              <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-700 dark:bg-green-900 dark:text-green-300">RAG</span>
+              <span className="rounded bg-forest-bg px-1.5 py-0.5 text-forest">RAG</span>
             )}
           </span>
         )}
         {remaining !== undefined && remaining >= 0 && (
-          <span className={remaining <= 3 ? "font-medium text-amber-500" : ""}>
+          <span className={remaining <= 3 ? "font-medium text-amber-brand" : ""}>
             残り {remaining} 回 / 今月
           </span>
         )}
@@ -106,7 +106,7 @@ export function DecisionResult({
           type="button"
           onClick={onShare}
           disabled={sharing}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
+          className="rounded-lg border border-border-brand px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg2 disabled:opacity-50"
         >
           {sharing ? "共有中..." : "結果を共有する"}
         </button>
@@ -115,7 +115,7 @@ export function DecisionResult({
         <button
           type="button"
           onClick={() => onBreakdown(selectedTask)}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-700"
+          className="rounded-lg border border-border-brand px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg2"
         >
           このタスクを分解する
         </button>
