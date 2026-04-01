@@ -149,7 +149,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
               ? "例: 憧れのライフスタイル"
               : "例: ビジョンボード"
           }
-          className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
         />
       </div>
 
@@ -166,7 +166,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             onChange={(e) => setContent(e.target.value)}
             rows={5}
             placeholder="あなたの夢や目標、大切にしている価値観を自由に書いてください..."
-            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
           />
         </div>
       )}
@@ -183,7 +183,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="https://example.com/inspiring-article"
-            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
           />
           <p className="mt-1 text-xs text-text2">
             記事や画像のURLを入力すると、AIが内容を要約します
@@ -203,7 +203,7 @@ export function CompassAddForm({ onItemAdded }: CompassAddFormProps) {
             required
             accept="image/jpeg,image/png,image/webp"
             onChange={handleFileChange}
-            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
           />
           <p className="mt-1 text-xs text-text2">
             対応形式: JPEG, PNG, WebP

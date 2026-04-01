@@ -55,7 +55,7 @@ export function WeeklyReviewClient({ isPro }: WeeklyReviewClientProps) {
   };
 
   if (liteLoading) {
-    return <p className="text-center text-text2">読み込み中...</p>;
+    return <p className="text-center text-sm text-text2 py-12">読み込み中...</p>;
   }
 
   if (!lite) {

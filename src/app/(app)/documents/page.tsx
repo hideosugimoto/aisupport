@@ -122,7 +122,7 @@ export default function DocumentsPage() {
               type="file"
               accept=".md,.txt,.pdf"
               aria-describedby="file-upload-hint"
-              className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm"
+              className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
             />
             <button
               type="submit"
@@ -155,8 +155,8 @@ export default function DocumentsPage() {
           </div>
 
           {documents.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-text2">
-              ドキュメントがありません
+            <div className="rounded-lg border border-border-brand bg-surface p-8 text-center">
+              <p className="text-sm text-text2">ドキュメントがありません</p>
             </div>
           ) : (
             <ul>
@@ -175,12 +175,12 @@ export default function DocumentsPage() {
                     </p>
                   </div>
                   {confirmDeleteId === doc.id ? (
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => handleDelete(doc.id)}
                         aria-label={`${doc.filename}の削除を確認`}
-                        className="rounded-lg bg-amber-brand px-2 py-1 text-xs text-root-color hover:opacity-90"
+                        className="rounded-lg bg-amber-brand px-3 py-1.5 text-xs text-root-color hover:opacity-90"
                       >
                         確認
                       </button>
@@ -188,7 +188,7 @@ export default function DocumentsPage() {
                         type="button"
                         onClick={() => setConfirmDeleteId(null)}
                         aria-label="削除をキャンセル"
-                        className="rounded-lg px-2 py-1 text-xs text-text2 hover:bg-bg2"
+                        className="rounded-lg border border-border-brand px-3 py-1.5 text-xs text-text2 hover:bg-bg2"
                       >
                         取消
                       </button>

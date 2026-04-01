@@ -116,7 +116,7 @@ export function HistoryList({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="キーワードで検索..."
-          className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
         />
         <button
           type="submit"

@@ -344,8 +344,8 @@ export function CostDashboard() {
       </div>
 
       {summary.breakdowns.length === 0 && dailyCosts.length === 0 && (
-        <div className="text-center text-text3 py-8">
-          まだ利用データがありません
+        <div className="rounded-lg border border-border-brand bg-surface p-8 text-center">
+          <p className="text-sm text-text2">まだ利用データがありません</p>
         </div>
       )}
     </div>

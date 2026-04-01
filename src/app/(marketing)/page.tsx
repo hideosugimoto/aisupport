@@ -123,7 +123,7 @@ export default function LandingPage() {
             </ul>
             <Link
               href="/sign-up"
-              className="mt-6 block w-full rounded-lg border border-border-brand px-4 py-2 text-center text-sm font-medium text-text hover:bg-bg transition-colors"
+              className="mt-6 block w-full rounded-lg border border-border-brand px-6 py-3 text-center text-sm font-medium text-text hover:bg-bg transition-colors"
             >
               無料で始める
             </Link>
@@ -137,14 +137,14 @@ export default function LandingPage() {
               年額 &#165;4,800（月あたり&#165;400・2ヶ月分お得）
             </p>
             <ul className="mt-4 space-y-2 text-sm text-text2">
-              <li>リクエスト無制限</li>
+              <li>月100リクエスト</li>
               <li>あなたの資料から判断</li>
               <li>週次AIレビュー</li>
               <li>自分のAIキーで使い放題</li>
             </ul>
             <Link
               href="/sign-up"
-              className="mt-6 block w-full rounded-lg bg-root-bg px-4 py-2 text-center text-sm font-medium text-root-color hover:bg-forest transition-colors"
+              className="mt-6 block w-full rounded-lg bg-root-bg px-6 py-3 text-center text-sm font-medium text-root-color hover:bg-forest transition-colors"
             >
               Proで始める
             </Link>

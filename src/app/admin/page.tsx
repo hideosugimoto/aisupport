@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-center text-text2">読み込み中...</p>;
+  if (loading) return <p className="text-center text-sm text-text2 py-12">読み込み中...</p>;
   if (error) return <p className="text-center text-amber-brand">{error}</p>;
 
   return (

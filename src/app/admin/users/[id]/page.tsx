@@ -69,8 +69,8 @@ export default function AdminUserDetailPage() {
     }
   };
 
-  if (loading) return <p className="text-center text-text2">読み込み中...</p>;
-  if (!user) return <p className="text-center text-text2">ユーザーが見つかりません</p>;
+  if (loading) return <p className="text-center text-sm text-text2 py-12">読み込み中...</p>;
+  if (!user) return <p className="text-center text-sm text-text2 py-12">ユーザーが見つかりません</p>;
 
   const formatDate = (v: number | string | null) =>
     v ? new Date(v).toLocaleString("ja-JP") : "—";

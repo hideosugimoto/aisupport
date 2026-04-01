@@ -30,14 +30,16 @@ export default function AdminLogsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <p className="text-center text-text2">読み込み中...</p>;
+  if (loading) return <p className="text-center text-sm text-text2 py-12">読み込み中...</p>;
 
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold text-text">管理者操作ログ</h2>
 
       {logs.length === 0 ? (
-        <p className="text-center text-text2 py-8">操作ログはまだありません</p>
+        <div className="rounded-lg border border-border-brand bg-surface p-8 text-center">
+          <p className="text-sm text-text2">操作ログはまだありません</p>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border-brand">
           <table className="w-full text-sm">

@@ -61,12 +61,11 @@ export default function CompassPage() {
 
         <div className="mt-8" aria-live="polite" aria-busy={loading}>
           {loading ? (
-            <p className="text-center text-text2">読み込み中...</p>
+            <p className="text-center text-sm text-text2 py-12">読み込み中...</p>
           ) : items.length === 0 ? (
-            <div className="text-center py-12 text-text2">
-              <p className="text-4xl mb-4" aria-hidden="true">🧭</p>
-              <p className="font-medium">まだマイゴールが登録されていません。</p>
-              <p className="text-sm mt-1">あなたの夢や目標を追加してみましょう。</p>
+            <div className="rounded-lg border border-border-brand bg-surface p-8 text-center">
+              <p className="font-medium text-text2">まだマイゴールが登録されていません。</p>
+              <p className="text-sm mt-1 text-text3">あなたの夢や目標を追加してみましょう。</p>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">

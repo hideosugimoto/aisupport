@@ -111,7 +111,7 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
             id="api-key-provider"
             value={newKeyProvider}
             onChange={(e) => setNewKeyProvider(e.target.value)}
-            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
           >
             <option value="openai">OpenAI</option>
             <option value="gemini">Google Gemini</option>
@@ -128,7 +128,7 @@ export function ApiKeySection({ apiKeys, onKeysChange, onMessage }: ApiKeySectio
             value={newKeyValue}
             onChange={(e) => setNewKeyValue(e.target.value)}
             placeholder="APIキーを入力..."
-            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-brand px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
           />
         </div>
         <button
