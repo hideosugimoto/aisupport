@@ -9,29 +9,18 @@ interface CostBreakdown {
   totalInputTokens: number;
   totalOutputTokens: number;
   costUsd: number;
-  costJpy: number;
 }
 
 interface MonthlyCostSummary {
   year: number;
   month: number;
   totalCostUsd: number;
-  totalCostJpy: number;
   breakdowns: CostBreakdown[];
 }
 
 interface DailyCost {
   date: string;
   costUsd: number;
-  costJpy: number;
-}
-
-interface BudgetStatus {
-  budgetUsd: number;
-  spentUsd: number;
-  remainingUsd: number;
-  percentUsed: number;
-  alertLevel: "ok" | "warning" | "exceeded";
 }
 
 interface PromptVersionStats {
@@ -42,13 +31,11 @@ interface PromptVersionStats {
   avgInputTokens: number;
   avgOutputTokens: number;
   costUsd: number;
-  costJpy: number;
 }
 
 interface CostData {
   summary: MonthlyCostSummary;
   dailyCosts: DailyCost[];
-  budget: BudgetStatus;
   versionStats: PromptVersionStats[];
 }
 
@@ -127,81 +114,25 @@ export function CostDashboard() {
 
   if (!data) return null;
 
-  const { summary, dailyCosts, budget, versionStats } = data;
-  const maxDailyCost = Math.max(...dailyCosts.map((d) => d.costJpy), 0.01);
-
-  const getProgressBarColor = () => {
-    if (budget.alertLevel === "exceeded") return "bg-amber-brand";
-    if (budget.alertLevel === "warning") return "bg-amber-brand";
-    return "bg-forest";
-  };
+  const { summary, dailyCosts, versionStats } = data;
+  const maxDailyCost = Math.max(...dailyCosts.map((d) => d.costUsd), 0.0001);
 
   return (
     <div className="space-y-8">
-      {/* 予算警告バナー */}
-      {budget.alertLevel === "exceeded" && (
-        <div role="alert" className="rounded-lg border border-amber-bd bg-amber-bg p-4">
-          <p className="text-sm font-medium text-amber-brand">
-            月間予算を超過しています
-          </p>
-        </div>
-      )}
-      {budget.alertLevel === "warning" && (
-        <div role="alert" className="rounded-lg border border-amber-bd bg-amber-bg p-4">
-          <p className="text-sm font-medium text-amber-brand">
-            予算の80%を超えました
-          </p>
-        </div>
-      )}
-
-      {/* 予算プログレスバー */}
-      <div className="rounded-lg border border-border-brand bg-surface p-6">
-        <h2 className="text-sm font-medium text-text2 mb-2">
-          月間予算
-        </h2>
-        <div className="space-y-2">
-          <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-bold text-text">
-              ${budget.spentUsd.toFixed(2)}
-            </span>
-            <span className="text-sm text-text3">
-              / ${budget.budgetUsd.toFixed(2)}
-            </span>
-          </div>
-          <div className="w-full h-3 bg-bg2 rounded-full overflow-hidden">
-            <div
-              role="progressbar"
-              aria-valuenow={Math.round(budget.percentUsed)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`予算使用率 ${budget.percentUsed.toFixed(1)}%`}
-              className={`h-full ${getProgressBarColor()} transition-all duration-300`}
-              style={{
-                width: `${Math.min(budget.percentUsed, 100)}%`,
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-text2">
-              使用率: {budget.percentUsed.toFixed(1)}%
-            </span>
-            <span className="text-text2">
-              残額: ${budget.remainingUsd.toFixed(2)}
-            </span>
-          </div>
-        </div>
+      {/* 注意書き */}
+      <div className="rounded-lg border border-border-brand bg-bg2 p-4">
+        <p className="text-xs text-text2">
+          表示金額はトークン使用量からの概算です。実際の請求額は各AIプロバイダー（OpenAI / Google / Anthropic）のダッシュボードでご確認ください。
+        </p>
       </div>
 
       {/* 当月合計 */}
       <div className="rounded-lg border border-border-brand bg-surface p-6">
         <h2 className="text-sm font-medium text-text2">
-          {summary.year}年{summary.month}月 合計コスト
+          {summary.year}年{summary.month}月 推定コスト
         </h2>
-        <div className="mt-2 flex items-baseline gap-3">
+        <div className="mt-2">
           <span className="text-3xl font-bold text-text">
-            ¥{summary.totalCostJpy.toFixed(2)}
-          </span>
-          <span className="text-sm text-text3">
             ${summary.totalCostUsd.toFixed(4)}
           </span>
         </div>
@@ -228,14 +159,9 @@ export function CostDashboard() {
                     ({b.requestCount}回)
                   </span>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-text">
-                    ¥{b.costJpy.toFixed(2)}
-                  </div>
-                  <div className="text-xs text-text3">
-                    ${b.costUsd.toFixed(4)}
-                  </div>
-                </div>
+                <span className="text-sm font-medium text-text">
+                  ${b.costUsd.toFixed(4)}
+                </span>
               </div>
             ))}
           </div>
@@ -256,14 +182,14 @@ export function CostDashboard() {
                   <div
                     className="h-full bg-text2 rounded"
                     role="img"
-                    aria-label={`${d.date}: ¥${d.costJpy.toFixed(2)}`}
+                    aria-label={`${d.date}: $${d.costUsd.toFixed(4)}`}
                     style={{
-                      width: `${(d.costJpy / maxDailyCost) * 100}%`,
+                      width: `${(d.costUsd / maxDailyCost) * 100}%`,
                     }}
                   />
                 </div>
                 <span className="text-xs text-text2 w-20 text-right">
-                  ¥{d.costJpy.toFixed(2)}
+                  ${d.costUsd.toFixed(4)}
                 </span>
               </div>
             ))}
@@ -317,10 +243,7 @@ export function CostDashboard() {
                       {v.avgOutputTokens.toLocaleString()}
                     </td>
                     <td className="py-2 px-3 text-right text-text2">
-                      <div>¥{v.costJpy.toFixed(2)}</div>
-                      <div className="text-xs text-text3">
-                        ${v.costUsd.toFixed(4)}
-                      </div>
+                      ${v.costUsd.toFixed(4)}
                     </td>
                   </tr>
                 ))}
