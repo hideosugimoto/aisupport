@@ -27,6 +27,9 @@ export function AdvancedSettings({
       provider as keyof typeof featuresConfig.available_models
     ] ?? [];
 
+  const modelLabels = featuresConfig.model_labels as Record<string, { name: string; description: string }>;
+  const providerLabels = featuresConfig.provider_labels as Record<string, { name: string; description: string }>;
+
   return (
     <div>
       <button
@@ -45,44 +48,64 @@ export function AdvancedSettings({
             <span id="advanced-settings-provider-label" className="block text-sm font-medium text-text mb-2">
               AIエンジン
             </span>
-            <div className="flex gap-2" role="group" aria-labelledby="advanced-settings-provider-label">
-              {featuresConfig.enabled_providers.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => onProviderChange(p)}
-                  className={`rounded-lg px-4 py-2.5 text-sm font-medium border transition-colors ${
-                    provider === p
-                      ? "bg-root-bg text-root-color border-root-bg"
-                      : "border-border-brand text-text2 hover:bg-bg2"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
+            <div className="grid gap-2 sm:grid-cols-3" role="group" aria-labelledby="advanced-settings-provider-label">
+              {featuresConfig.enabled_providers.map((p) => {
+                const label = providerLabels[p];
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => onProviderChange(p)}
+                    className={`rounded-lg px-4 py-3 text-left border transition-colors ${
+                      provider === p
+                        ? "bg-root-bg text-root-color border-root-bg"
+                        : "border-border-brand text-text2 hover:bg-bg2"
+                    }`}
+                  >
+                    <span className="block text-sm font-medium">{label?.name ?? p}</span>
+                    {label && (
+                      <span className={`block text-xs mt-0.5 ${provider === p ? "text-root-color/70" : "text-text3"}`}>
+                        {label.description}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* モデル選択 */}
           <div>
-            <label
-              htmlFor="advanced-settings-model"
-              className="block text-sm font-medium text-text mb-2"
-            >
+            <span className="block text-sm font-medium text-text mb-2">
               モデル
-            </label>
-            <select
-              id="advanced-settings-model"
-              value={model}
-              onChange={(e) => onModelChange(e.target.value)}
-              className="w-full rounded-lg border border-border-brand px-3 py-2.5 text-sm"
-            >
-              {availableModels.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            </span>
+            <div className="space-y-2">
+              {availableModels.map((m) => {
+                const label = modelLabels[m];
+                const isSelected = model === m;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => onModelChange(m)}
+                    className={`w-full rounded-lg px-4 py-3 text-left border transition-colors ${
+                      isSelected
+                        ? "border-forest bg-forest-bg"
+                        : "border-border-brand hover:bg-bg2"
+                    }`}
+                  >
+                    <span className={`block text-sm font-medium ${isSelected ? "text-forest" : "text-text"}`}>
+                      {label?.name ?? m}
+                    </span>
+                    {label && (
+                      <span className="block text-xs mt-0.5 text-text2">
+                        {label.description}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 自動フォールバック */}

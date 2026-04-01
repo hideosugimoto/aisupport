@@ -207,7 +207,7 @@ export default function ComparePage() {
                   {featuresConfig.enabled_providers.map((p) => (
                     <div key={p}>
                       <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-text2">
-                        {p}
+                        {(featuresConfig.provider_labels as Record<string, { name: string }>)[p]?.name ?? p}
                       </label>
                       <select
                         id={`model-${p}`}
@@ -221,11 +221,14 @@ export default function ComparePage() {
                           featuresConfig.available_models[
                             p as keyof typeof featuresConfig.available_models
                           ] ?? []
-                        ).map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
-                        ))}
+                        ).map((m) => {
+                          const ml = (featuresConfig.model_labels as Record<string, { name: string; description: string }>)[m];
+                          return (
+                            <option key={m} value={m}>
+                              {ml?.name ?? m} — {ml?.description ?? ""}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                   ))}

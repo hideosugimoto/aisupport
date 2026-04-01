@@ -14,6 +14,19 @@
     "gemini": ["gemini-2.0-flash", "gemini-2.0-pro"],
     "claude": ["claude-sonnet-4-20250514", "claude-opus-4-20250514"]
   },
+  "model_labels": {
+    "gpt-4o-mini": { "name": "GPT-4o mini", "description": "高速・軽量。日常の判定に最適" },
+    "gpt-4o": { "name": "GPT-4o", "description": "高精度。複雑な判断や長文に強い" },
+    "gemini-2.0-flash": { "name": "Gemini Flash", "description": "最速。シンプルな判定向き" },
+    "gemini-2.0-pro": { "name": "Gemini Pro", "description": "高精度。深い分析や推論に強い" },
+    "claude-sonnet-4-20250514": { "name": "Claude Sonnet", "description": "バランス型。丁寧で構造的な回答" },
+    "claude-opus-4-20250514": { "name": "Claude Opus", "description": "最高精度。重要な意思決定向き" }
+  },
+  "provider_labels": {
+    "openai": { "name": "OpenAI", "description": "GPTシリーズ" },
+    "gemini": { "name": "Google Gemini", "description": "Googleの最新AI" },
+    "claude": { "name": "Claude", "description": "Anthropicの推論AI" }
+  },
   "monthly_budget_usd": 5.0,
   "auto_fallback": false,
   "history_page_limit": 20,
