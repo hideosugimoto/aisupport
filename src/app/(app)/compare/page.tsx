@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CompareResult as CompareResultComponent } from "@/components/CompareResult";
 import type { CompareResult } from "@/lib/compare/parallel-engine";
@@ -32,6 +32,14 @@ export default function ComparePage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canSelectModel, setCanSelectModel] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/billing/plan")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setCanSelectModel(data.canSelectModel ?? false); })
+      .catch(() => {});
+  }, []);
 
   const addTask = () => {
     setTasks([...tasks, createTask()]);
@@ -189,39 +197,41 @@ export default function ComparePage() {
               </div>
             </div>
 
-            {/* モデル選択（各プロバイダー） */}
-            <fieldset>
-              <legend className="mb-2 block text-sm font-medium text-text">
-                各エンジンのモデル
-              </legend>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {featuresConfig.enabled_providers.map((p) => (
-                  <div key={p}>
-                    <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-text2">
-                      {p}
-                    </label>
-                    <select
-                      id={`model-${p}`}
-                      value={models[p] ?? ""}
-                      onChange={(e) =>
-                        setModels((prev) => ({ ...prev, [p]: e.target.value }))
-                      }
-                      className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
-                    >
-                      {(
-                        featuresConfig.available_models[
-                          p as keyof typeof featuresConfig.available_models
-                        ] ?? []
-                      ).map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
+            {/* モデル選択（Pro or BYOKのみ表示） */}
+            {canSelectModel && (
+              <fieldset>
+                <legend className="mb-2 block text-sm font-medium text-text">
+                  各エンジンのモデル
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {featuresConfig.enabled_providers.map((p) => (
+                    <div key={p}>
+                      <label htmlFor={`model-${p}`} className="mb-1 block text-xs text-text2">
+                        {p}
+                      </label>
+                      <select
+                        id={`model-${p}`}
+                        value={models[p] ?? ""}
+                        onChange={(e) =>
+                          setModels((prev) => ({ ...prev, [p]: e.target.value }))
+                        }
+                        className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                      >
+                        {(
+                          featuresConfig.available_models[
+                            p as keyof typeof featuresConfig.available_models
+                          ] ?? []
+                        ).map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             {error && (
               <div role="alert" className="rounded-lg border border-amber-bd bg-amber-bg p-3 text-sm text-amber-brand">

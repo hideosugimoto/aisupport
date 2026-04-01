@@ -1,5 +1,6 @@
 import { prisma } from "../db/prisma";
 import plansConfig from "../../../config/plans.json";
+import featuresConfig from "../../../config/features.json";
 
 export type PlanId = "free" | "pro";
 
@@ -90,6 +91,38 @@ export async function checkCompassLimit(
         error: `マイゴールの上限(${resolvedPlan.compassMaxItems}件)に達しました。Proプランにアップグレードしてください。`,
       };
     }
+  }
+
+  return { allowed: true };
+}
+
+/**
+ * Freeプラン + 運営API使用の場合、デフォルトモデル以外を拒否。
+ * Pro or BYOKユーザーは全モデル利用可。
+ */
+export function checkModelAccess(
+  plan: PlanInfo,
+  provider: string,
+  model: string,
+  keySource: "user" | "platform"
+): { allowed: boolean; error?: string } {
+  // BYOKユーザーは自分のAPIキーなので制限なし
+  if (keySource === "user") {
+    return { allowed: true };
+  }
+
+  // Proプランは制限なし
+  if (plan.plan === "pro") {
+    return { allowed: true };
+  }
+
+  // Freeプラン + 運営API → デフォルトモデルのみ
+  const defaultModel = featuresConfig.default_model[provider as keyof typeof featuresConfig.default_model];
+  if (model !== defaultModel) {
+    return {
+      allowed: false,
+      error: `${model} はProプランで利用できます。無料プランでは ${defaultModel} をご利用ください。`,
+    };
   }
 
   return { allowed: true };

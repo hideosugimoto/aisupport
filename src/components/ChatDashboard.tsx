@@ -43,6 +43,15 @@ export function ChatDashboard() {
     skip: skipCompassSetup,
   } = useCompassSetup();
 
+  // Plan info for model access control
+  const [canSelectModel, setCanSelectModel] = useState(false);
+  useEffect(() => {
+    fetch("/api/billing/plan")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setCanSelectModel(data.canSelectModel ?? false); })
+      .catch(() => {});
+  }, []);
+
   const { budgetWarning, checkBudget, clearWarning } = useBudgetCheck();
   const { fetchStream: fetchDecision, abort: abortDecision } = useStreamingFetch();
   const { fetchStream: fetchBreakdown, abort: abortBreakdown } = useStreamingFetch();
@@ -513,6 +522,7 @@ export function ChatDashboard() {
             model={model}
             autoFallback={autoFallback}
             isSubmitting={isSubmitting}
+            canSelectModel={canSelectModel}
             onSubmit={handleSubmit}
             onProviderChange={handleProviderChange}
             onModelChange={setModel}

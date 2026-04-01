@@ -20,6 +20,7 @@ interface ChatConfirmStepProps {
   model: string;
   autoFallback: boolean;
   isSubmitting: boolean;
+  canSelectModel?: boolean;
   onSubmit: () => void;
   onProviderChange: (provider: string) => void;
   onModelChange: (model: string) => void;
@@ -34,6 +35,7 @@ export function ChatConfirmStep({
   model,
   autoFallback,
   isSubmitting,
+  canSelectModel,
   onSubmit,
   onProviderChange,
   onModelChange,
@@ -72,14 +74,16 @@ export function ChatConfirmStep({
           {isSubmitting ? "判断中..." : "最適なタスクを判断する"}
         </button>
 
-        <AdvancedSettings
-          provider={provider}
-          model={model}
-          autoFallback={autoFallback}
-          onProviderChange={onProviderChange}
-          onModelChange={onModelChange}
-          onFallbackChange={onFallbackChange}
-        />
+        {canSelectModel && (
+          <AdvancedSettings
+            provider={provider}
+            model={model}
+            autoFallback={autoFallback}
+            onProviderChange={onProviderChange}
+            onModelChange={onModelChange}
+            onFallbackChange={onFallbackChange}
+          />
+        )}
       </div>
     </div>
   );

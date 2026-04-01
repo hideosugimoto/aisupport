@@ -12,7 +12,7 @@ import { PrismaVectorStore } from "@/lib/rag/vector-store";
 import { createCompassRetrieverIfAvailable } from "@/lib/compass/create-compass-retriever";
 import type { LLMProvider } from "@/lib/llm/types";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
-import { checkRequestLimit } from "@/lib/billing/plan-gate";
+import { checkRequestLimit, getUserPlan, checkModelAccess } from "@/lib/billing/plan-gate";
 import { resolveApiKey } from "@/lib/billing/key-resolver";
 import { createLogger } from "@/lib/logger";
 import { isAllowedModel } from "@/lib/validation/model-validation";
@@ -53,8 +53,13 @@ export async function POST(request: NextRequest) {
     }
     const enableFallback = body.fallback ?? false;
 
-    const { apiKey } = await resolveApiKey(userId, provider);
-    const client = createLLMClient(provider, undefined, enableFallback, apiKey);
+    const plan = await getUserPlan(userId);
+    const { apiKey, source } = await resolveApiKey(userId, provider);
+    const modelCheck = checkModelAccess(plan, provider, model, source);
+    if (!modelCheck.allowed) {
+      return Response.json({ error: modelCheck.error }, { status: 403 });
+    }
+    const client = createLLMClient(provider, undefined, enableFallback, apiKey ?? undefined);
     const engine = new TaskDecisionEngine(client, repository, provider, model, logger.child("engine"));
 
     // RAG: ドキュメントがあれば retriever を設定

@@ -1,5 +1,6 @@
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 import { getUserPlan, checkRequestLimit } from "@/lib/billing/plan-gate";
+import { prisma } from "@/lib/db/prisma";
 
 export async function GET() {
   try {
@@ -7,12 +8,20 @@ export async function GET() {
     const plan = await getUserPlan(userId);
     const { remaining } = await checkRequestLimit(userId);
 
+    const byokKeys = await prisma.userApiKey.findMany({
+      where: { userId },
+      select: { provider: true },
+    });
+    const hasByok = byokKeys.length > 0;
+
     return Response.json({
       plan: plan.plan,
       monthlyRequestLimit: plan.monthlyRequestLimit,
       ragEnabled: plan.ragEnabled,
       weeklyReviewEnabled: plan.weeklyReviewEnabled,
       remaining,
+      hasByok,
+      canSelectModel: plan.plan === "pro" || hasByok,
     });
   } catch (error) {
     try {
