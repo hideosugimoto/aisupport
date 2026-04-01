@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CompassAddForm } from "@/components/CompassAddForm";
 import { CompassItemCard } from "@/components/CompassItemCard";
-import Link from "next/link";
+import { SubNav } from "@/components/SubNav";
 
 interface CompassItem {
   id: number;
@@ -48,20 +48,10 @@ export default function CompassPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-text">
               マイゴール
             </h1>
-            <nav className="flex gap-1">
-              <Link
-                href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                タスク決定
-              </Link>
-              <Link
-                href="/documents"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                RAG
-              </Link>
-            </nav>
+            <SubNav links={[
+              { href: "/documents", label: "資料" },
+              { href: "/dashboard", label: "ホーム" },
+            ]} />
           </div>
           <p className="mt-2 text-sm text-text2">
             夢・目標・インスピレーションを登録して、日々のタスク判定の指針にしましょう。

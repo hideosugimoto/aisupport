@@ -1,5 +1,5 @@
 import { CostDashboard } from "@/components/CostDashboard";
-import Link from "next/link";
+import { SubNav } from "@/components/SubNav";
 
 export default function CostPage() {
   return (
@@ -10,29 +10,13 @@ export default function CostPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-text">
               コストダッシュボード
             </h1>
-            <nav className="flex gap-1">
-              <Link
-                href="/compare"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                比較
-              </Link>
-              <Link
-                href="/history"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                履歴
-              </Link>
-              <Link
-                href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                タスク決定に戻る
-              </Link>
-            </nav>
+            <SubNav links={[
+              { href: "/history", label: "履歴" },
+              { href: "/dashboard", label: "ホーム" },
+            ]} />
           </div>
           <p className="mt-2 text-sm text-text2">
-            LLM API利用コストの可視化
+            API利用コストの確認
           </p>
         </header>
         <CostDashboard />

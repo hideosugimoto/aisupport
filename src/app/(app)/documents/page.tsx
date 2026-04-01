@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
+import { SubNav } from "@/components/SubNav";
 
 interface Document {
   id: number;
@@ -95,20 +95,10 @@ export default function DocumentsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-text">
               ドキュメント管理
             </h1>
-            <nav className="flex gap-1">
-              <Link
-                href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                タスク決定
-              </Link>
-              <Link
-                href="/compass"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                マイゴール
-              </Link>
-            </nav>
+            <SubNav links={[
+              { href: "/compass", label: "マイゴール" },
+              { href: "/dashboard", label: "ホーム" },
+            ]} />
           </div>
           <p className="mt-2 text-sm text-text2">
             RAG用ドキュメントをアップロードして判定精度を向上させます

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { SubNav } from "@/components/SubNav";
 import { PlanBillingSection } from "@/components/settings/PlanBillingSection";
 import { ApiKeySection } from "@/components/settings/ApiKeySection";
 import { PushNotificationSection } from "@/components/settings/PushNotificationSection";
@@ -213,14 +214,9 @@ export default function SettingsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-text">
               設定
             </h1>
-            <nav className="flex gap-1">
-              <Link
-                href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                ダッシュボード
-              </Link>
-            </nav>
+            <SubNav links={[
+              { href: "/dashboard", label: "ホーム" },
+            ]} />
           </div>
         </header>
 

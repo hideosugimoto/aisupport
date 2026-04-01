@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { SubNav } from "@/components/SubNav";
 import { CompareResult as CompareResultComponent } from "@/components/CompareResult";
 import type { CompareResult } from "@/lib/compare/parallel-engine";
 import type { CompassRelevance } from "@/lib/compass/types";
@@ -98,26 +98,10 @@ export default function ComparePage() {
             <h1 className="text-xl sm:text-2xl font-bold text-text">
               エンジン比較
             </h1>
-            <nav className="flex gap-1">
-              <Link
-                href="/history"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                履歴
-              </Link>
-              <Link
-                href="/cost"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                コスト確認
-              </Link>
-              <Link
-                href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm text-text2 hover:text-text hover:bg-bg2"
-              >
-                タスク決定に戻る
-              </Link>
-            </nav>
+            <SubNav links={[
+              { href: "/history", label: "履歴" },
+              { href: "/dashboard", label: "ホーム" },
+            ]} />
           </div>
           <p className="mt-2 text-sm text-text2">
             全エンジンで並列判定し、比較します
