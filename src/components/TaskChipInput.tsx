@@ -49,7 +49,7 @@ export function TaskChipInput({
           placeholder="例: 企画書の作成"
           maxLength={200}
           aria-label="タスクを入力"
-          className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm text-text placeholder-text3 focus:outline-none focus:ring-2 focus:ring-forest disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 rounded-lg border border-border-brand px-3 py-2 text-sm text-text placeholder-text3 focus:outline-none focus:ring-2 focus:ring-root-bg disabled:cursor-not-allowed disabled:opacity-50"
         />
         <button
           type="button"

@@ -30,7 +30,7 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
                 key={match.title}
                 className="inline-flex items-center rounded-full bg-sky-bg px-3 py-1 text-xs font-medium text-sky"
               >
-                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky text-[9px] font-bold text-root-color" aria-hidden="true">C</span>
+                <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-sky text-[11px] font-bold text-root-color" aria-hidden="true">C</span>
                 {match.title} ({Math.round(match.similarity * 100)}%)
               </span>
             ))}
@@ -95,7 +95,7 @@ export function CompareResult({ results, compassRelevance }: CompareResultProps)
                   </div>
                   <div className="flex justify-between">
                     <span>モデル</span>
-                    <span className="truncate font-medium text-[10px]">
+                    <span className="truncate font-medium text-[11px]">
                       {result.model}
                     </span>
                   </div>

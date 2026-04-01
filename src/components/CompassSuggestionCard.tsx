@@ -35,7 +35,7 @@ export function CompassSuggestionCard({
     return (
       <div className="rounded-lg border border-moss-bd bg-moss-bg p-4">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-moss text-[10px] font-bold text-root-color" aria-hidden="true">C</span>
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-moss text-[11px] font-bold text-root-color" aria-hidden="true">C</span>
           <span className="text-sm font-medium text-moss">
             Compass提案を生成中...
           </span>
@@ -62,7 +62,7 @@ export function CompassSuggestionCard({
     >
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-moss text-[10px] font-bold text-root-color" aria-hidden="true">C</span>
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-moss text-[11px] font-bold text-root-color" aria-hidden="true">C</span>
         <span className="text-sm font-medium text-moss">
           Compassからの提案
         </span>

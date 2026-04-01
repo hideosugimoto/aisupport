@@ -29,7 +29,7 @@ export default function AdminUsersPage() {
   }, []);
 
   if (loading) return <p className="text-center text-text2">読み込み中...</p>;
-  if (error) return <p className="text-center text-red-600">{error}</p>;
+  if (error) return <p className="text-center text-amber-brand">{error}</p>;
 
   return (
     <div>

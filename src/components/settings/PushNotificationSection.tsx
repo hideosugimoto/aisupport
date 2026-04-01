@@ -38,8 +38,8 @@ export function PushNotificationSection({
             onClick={pushSubscribed ? onUnsubscribe : onSubscribe}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pushSubscribed
-                ? "bg-amber-bg text-amber-brand hover:bg-amber-bg"
-                : "bg-root-bg text-root-color hover:bg-forest"
+                ? "border border-amber-bd bg-amber-bg text-amber-brand hover:opacity-80"
+                : "bg-root-bg text-root-color hover:opacity-90"
             }`}
           >
             {pushSubscribed ? "無効にする" : "有効にする"}

@@ -125,7 +125,7 @@ export default function ComparePage() {
                     onChange={(e) => updateTask(task.id, e.target.value)}
                     placeholder={`タスク${index + 1}`}
                     aria-label={`タスク${index + 1}`}
-                    className="flex-1 rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                    className="flex-1 rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
                   />
                   {tasks.length > 1 && (
                     <button
@@ -161,7 +161,7 @@ export default function ComparePage() {
                   onChange={(e) => setAvailableTime(Number(e.target.value))}
                   min="1"
                   max="1440"
-                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
                 />
               </div>
 
@@ -176,7 +176,7 @@ export default function ComparePage() {
                   onChange={(e) => setEnergyLevel(Number(e.target.value))}
                   min="1"
                   max="5"
-                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                  className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
                 />
               </div>
             </div>
@@ -199,7 +199,7 @@ export default function ComparePage() {
                         onChange={(e) =>
                           setModels((prev) => ({ ...prev, [p]: e.target.value }))
                         }
-                        className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                        className="w-full rounded-md border border-border-brand bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-root-bg"
                       >
                         {(
                           featuresConfig.available_models[
