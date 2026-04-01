@@ -154,6 +154,31 @@ model CompassChunk {
   @@map("compass_chunks")
 }
 
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  adminId   String   @map("admin_id")
+  action    String
+  targetId  String?  @map("target_id")
+  detail    String?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+model UserStatus {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique @map("user_id")
+  suspended Boolean  @default(false)
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_statuses")
+}
+
 model SharedResult {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")

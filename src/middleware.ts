@@ -3,12 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS = 10;
+
+// ログイン試行制限
+const LOGIN_WINDOW_MS = 30 * 60 * 1000; // 30分
+const MAX_LOGIN_ATTEMPTS = 10;
 const CLEANUP_INTERVAL = 100;
 const MAX_MAP_SIZE = 10000;
 
 // NOTE: インメモリMapはサーバーレスインスタンス間で共有されないため best-effort。
 // TODO(infra): Redis/Upstash 等の外部ストアへの移行を検討（スケール時に対応）。
 const ipRequestMap = new Map<string, { count: number; resetTime: number }>();
+const loginAttemptMap = new Map<string, { count: number; resetTime: number }>();
 let requestCount = 0;
 
 function lazyCleanup() {
@@ -59,6 +64,31 @@ function getClientIP(request: NextRequest): string {
   return "unknown";
 }
 
+function loginRateLimit(request: NextRequest): NextResponse | null {
+  const path = request.nextUrl.pathname;
+  if (!path.startsWith("/sign-in") && !path.startsWith("/sign-up")) return null;
+  if (request.method !== "POST") return null;
+
+  const ip = getClientIP(request);
+  const now = Date.now();
+  const existing = loginAttemptMap.get(ip);
+
+  if (!existing || now > existing.resetTime) {
+    loginAttemptMap.set(ip, { count: 1, resetTime: now + LOGIN_WINDOW_MS });
+    return null;
+  }
+
+  if (existing.count >= MAX_LOGIN_ATTEMPTS) {
+    return NextResponse.json(
+      { error: "ログイン試行回数の上限に達しました。30分後に再試行してください。" },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((existing.resetTime - now) / 1000)) } }
+    );
+  }
+
+  existing.count++;
+  return null;
+}
+
 function rateLimit(request: NextRequest): NextResponse | null {
   if (!request.nextUrl.pathname.startsWith("/api/")) return null;
   // Stripe Webhookはレートリミット対象外（Stripe側が送信制御）
@@ -104,13 +134,24 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/terms",
   "/privacy",
+  "/share/(.*)",
   "/api/stripe/webhook",
   "/api/feed/cron",
   "/api/feed/digest-cron",
 ]);
 
+// 管理者専用ルート
+const isAdminRoute = createRouteMatcher([
+  "/admin(.*)",
+  "/api/admin(.*)",
+]);
+
 export default clerkMiddleware(async (auth, request) => {
-  // レートリミット
+  // ログイン試行制限
+  const loginLimitResponse = loginRateLimit(request);
+  if (loginLimitResponse) return loginLimitResponse;
+
+  // APIレートリミット
   const rateLimitResponse = rateLimit(request);
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -123,6 +164,14 @@ export default clerkMiddleware(async (auth, request) => {
   // 公開ルート以外は認証を要求
   if (!isPublicRoute(request)) {
     await auth.protect();
+  }
+
+  // 管理者ルートは publicMetadata.role === "admin" を要求
+  if (isAdminRoute(request)) {
+    const metadata = (await auth()).sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+    if (metadata?.role !== "admin") {
+      return NextResponse.json({ error: "管理者権限が必要です" }, { status: 403 });
+    }
   }
 });
 
