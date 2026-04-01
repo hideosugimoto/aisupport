@@ -16,6 +16,7 @@ model LlmUsageLog {
   outputTokens Int      @map("output_tokens")
   totalTokens  Int      @map("total_tokens")
   feature      String
+  keySource    String   @default("platform") @map("key_source")
   requestId    String?  @map("request_id")
   metadata     String?
   createdAt    DateTime @default(now()) @map("created_at")

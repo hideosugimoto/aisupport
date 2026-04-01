@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: modelCheck.error }, { status: 403 });
     }
     const client = createLLMClient(provider, undefined, enableFallback, apiKey ?? undefined);
-    const engine = new TaskDecisionEngine(client, repository, provider, model, logger.child("engine"));
+    const engine = new TaskDecisionEngine(client, repository, provider, model, logger.child("engine"), source);
 
     // RAG: ドキュメントがあれば retriever を設定
     if (process.env.OPENAI_API_KEY) {

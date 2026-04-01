@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: modelCheck.error }, { status: 403 });
     }
     const client = createLLMClient(provider, undefined, enableFallback, apiKey);
-    const engine = new TaskBreakdownEngine(client, repository, provider, model);
+    const engine = new TaskBreakdownEngine(client, repository, provider, model, source);
 
     if (body.stream) {
       const encoder = new TextEncoder();

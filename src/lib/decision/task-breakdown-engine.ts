@@ -20,7 +20,8 @@ export class TaskBreakdownEngine {
     private readonly client: LLMClient,
     private readonly repository: UsageLogRepository,
     private readonly provider: string,
-    private readonly model?: string
+    private readonly model?: string,
+    private readonly keySource: "user" | "platform" = "platform"
   ) {}
 
   async breakdown(userId: string, input: TaskBreakdownInput): Promise<BreakdownResult> {
@@ -37,6 +38,7 @@ export class TaskBreakdownEngine {
       outputTokens: response.usage.outputTokens,
       totalTokens: response.usage.totalTokens,
       feature: "task_breakdown",
+      keySource: this.keySource,
       requestId: response.requestId,
     });
 
@@ -78,6 +80,7 @@ export class TaskBreakdownEngine {
           outputTokens: lastUsage.outputTokens,
           totalTokens: lastUsage.totalTokens,
           feature: "task_breakdown",
+          keySource: this.keySource,
         });
       }
     }

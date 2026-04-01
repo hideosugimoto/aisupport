@@ -2,16 +2,10 @@ import { NextRequest } from "next/server";
 import { CostCalculator } from "@/lib/cost/calculator";
 import { PrismaUsageLogRepository } from "@/lib/db/prisma-usage-log-repository";
 import { prisma } from "@/lib/db/prisma";
-import { BudgetChecker } from "@/lib/budget/checker";
-import featuresConfig from "@/../config/features.json";
 import { requireAuth, handleAuthError } from "@/lib/auth/helpers";
 
 const repository = new PrismaUsageLogRepository(prisma);
 const calculator = new CostCalculator(repository);
-const budgetChecker = new BudgetChecker(
-  calculator,
-  featuresConfig.monthly_budget_usd
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,14 +19,16 @@ export async function GET(request: NextRequest) {
     const from = new Date();
     from.setDate(from.getDate() - 7);
 
-    const [summary, dailyCosts, budget, versionStats] = await Promise.all([
-      calculator.getMonthlySummary(userId, year, month),
-      calculator.getDailyCosts(userId, from, to),
-      budgetChecker.checkBudget(userId, year, month),
-      calculator.getPromptVersionStats(userId, year, month),
+    // BYOKユーザーの自分のAPIキー使用分のみ表示
+    const keySource = "user";
+
+    const [summary, dailyCosts, versionStats] = await Promise.all([
+      calculator.getMonthlySummary(userId, year, month, keySource),
+      calculator.getDailyCosts(userId, from, to, keySource),
+      calculator.getPromptVersionStats(userId, year, month, keySource),
     ]);
 
-    return Response.json({ summary, dailyCosts, budget, versionStats });
+    return Response.json({ summary, dailyCosts, versionStats });
   } catch (error) {
     try {
       return handleAuthError(error);

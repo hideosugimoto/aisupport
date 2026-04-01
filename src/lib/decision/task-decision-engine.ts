@@ -49,7 +49,8 @@ export class TaskDecisionEngine {
     private repository: UsageLogRepository,
     private provider: string,
     private model?: string,
-    private logger: Logger = nullLogger
+    private logger: Logger = nullLogger,
+    private keySource: "user" | "platform" = "platform"
   ) {}
 
   setRetriever(retriever: Retriever): void {
@@ -121,6 +122,7 @@ export class TaskDecisionEngine {
       outputTokens: response.usage.outputTokens,
       totalTokens: response.usage.totalTokens,
       feature: "task_decision",
+      keySource: this.keySource,
       requestId: response.requestId,
       metadata,
     });
@@ -205,6 +207,7 @@ export class TaskDecisionEngine {
     const client = this.client;
     const repository = this.repository;
     const provider = this.provider;
+    const keySource = this.keySource;
     const isAnxietyMode =
       input.energyLevel <= featuresConfig.anxiety_mode_threshold;
 
@@ -235,6 +238,7 @@ export class TaskDecisionEngine {
             outputTokens: lastUsage.outputTokens,
             totalTokens: lastUsage.totalTokens,
             feature: "task_decision",
+            keySource,
             metadata,
           });
         }

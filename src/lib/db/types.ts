@@ -7,6 +7,7 @@ export interface UsageLogEntry {
   outputTokens: number;
   totalTokens: number;
   feature: string;
+  keySource?: "user" | "platform";
   requestId?: string;
   metadata?: string;
   createdAt?: Date;
@@ -23,12 +24,13 @@ export interface ProviderCostSummary {
 
 export interface UsageLogRepository {
   save(log: UsageLogEntry): Promise<void>;
-  findByMonth(userId: string, year: number, month: number): Promise<UsageLogEntry[]>;
-  findByDateRange(userId: string, from: Date, to: Date): Promise<UsageLogEntry[]>;
+  findByMonth(userId: string, year: number, month: number, keySource?: string): Promise<UsageLogEntry[]>;
+  findByDateRange(userId: string, from: Date, to: Date, keySource?: string): Promise<UsageLogEntry[]>;
   aggregateByProvider(
     userId: string,
     year: number,
-    month: number
+    month: number,
+    keySource?: string
   ): Promise<ProviderCostSummary[]>;
 }
 

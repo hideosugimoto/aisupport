@@ -18,23 +18,25 @@ export class PrismaUsageLogRepository implements UsageLogRepository {
         outputTokens: log.outputTokens,
         totalTokens: log.totalTokens,
         feature: log.feature,
+        keySource: log.keySource ?? "platform",
         requestId: log.requestId ?? null,
         metadata: log.metadata ?? null,
       },
     });
   }
 
-  async findByMonth(userId: string, year: number, month: number): Promise<UsageLogEntry[]> {
+  async findByMonth(userId: string, year: number, month: number, keySource?: string): Promise<UsageLogEntry[]> {
     const from = new Date(year, month - 1, 1);
     const to = new Date(year, month, 1);
-    return this.findByDateRange(userId, from, to);
+    return this.findByDateRange(userId, from, to, keySource);
   }
 
-  async findByDateRange(userId: string, from: Date, to: Date): Promise<UsageLogEntry[]> {
+  async findByDateRange(userId: string, from: Date, to: Date, keySource?: string): Promise<UsageLogEntry[]> {
     const logs = await this.prisma.llmUsageLog.findMany({
       where: {
         userId,
         createdAt: { gte: from, lt: to },
+        ...(keySource ? { keySource } : {}),
       },
       orderBy: { createdAt: "desc" },
     });
@@ -48,6 +50,7 @@ export class PrismaUsageLogRepository implements UsageLogRepository {
       outputTokens: log.outputTokens,
       totalTokens: log.totalTokens,
       feature: log.feature,
+      keySource: log.keySource as "user" | "platform",
       requestId: log.requestId ?? undefined,
       metadata: log.metadata ?? undefined,
       createdAt: log.createdAt,
@@ -57,7 +60,8 @@ export class PrismaUsageLogRepository implements UsageLogRepository {
   async aggregateByProvider(
     userId: string,
     year: number,
-    month: number
+    month: number,
+    keySource?: string
   ): Promise<ProviderCostSummary[]> {
     const from = new Date(year, month - 1, 1);
     const to = new Date(year, month, 1);
@@ -67,6 +71,7 @@ export class PrismaUsageLogRepository implements UsageLogRepository {
       where: {
         userId,
         createdAt: { gte: from, lt: to },
+        ...(keySource ? { keySource } : {}),
       },
       _sum: {
         inputTokens: true,

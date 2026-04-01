@@ -36,9 +36,10 @@ export class CostCalculator {
   async getMonthlySummary(
     userId: string,
     year: number,
-    month: number
+    month: number,
+    keySource?: string
   ): Promise<MonthlyCostSummary> {
-    const summaries = await this.repository.aggregateByProvider(userId, year, month);
+    const summaries = await this.repository.aggregateByProvider(userId, year, month, keySource);
     const breakdowns = summaries.map((s) => this.toBreakdown(s));
 
     const totalCostUsd = breakdowns.reduce((sum, b) => sum + b.costUsd, 0);
@@ -55,9 +56,10 @@ export class CostCalculator {
   async getDailyCosts(
     userId: string,
     from: Date,
-    to: Date
+    to: Date,
+    keySource?: string
   ): Promise<{ date: string; costUsd: number; costJpy: number }[]> {
-    const logs = await this.repository.findByDateRange(userId, from, to);
+    const logs = await this.repository.findByDateRange(userId, from, to, keySource);
 
     const dailyMap = new Map<string, number>();
     for (const log of logs) {
@@ -85,9 +87,10 @@ export class CostCalculator {
   async getPromptVersionStats(
     userId: string,
     year: number,
-    month: number
+    month: number,
+    keySource?: string
   ): Promise<PromptVersionStats[]> {
-    const logs = await this.repository.findByMonth(userId, year, month);
+    const logs = await this.repository.findByMonth(userId, year, month, keySource);
 
     const versionMap = new Map<
       string,
