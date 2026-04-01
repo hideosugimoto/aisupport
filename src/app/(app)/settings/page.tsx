@@ -8,6 +8,7 @@ import { PushNotificationSection } from "@/components/settings/PushNotificationS
 import { ReminderSection } from "@/components/settings/ReminderSection";
 import { AccountDeletionSection } from "@/components/settings/AccountDeletionSection";
 import { ThemeSection } from "@/components/settings/ThemeSection";
+import { UserProfile } from "@clerk/nextjs";
 
 interface NotificationSettings {
   reminderEnabled: boolean;
@@ -258,6 +259,24 @@ export default function SettingsPage() {
             onSettingsChange={setSettings}
             onSave={saveSettings}
           />
+
+          <div className="rounded-lg border border-border-brand bg-surface p-6">
+            <h2 className="mb-4 text-sm font-medium text-text">
+              アカウント・セキュリティ
+            </h2>
+            <p className="mb-4 text-xs text-text2">
+              パスワード変更・2段階認証の設定はこちらから行えます
+            </p>
+            <UserProfile
+              routing="hash"
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-none border-0 p-0",
+                },
+              }}
+            />
+          </div>
 
           <AccountDeletionSection onMessage={setMessage} />
 
