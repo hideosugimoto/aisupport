@@ -15,7 +15,7 @@
     },
     "pro": {
       "name": "Pro",
-      "monthly_request_limit": -1,
+      "monthly_request_limit": 100,
       "rag_enabled": true,
       "weekly_review_enabled": true,
       "weekly_review_lite_enabled": true,
