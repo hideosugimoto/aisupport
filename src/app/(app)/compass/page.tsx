@@ -49,7 +49,6 @@ export default function CompassPage() {
               マイゴール
             </h1>
             <SubNav links={[
-              { href: "/documents", label: "資料" },
               { href: "/dashboard", label: "ホーム" },
             ]} />
           </div>

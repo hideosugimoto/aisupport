@@ -11,7 +11,6 @@ export default function CostPage() {
               コストダッシュボード
             </h1>
             <SubNav links={[
-              { href: "/history", label: "履歴" },
               { href: "/dashboard", label: "ホーム" },
             ]} />
           </div>

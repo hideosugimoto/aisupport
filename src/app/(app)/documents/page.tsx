@@ -96,7 +96,6 @@ export default function DocumentsPage() {
               ドキュメント管理
             </h1>
             <SubNav links={[
-              { href: "/compass", label: "マイゴール" },
               { href: "/dashboard", label: "ホーム" },
             ]} />
           </div>

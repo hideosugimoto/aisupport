@@ -99,7 +99,6 @@ export default function ComparePage() {
               エンジン比較
             </h1>
             <SubNav links={[
-              { href: "/history", label: "履歴" },
               { href: "/dashboard", label: "ホーム" },
             ]} />
           </div>

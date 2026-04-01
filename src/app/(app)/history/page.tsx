@@ -30,7 +30,6 @@ export default async function HistoryPage() {
               判定履歴
             </h1>
             <SubNav links={[
-              { href: "/compare", label: "比較" },
               { href: "/dashboard", label: "ホーム" },
             ]} />
           </div>
