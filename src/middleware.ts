@@ -166,11 +166,20 @@ export default clerkMiddleware(async (auth, request) => {
     await auth.protect();
   }
 
-  // 管理者ルートは publicMetadata.role === "admin" を要求
+  // 管理者ルートは publicMetadata.role === "admin" + 2FA を要求
   if (isAdminRoute(request)) {
-    const metadata = (await auth()).sessionClaims?.publicMetadata as Record<string, unknown> | undefined;
+    const claims = (await auth()).sessionClaims as Record<string, unknown> | undefined;
+    const metadata = claims?.publicMetadata as Record<string, unknown> | undefined;
+
     if (metadata?.role !== "admin") {
       return NextResponse.json({ error: "管理者権限が必要です" }, { status: 403 });
+    }
+
+    if (!claims?.hasMFA) {
+      return NextResponse.json(
+        { error: "管理画面へのアクセスには2段階認証の設定が必要です。プロフィール設定から有効化してください。" },
+        { status: 403 }
+      );
     }
   }
 });
